@@ -1,0 +1,14 @@
+{
+    "name"         : "IRC::Client",
+    "version"      : "1.001001",
+    "description"
+        : "Extendable Internet Relay Chat client",
+    "depends"      : [ ],
+    "test-depends" : [ "Test" ],
+    "provides"     : {
+        "IRC::Client" : "lib/IRC/Client.pm6"
+    },
+    "author"       : "Zoffix Znet",
+    "authority"    : "zoffixznet",
+    "source-url"   : "git://github.com/zoffixznet/perl6-IRC-Client.git"
+}
