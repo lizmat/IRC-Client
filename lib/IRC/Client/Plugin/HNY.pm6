@@ -8,3 +8,9 @@ multi method interval (IRC::Client $irc) {
         $irc.channels[0], "5 seconds passed. Time is now " ~ now
     );
 }
+
+
+
+sub get_UTC_offsets {
+
+}
