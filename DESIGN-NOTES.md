@@ -23,3 +23,44 @@ Each IRC message may consist of up to three main parts: the prefix (optional),
 the command, and the command parameters (of which there may be up to 15). The
 prefix, command, and all parameters are separated by one (or more) ASCII space
 character(s) (0x20).
+
+***Clients should not use prefix when sending a message from themselves;***
+
+The command must either be a valid IRC command or a three (3) digit number represented in ASCII text.
+
+IRC messages are always lines of characters terminated with a CR-LF (Carriage Return - Line Feed) pair, and these messages shall ***not exceed 512 characters*** in length, counting all characters **including the trailing CR-LF**. Thus, there are 510 characters maximum allowed for the command and its parameters. There is no provision for continuation message lines. See section 7 for more details about current implementations.
+
+
+The BNF representation for this is:
+
+::=
+
+[':' <prefix> <SPACE> ] <command> <params> <crlf>
+
+::=
+
+<servername> | <nick> [ '!' <user> ] [ '@' <host> ]
+
+::=
+
+<letter> { <letter> } | <number> <number> <number>
+
+::=
+
+' ' { ' ' }
+
+::=
+
+<SPACE> [ ':' <trailing> | <middle> <params> ]
+
+::=
+
+<Any *non-empty* sequence of octets not including SPACE or NUL or CR or LF, the first of which may not be ':'>
+
+::=
+
+<Any, possibly *empty*, sequence of octets not including NUL or CR or LF>
+
+::=
+
+CR LF

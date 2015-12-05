@@ -1,16 +1,16 @@
 use v6;
 role IRC::Client::Plugin { ... }
 class IRC::Client:ver<1.001001> {
-    has Bool $.debug                        = False;
-    has Str  $.host                          = 'localhost';
-    has Int  $.port where 0 <= $_ <= 65535   = 6667;
-    has Str  $.nick where 1 <= .chars <= 9   = 'Perl6IRC';
-    has Str  $.username                      = 'Perl6IRC';
-    has Str  $.userhost                      = 'localhost';
-    has Str  $.userreal                      = 'Perl6 IRC Client';
-    has Str  @.channels                      = ['#perl6bot'];
-    has      @.plugins                       = [];
-    has IO::Socket::Async $.sock;
+    has Bool:D $.debug                         = False;
+    has Str:D  $.host                          = 'localhost';
+    has Int:D  $.port where 0 <= $_ <= 65535   = 6667;
+    has Str:D  $.nick                          = 'Perl6IRC';
+    has Str:D  $.username                      = 'Perl6IRC';
+    has Str:D  $.userhost                      = 'localhost';
+    has Str:D  $.userreal                      = 'Perl6 IRC Client';
+    has Str:D  @.channels                      = ['#perl6bot'];
+    has IRC::Client::Plugin @.plugins          = [];
+    has IO::Socket::Async   $.sock;
 
     method run {
         await IO::Socket::Async.connect( $!host, $!port ).then({
@@ -23,8 +23,8 @@ class IRC::Client:ver<1.001001> {
                 for @!plugins.grep(*.interval);
 
             react {
-                whenever $!sock.chars-supply -> $str is copy {
-                    $str.say;
+                whenever $!sock.Supply -> $str is copy {
+                    "[$str]".perl.say;
                     .msg(self, $str) for @!plugins.grep(so *.msg);
                 }
             }
