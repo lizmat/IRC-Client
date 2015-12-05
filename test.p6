@@ -1,6 +1,6 @@
 use v6;
 grammar IRC::Grammar:ver<1.001001> {
-    token TOP { <message> }
+    token TOP { <message>+ }
     token SPACE { ' '+ }
     token message { [':' <prefix> <SPACE> ]? <command> <params> \n }
         token prefix  {
@@ -21,6 +21,14 @@ grammar IRC::Grammar:ver<1.001001> {
         token special { <[-\[\]\\`^{}]> }
 }
 
+class IRC::Grammar::Actions{
+    method TOP ($/) { $/.make: $<message>>>.made }
+}
+
+say IRC::Grammar.parse(":verne.freenode.net 372 Perl6IRC :- running for their sustained support.\r\n");
+
+=finish
+
 my @messages = (
     ":verne.freenode.net 372 Perl6IRC :- running for their sustained support.\r\n",
     ":Perl6IRC MODE Perl6IRC :+i\r\n",
@@ -30,5 +38,5 @@ my @messages = (
     ":ZoffixW!~ZoffixW@unaffiliated/zoffix JOIN #perl6bot\r\n",
     ":ZoffixW!~ZoffixW@unaffiliated/zoffix PRIVMSG #perl6bot :test\r\n",
 );
-say so IRC::Grammar.parse(@messages[$_]) for 0..@messages.elems-1;
+# say so IRC::Grammar.parse(@messages[$_]) for 0..@messages.elems-1;
 # say IRC::Grammar.parse(":verne.freenode.net 372 Perl6IRC :- running for their sustained support.\r\n");
