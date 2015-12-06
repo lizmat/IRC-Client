@@ -24,8 +24,8 @@ class IRC::Client:ver<1.001001> {
             $.ssay("USER $!username $!userhost $!host :$!userreal\n");
             $.ssay("JOIN $_\n") for @!channels;
 
-            # Supply.interval( .interval ).tap({ $OUTER::_.interval(self) })
-                # for @!plugins.grep(*.interval);
+            Supply.interval( .interval ).tap({ $OUTER::_.interval(self) })
+                for @!plugins.grep(*.interval);
 
             react {
                 whenever $!sock.Supply -> $str is copy {

@@ -142,6 +142,95 @@ working order of any IRC client. **Defaults to:**
 Takes no arguments. Starts the IRC client. Exits when the connection
 to the IRC server ends.
 
+# PLUGINS
+
+Currently, this distribution comes with two IRC Client plugins:
+
+## Writing your own
+
+```perl6
+    unit class IRC::Client::Plugin::Foo:ver<1.001001>;
+
+    multi method msg () { True }
+    multi method msg ($irc, $msg) {
+        $irc.privmsg( Zoffix => Dump $msg, :indent(4) );
+    }
+
+    multi method interval () {  6  }
+    multi method interval ($irc) {
+        $irc.privmsg(
+            $irc.channels[0], "5 seconds passed. Time is now " ~ now
+        );
+    }
+```
+
+Above is a sample plugin. You can choose to respond either to server
+messages or do things at a specific interval.
+
+### Responding to server messages
+
+```perl6
+    multi method msg () { True }
+    multi method msg ($irc, $msg) {
+        $irc.privmsg( Zoffix => Dump $msg, :indent(4) );
+    }
+```
+
+If your plugin can resond to server messages, declare two multi methods
+`msg` as seen above. The one without parameters needs to return `True`
+(or `False`, if your plugin does not respond to messages). The second
+gets the `IRC::Client` object as the first argument and the parsed message
+as the second argument.
+
+### Acting in intervals
+
+```perl6
+    multi method interval () {  6  }
+    multi method interval ($irc) {
+        $irc.privmsg(
+            $irc.channels[0], "5 seconds passed. Time is now " ~ now
+        );
+    }
+```
+Your plugin can also repsond in intervals. Declare an `interval` multi
+that takes no arguments and returns an interval in seconds that your
+action should happen in (return `0` if your plugin does not handle intervals).
+The other multi method `interval` takes the `IRC::Client` as the argument.
+
+## Methods for plugins
+
+You can make use of these `IRC::Client` methods in your plugins:
+
+### `.ssay`
+
+```perl6
+    $irc.ssay("Foo bar!");
+```
+Sends a message to the server, automatically appending `\r\n`.
+
+### `.privmsg`
+
+```perl6
+    $irc.privmsg( Zoffix => "Hallo!" );
+```
+Sends a `PRIVMSG` message specified in the second argument
+to the user/channel specified as the first argument.
+
+## Included Plugins
+
+### `IRC::Client::Plugin::Debugger`
+
+    plugins => [IRC::Client::Plugin::Debugger.new]
+
+Including this plugin will pretty-print parsed IRC messages on STDOUT.
+
+### `IRC::Client::Plugin::PingPong`
+
+    plugins-essential => [IRC::Client::Plugin::PingPong.new]
+
+This plugin responds to server's `PING` requests and is automatically
+included in the `plugins-essential` by default.
+
 # REPOSITORY
 
 Fork this module on GitHub:

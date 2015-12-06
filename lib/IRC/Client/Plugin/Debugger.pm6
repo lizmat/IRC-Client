@@ -6,10 +6,3 @@ multi method msg () { True }
 multi method msg ($irc, $msg) {
     say Dump $msg, :indent(4);
 }
-
-multi method interval (                ) {  6  }
-multi method interval ($irc) {
-    $irc.privmsg(
-        $irc.channels[0], "5 seconds passed. Time is now " ~ now
-    );
-}
