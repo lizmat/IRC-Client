@@ -3,12 +3,11 @@ method TOP ($/) { $/.make: $<message>>>.made }
 method message ($/) {
     my $pref = $/<prefix>;
     my %args = command => ~$/<command>;
-    if ( $pref<servername>.defined ) {
-        %args<who><host> = ~$pref<servername>;
+    for qw/nick user host/ {
+        $pref{$_}.defined or next;
+        %args<who>{$_} = $pref{$_}.Str;
     }
-    else {
-        %args<who><nick user host> = $pref<nick  user  host>».Str;
-    }
+    %args<who><host> = ~$pref<servername> if $pref<servername>.defined;
 
     my $p = $/<params>;
     loop {

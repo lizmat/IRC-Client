@@ -1,14 +1,18 @@
 {
+    "perl"         : "6.*",
     "name"         : "IRC::Client",
     "version"      : "1.001001",
-    "description"
-        : "Extendable Internet Relay Chat client",
-    "depends"      : [ ],
+    "description"  : "Extendable Internet Relay Chat client",
+    "depends"      : [ "Data::Dump" ],
     "test-depends" : [ "Test" ],
     "provides"     : {
-        "IRC::Client" : "lib/IRC/Client.pm6"
+        "IRC::Client" : "lib/IRC/Client.pm6",
+        "IRC::Grammar" : "lib/IRC/Grammar.pm6",
+        "IRC::Parser" : "lib/IRC/Parser.pm6",
+        "IRC::Grammar::Actions" : "lib/IRC/Grammar/Actions.pm6",
+        "IRC::Client::Plugin::Debugger" : "lib/IRC/Client/Plugin/Debugger.pm6",
+        "IRC::Client::Plugin::PingPong" : "lib/IRC/Client/Plugin/PingPong.pm6"
     },
     "author"       : "Zoffix Znet",
-    "authority"    : "zoffixznet",
     "source-url"   : "git://github.com/zoffixznet/perl6-IRC-Client.git"
 }

@@ -1,5 +1,6 @@
 use v6;
 use IRC::Parser; # parse-irc
+use IRC::Client::Plugin::PingPong;
 role IRC::Client::Plugin { ... }
 class IRC::Client:ver<1.001001> {
     has Bool:D $.debug                          = False;
@@ -11,8 +12,10 @@ class IRC::Client:ver<1.001001> {
     has Str:D  $.userreal                       = 'Perl6 IRC Client';
     has Str:D  @.channels                       = ['#perl6bot'];
     has IO::Socket::Async   $.sock;
-    has IRC::Client::Plugin @.plugins           = [];
-    has IRC::Client::Plugin @.plugins-essential = [];
+    has @.plugins           = [];
+    has @.plugins-essential = [
+        IRC::Client::Plugin::PingPong.new
+    ];
 
     method run {
         await IO::Socket::Async.connect( $!host, $!port ).then({
@@ -27,10 +30,11 @@ class IRC::Client:ver<1.001001> {
             react {
                 whenever $!sock.Supply -> $str is copy {
                     $!debug and $str.say;
-                    # say parse-irc($str).WHAT;
-                    my $x = parse-irc $str;
-                    @!plugins[0].msg(self, $x);
-                    .msg(self, $x) for @!plugins.grep(*.msg);
+                    my $messages = parse-irc $str;
+                    for @$messages -> $message {
+                        .msg(self, $message)
+                        for (@!plugins-essential, @!plugins).flat.grep(*.msg);
+                    }
                 }
             }
 
