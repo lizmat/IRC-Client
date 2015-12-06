@@ -1,31 +1,11 @@
 use v6;
 grammar IRC::Grammar:ver<1.001001> {
-    token TOP { <message>+ }
-    token SPACE { ' '+ }
-    token message { [':' <prefix> <SPACE> ]? <command> <params> \n }
-        token prefix  {
-            [ <servername> || <nick> ['!' <user>]? ['@' <host>]? ]
-            <before <SPACE>>
-        }
-            token servername { <host> }
-            token nick { <letter> [ <letter> | <number> | <special> ]* }
-            token user { <-[\ \0\r\n]>+?  <before [<SPACE> | '@']>}
-            token host { <-[\s!@]>+ }
-        token command { <letter>+ | <number>**3 }
-        token params { <SPACE>* [ ':' <trailing> | <middle> <params> ]? }
-            token middle { <-[:\ \0\r\n]> <-[\ \0\r\n]>* }
-            token trailing { <-[\0\r\n]>* }
 
-        token letter { <[a..zA..Z]> }
-        token number { <[0..9]> }
-        token special { <[-\[\]\\`^{}]> }
-}
+my $res = IRC::Grammar.parse(
+":ZoffixW!~ZoffixW\@unaffiliated/zoffix PRIVMSG #perl6bot :test\r\n"
+, :actions(IRC::Grammar::Actions) ).made;
 
-class IRC::Grammar::Actions{
-    method TOP ($/) { $/.make: $<message>>>.made }
-}
-
-say IRC::Grammar.parse(":verne.freenode.net 372 Perl6IRC :- running for their sustained support.\r\n");
+say $res[0]
 
 =finish
 

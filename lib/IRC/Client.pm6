@@ -1,16 +1,18 @@
 use v6;
+use IRC::Parser; # parse-irc
 role IRC::Client::Plugin { ... }
 class IRC::Client:ver<1.001001> {
-    has Bool:D $.debug                         = False;
-    has Str:D  $.host                          = 'localhost';
-    has Int:D  $.port where 0 <= $_ <= 65535   = 6667;
-    has Str:D  $.nick                          = 'Perl6IRC';
-    has Str:D  $.username                      = 'Perl6IRC';
-    has Str:D  $.userhost                      = 'localhost';
-    has Str:D  $.userreal                      = 'Perl6 IRC Client';
-    has Str:D  @.channels                      = ['#perl6bot'];
-    has IRC::Client::Plugin @.plugins          = [];
+    has Bool:D $.debug                          = False;
+    has Str:D  $.host                           = 'localhost';
+    has Int:D  $.port where 0 <= $_ <= 65535    = 6667;
+    has Str:D  $.nick                           = 'Perl6IRC';
+    has Str:D  $.username                       = 'Perl6IRC';
+    has Str:D  $.userhost                       = 'localhost';
+    has Str:D  $.userreal                       = 'Perl6 IRC Client';
+    has Str:D  @.channels                       = ['#perl6bot'];
     has IO::Socket::Async   $.sock;
+    has IRC::Client::Plugin @.plugins           = [];
+    has IRC::Client::Plugin @.plugins-essential = [];
 
     method run {
         await IO::Socket::Async.connect( $!host, $!port ).then({
@@ -19,13 +21,16 @@ class IRC::Client:ver<1.001001> {
             $.ssay("USER $!username $!userhost $!host :$!userreal\n");
             $.ssay("JOIN $_\n") for @!channels;
 
-            Supply.interval( .interval ).tap({ $OUTER::_.interval(self) })
-                for @!plugins.grep(*.interval);
+            # Supply.interval( .interval ).tap({ $OUTER::_.interval(self) })
+                # for @!plugins.grep(*.interval);
 
             react {
                 whenever $!sock.Supply -> $str is copy {
-                    "[$str]".perl.say;
-                    .msg(self, $str) for @!plugins.grep(so *.msg);
+                    $!debug and $str.say;
+                    # say parse-irc($str).WHAT;
+                    my $x = parse-irc $str;
+                    @!plugins[0].msg(self, $x);
+                    .msg(self, $x) for @!plugins.grep(*.msg);
                 }
             }
 
