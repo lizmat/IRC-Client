@@ -1,8 +1,8 @@
 use v6;
 use IRC::Parser; # parse-irc
 use IRC::Client::Plugin::PingPong;
-role IRC::Client::Plugin { ... }
-class IRC::Client:ver<1.001001> {
+use IRC::Client::Plugin;
+class IRC::Client:ver<1.002001> {
     has Bool:D $.debug                          = False;
     has Str:D  $.host                           = 'localhost';
     has Int:D  $.port where 0 <= $_ <= 65535    = 6667;
@@ -16,6 +16,7 @@ class IRC::Client:ver<1.001001> {
     has @.plugins-essential = [
         IRC::Client::Plugin::PingPong.new
     ];
+    has @!plugs             = [|@!plugins-essential, |@!plugins];
 
     method run {
         await IO::Socket::Async.connect( $!host, $!port ).then({
@@ -24,16 +25,44 @@ class IRC::Client:ver<1.001001> {
             $.ssay("USER $!username $!userhost $!host :$!userreal\n");
             $.ssay("JOIN $_\n") for @!channels;
 
-            Supply.interval( .interval ).tap({ $OUTER::_.interval(self) })
-                for @!plugins.grep(*.interval);
+            .register: self for @!plugs.grep(*.^can: 'register');
 
             react {
                 whenever $!sock.Supply -> $str is copy {
-                    $!debug and $str.say;
+                    $!debug and "[server {DateTime.now}] {$str}".put;
                     my $messages = parse-irc $str;
-                    for @$messages -> $message {
-                        .msg(self, $message)
-                        for (@!plugins-essential, @!plugins).flat.grep(*.msg);
+                    MESSAGES: for @$messages -> $message {
+                        $message<handled> = False;
+                        $message<pipe>    = {};
+
+                        if ( $message<command> eq 'PRIVMSG'
+                            and $message<params>[0] eq $!nick
+                        ) {
+                            for @!plugs.grep(*.^can: 'privmsg-me') -> $p {
+                                my $res = $p.privmsg-me(self, $message);
+                                next MESSAGES unless $res === irc-not-handled;
+                            }
+                        }
+
+                        if ( $message<command> eq 'NOTICE'
+                            and $message<params>[0] eq $!nick
+                        ) {
+                            for @!plugs.grep(*.^can: 'notice-me') -> $p {
+                                my $res = $p.notice-me(self, $message);
+                                next MESSAGES unless $res === irc-not-handled;
+                            }
+                        }
+
+                        my $cmd = 'irc-' ~ $message<command>.lc;
+                        for @!plugs.grep(*.^can: $cmd) -> $p {
+                            my $res = $p."$cmd"(self, $message);
+                            next MESSAGES unless $res === irc-not-handled;
+                        }
+
+                        for @!plugs.grep(*.^can: 'msg') -> $p {
+                            my $res = $p.msg(self, $message);
+                            next MESSAGES unless $res === irc-not-handled;
+                        }
                     }
                 }
             }
@@ -44,14 +73,25 @@ class IRC::Client:ver<1.001001> {
     }
 
     method ssay (Str:D $msg) {
+        $!debug and "{plug-name}$msg".put;
         $!sock.print("$msg\n");
         self;
     }
 
     method privmsg (Str $who, Str $what) {
         my $msg = ":$!nick!$!username\@$!userhost PRIVMSG $who :$what\n";
-        $!debug and say ".privmsg({$msg.subst("\n", "␤", :g)})";
-        self.ssay: $msg;
+        $!debug and "{plug-name}$msg".put;
+        $!sock.print("$msg\n");
         self;
     }
+}
+
+sub plug-name {
+    my $plug = callframe(3).file;
+    my $cur = $?FILE;
+    return '[core] ' if $plug eq $cur;
+    $cur ~~ s/'.pm6'$//;
+    $plug ~~ s:g/^ $cur '/' | '.pm6'$//;
+    $plug ~~ s/'/'/::/;
+    return "[$plug] ";
 }

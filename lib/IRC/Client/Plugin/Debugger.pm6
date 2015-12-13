@@ -1,8 +1,8 @@
-use v6;
 use Data::Dump;
-unit class IRC::Client::Plugin::Debugger:ver<1.001001>;
+use IRC::Client::Plugin;
+unit class IRC::Client::Plugin::Debugger:ver<1.002001> is IRC::Client::Plugin;
 
-multi method msg () { True }
-multi method msg ($irc, $msg) {
+method msg ($irc, $msg) {
     say Dump $msg, :indent(4);
+    return irc-not-handled;
 }
