@@ -4,5 +4,5 @@ unit class IRC::Client::Plugin::Debugger:ver<1.002001> is IRC::Client::Plugin;
 
 method msg ($irc, $msg) {
     say Dump $msg, :indent(4);
-    return irc-not-handled;
+    return IRC_NOT_HANDLED;
 }

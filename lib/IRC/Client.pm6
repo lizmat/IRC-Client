@@ -32,7 +32,6 @@ class IRC::Client:ver<1.002001> {
                     $!debug and "[server {DateTime.now}] {$str}".put;
                     my $messages = parse-irc $str;
                     MESSAGES: for @$messages -> $message {
-                        $message<handled> = False;
                         $message<pipe>    = {};
 
                         if ( $message<command> eq 'PRIVMSG'
@@ -40,7 +39,7 @@ class IRC::Client:ver<1.002001> {
                         ) {
                             for @!plugs.grep(*.^can: 'privmsg-me') -> $p {
                                 my $res = $p.privmsg-me(self, $message);
-                                next MESSAGES unless $res === irc-not-handled;
+                                next MESSAGES unless $res === IRC_NOT_HANDLED;
                             }
                         }
 
@@ -49,19 +48,19 @@ class IRC::Client:ver<1.002001> {
                         ) {
                             for @!plugs.grep(*.^can: 'notice-me') -> $p {
                                 my $res = $p.notice-me(self, $message);
-                                next MESSAGES unless $res === irc-not-handled;
+                                next MESSAGES unless $res === IRC_NOT_HANDLED;
                             }
                         }
 
                         my $cmd = 'irc-' ~ $message<command>.lc;
                         for @!plugs.grep(*.^can: $cmd) -> $p {
                             my $res = $p."$cmd"(self, $message);
-                            next MESSAGES unless $res === irc-not-handled;
+                            next MESSAGES unless $res === IRC_NOT_HANDLED;
                         }
 
                         for @!plugs.grep(*.^can: 'msg') -> $p {
                             my $res = $p.msg(self, $message);
-                            next MESSAGES unless $res === irc-not-handled;
+                            next MESSAGES unless $res === IRC_NOT_HANDLED;
                         }
                     }
                 }
