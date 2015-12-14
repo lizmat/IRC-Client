@@ -30,37 +30,37 @@ class IRC::Client:ver<1.002001> {
             react {
                 whenever $!sock.Supply -> $str is copy {
                     $!debug and "[server {DateTime.now}] {$str}".put;
-                    my $messages = parse-irc $str;
-                    MESSAGES: for @$messages -> $message {
-                        $message<pipe>    = {};
+                    my $event = parse-irc $str;
+                    EVENTS: for @$events -> $e {
+                        $e<pipe>    = {};
 
-                        if ( $message<command> eq 'PRIVMSG'
-                            and $message<params>[0] eq $!nick
+                        if ( $e<command> eq 'PRIVMSG'
+                            and $e<params>[0] eq $!nick
                         ) {
                             for @!plugs.grep(*.^can: 'privmsg-me') -> $p {
-                                my $res = $p.privmsg-me(self, $message);
-                                next MESSAGES unless $res === IRC_NOT_HANDLED;
+                                my $res = $p.privmsg-me(self, $e);
+                                next EVENTS unless $res === IRC_NOT_HANDLED;
                             }
                         }
 
-                        if ( $message<command> eq 'NOTICE'
-                            and $message<params>[0] eq $!nick
+                        if ( $e<command> eq 'NOTICE'
+                            and $e<params>[0] eq $!nick
                         ) {
                             for @!plugs.grep(*.^can: 'notice-me') -> $p {
-                                my $res = $p.notice-me(self, $message);
-                                next MESSAGES unless $res === IRC_NOT_HANDLED;
+                                my $res = $p.notice-me(self, $e);
+                                next EVENTS unless $res === IRC_NOT_HANDLED;
                             }
                         }
 
-                        my $cmd = 'irc-' ~ $message<command>.lc;
+                        my $cmd = 'irc-' ~ $e<command>.lc;
                         for @!plugs.grep(*.^can: $cmd) -> $p {
-                            my $res = $p."$cmd"(self, $message);
-                            next MESSAGES unless $res === IRC_NOT_HANDLED;
+                            my $res = $p."$cmd"(self, $e);
+                            next EVENTS unless $res === IRC_NOT_HANDLED;
                         }
 
-                        for @!plugs.grep(*.^can: 'msg') -> $p {
-                            my $res = $p.msg(self, $message);
-                            next MESSAGES unless $res === IRC_NOT_HANDLED;
+                        for @!plugs.grep(*.^can: 'all-events') -> $p {
+                            my $res = $p.all-events(self, $e);
+                            next EVENTS unless $res === IRC_NOT_HANDLED;
                         }
                     }
                 }
