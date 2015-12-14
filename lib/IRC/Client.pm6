@@ -30,7 +30,7 @@ class IRC::Client:ver<1.002001> {
             react {
                 whenever $!sock.Supply -> $str is copy {
                     $!debug and "[server {DateTime.now}] {$str}".put;
-                    my $event = parse-irc $str;
+                    my $events = parse-irc $str;
                     EVENTS: for @$events -> $e {
                         $e<pipe>    = {};
 
