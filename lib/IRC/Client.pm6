@@ -52,14 +52,19 @@ class IRC::Client:ver<1.002001> {
                             }
                         }
 
+                        for @!plugs.grep(*.^can: 'all-events') -> $p {
+                            my $res = $p.all-events(self, $e);
+                            next EVENTS unless $res === IRC_NOT_HANDLED;
+                        }
+
                         my $cmd = 'irc-' ~ $e<command>.lc;
                         for @!plugs.grep(*.^can: $cmd) -> $p {
                             my $res = $p."$cmd"(self, $e);
                             next EVENTS unless $res === IRC_NOT_HANDLED;
                         }
 
-                        for @!plugs.grep(*.^can: 'all-events') -> $p {
-                            my $res = $p.all-events(self, $e);
+                        for @!plugs.grep(*.^can: 'unhandled') -> $p {
+                            my $res = $p.unhandled(self, $e);
                             next EVENTS unless $res === IRC_NOT_HANDLED;
                         }
                     }
