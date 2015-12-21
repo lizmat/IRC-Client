@@ -35,7 +35,7 @@ class IRC::Client:ver<1.002001> {
                         $e<pipe>    = {};
 
                         for @!plugs.grep(*.^can: 'irc-all-events') -> $p {
-                            my $res = $p.all-events(self, $e);
+                            my $res = $p.irc-all-events(self, $e);
                             next EVENTS unless $res === IRC_NOT_HANDLED;
                         }
 
@@ -43,7 +43,7 @@ class IRC::Client:ver<1.002001> {
                             and $e<params>[0] eq $!nick
                         ) {
                             for @!plugs.grep(*.^can: 'irc-privmsg-me') -> $p {
-                                my $res = $p.privmsg-me(self, $e);
+                                my $res = $p.irc-privmsg-me(self, $e);
                                 next EVENTS unless $res === IRC_NOT_HANDLED;
                             }
                         }
@@ -52,7 +52,7 @@ class IRC::Client:ver<1.002001> {
                             and $e<params>[0] eq $!nick
                         ) {
                             for @!plugs.grep(*.^can: 'irc-notice-me') -> $p {
-                                my $res = $p.notice-me(self, $e);
+                                my $res = $p.irc-notice-me(self, $e);
                                 next EVENTS unless $res === IRC_NOT_HANDLED;
                             }
                         }
@@ -64,7 +64,7 @@ class IRC::Client:ver<1.002001> {
                         }
 
                         for @!plugs.grep(*.^can: 'irc-unhandled') -> $p {
-                            my $res = $p.unhandled(self, $e);
+                            my $res = $p.irc-unhandled(self, $e);
                             next EVENTS unless $res === IRC_NOT_HANDLED;
                         }
                     }
