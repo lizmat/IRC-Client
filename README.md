@@ -546,7 +546,7 @@ https://github.com/zoffixznet/perl6-IRC-Client/issues
 
 # AUTHOR
 
-http://zoffix.com/
+Zoffix Znet (http://zoffix.com/)
 
 # LICENSE
 
