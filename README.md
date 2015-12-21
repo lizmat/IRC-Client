@@ -300,11 +300,12 @@ plugin chain for other plugins to handle.
 ```perl6
     method irc-privmsg ($irc, $e) { ... }
     method irc-notice  ($irc, $e) { ... }
+    method irc-353     ($irc, $e) { ... }
 ```
-To subscribe to an IRC event, simply declare a method named `irc-COMMAND`,
-where `COMMAND` is the IRC command you want to handle. The method takes
-two positional arguments: an `IRC::Client` object and the parsed IRC
-message.
+To subscribe to an IRC event, simply declare a method named `irc-command`,
+where `command` is the IRC command you want to handle, in **lower case**.
+The method takes two positional arguments: an `IRC::Client` object and
+the [parsed IRC message](#contents-of-the-parsed-irc-message).
 
 You'll likely generate a response based on the content of the parsed message
 and use one of the [METHODS FOR PLUGINS](#methods-for-plugins) to send that
@@ -366,6 +367,115 @@ is the client (as opposed to some channel).
 This is the same as [`irc-all-events`](#irc-all-events), except it's triggered
 **after** all other events were tried. This method can be used to catch
 any unhandled events.
+
+## Contents of the parsed IRC message
+
+```perl6
+    # method irc-366 ($irc, $e) { ... }
+    {
+        command => "366".Str,
+        params  => [
+            "Perl6IRC".Str,
+            "#perl6bot".Str,
+            "End of NAMES list".Str,
+        ],
+        pipe    => { },
+        who     => {
+            host => "irc.example.net".Str,
+        },
+    }
+
+    # method irc-join ($irc, $e) { ... }
+    {
+        command => "JOIN".Str,
+        params  => [
+            "#perl6bot".Str,
+        ],
+        pipe    => { },
+        who     => {
+            host => "localhost".Str,
+            nick => "ZoffixW".Str,
+            user => "~ZoffixW".Str,
+        },
+    }
+
+    # method irc-privmsg ($irc, $e) { ... }
+    {
+        command => "PRIVMSG".Str,
+        params  => [
+            "#perl6bot".Str,
+            "Perl6IRC, hello!".Str,
+        ],
+        pipe    => { },
+        who     => {
+            host => "localhost".Str,
+            nick => "ZoffixW".Str,
+            user => "~ZoffixW".Str,
+        },
+    }
+
+    # method irc-notice-me ($irc, $e) { ... }
+    {
+        command => "NOTICE".Str,
+        params  => [
+            "Perl6IRC".Str,
+            "you there?".Str,
+        ],
+        pipe    => { },
+        who     => {
+            host => "localhost".Str,
+            nick => "ZoffixW".Str,
+            user => "~ZoffixW".Str,
+        },
+    }
+```
+
+The second argument to event handlers is the parsed IRC message that is a
+hash with the following keys:
+
+### `command`
+
+```perl6
+    command => "NOTICE".Str,
+```
+Contains the IRC command this message represents.
+
+### `params`
+
+```perl6
+    params  => [
+        "Perl6IRC".Str,
+        "you there?".Str,
+    ],
+```
+Constains the array of parameters for the IRC command.
+
+### pipe
+
+```perl6
+    pipe => { },
+```
+This is a special key that can be used for communication between plugins.
+While any plugin can modify any key of the parsed command's hash, the provided
+`pipe` hash is simply a means to provide some standard, agreed-upon name
+of a key to pass information around.
+
+### who
+
+```perl6
+    #fdss
+    who => {
+        host => "localhost".Str,
+        nick => "ZoffixW".Str,
+        user => "~ZoffixW".Str,
+    },
+
+    who => {
+        host => "irc.example.net".Str,
+    },
+```
+A hash containing information on who sent the message. Messages sent by the
+server do not have `nick`/`user` keys specified.
 
 # REPOSITORY
 
