@@ -73,6 +73,13 @@ This modules lets you create
 in Perl 6. The plugin system lets you work on the behaviour, without worrying
 about IRC layer.
 
+# BLEED BRANCH
+
+The master branch of this repository contains the latest working version
+of the module. To get the bleeding-edge version, you can install from the
+[bleed branch](https://github.com/zoffixznet/perl6-IRC-Client/tree/bleed), but
+that code is not always guaranteed to be in working order.
+
 # METHODS
 
 ## `new`
