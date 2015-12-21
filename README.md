@@ -13,7 +13,7 @@ IRC::Client - Extendable Internet Relay Chat client
     use IRC::Client::Plugin::Debugger;
 
     IRC::Client.new(
-        :host('localhost')
+        :host<localhost>
         :channels<#perl6bot #zofbot>
         :debug
         :plugins( IRC::Client::Plugin::Debugger.new )
