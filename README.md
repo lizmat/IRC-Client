@@ -187,11 +187,92 @@ working order of any IRC client. **Defaults to:**
 Takes no arguments. Starts the IRC client. Exits when the connection
 to the IRC server ends.
 
-# PLUGINS
+# INCLUDED PLUGINS
 
 Currently, this distribution comes with two IRC Client plugins:
 
-## Writing your own
+## IRC::Client::Plugin::Debugger
+
+```perl6
+    use IRC::Client;
+    use IRC::Client::Plugin::Debugger;
+
+    IRC::Client.new(
+        :host('localhost'),
+        :debug,
+        plugins => [ IRC::Client::Plugin::Debugger.new ]
+    ).run;
+```
+
+When run, it will pretty-print all of the events received by the client. It
+does not stop plugin processing loop after handling a message.
+
+## IRC::Client::Plugin::PingPong
+
+```perl6
+    use IRC::Client;
+    IRC::Client.new.run; # automatically included in plugins-essential
+```
+
+This plugin makes IRC::Client respond to server's C<PING> messages and is
+included in the [`plugins-essential`](#plugins-essential) by default.
+
+# EXTENDING IRC::Client / WRITING YOUR OWN PLUGINS
+
+## Overview of the plugin system
+
+The core IRC::Client receives and parses IRC protocol messages from the
+server that it then passes through a plugin chain. The plugins declared in
+[`plugins-essential`](#plugins-essential) are executed first, followed by
+plugins in [`plugins`](#plugins). The order is the same as the order specified
+in those two lists.
+
+A plugin can return a [special constant](#return-value-constants) that
+indicates it handled the message and the plugin chain processing should stop.
+
+To subscribe to handle a particular IRC command, a plugin simply declares a
+method `irc-COMMAND`, where `COMMAND` is the name of the IRC command the
+plugin wishes to handle. There are also a couple of
+[special events](#special-events) the plugin can subscribe to, such as
+intialization during start up or when the client receives a private message
+or notice.
+
+## Return value constants
+
+```perl6
+    use IRC::Client::Plugin;
+    unit class IRC::Client::Plugin::Foo is IRC::Client::Plugin;
+    ...
+```
+
+To make the constants available in your class, simply `use` IRC::Client::Plugin
+class.
+
+### `IRC_HANDLED`
+
+```perl6
+    # Returned by default
+    method irc-ping ($irc, $e) { $irc.ssay("PONG {$irc.nick} $e<params>[0]") }
+
+    # Explicit return
+    method irc-privmsg ($irc, $e) { return IRC_HANDLED; }
+```
+Specifies that plugin handled the message and the plugin chain processing
+should stop immediatelly. Plugins later in the chain won't know this
+message ever came. Unless you explicitly return
+[`IRC_NOT_HANDLED`](#IRC_NOT_HANDLED) constant, IRC::Client will assume
+`IRC_HANDLED` was returned.
+
+### `IRC_NOT_HANDLED`
+
+```perl6
+    return IRC_NOT_HANDLED;
+```
+Returning this constant indicates to IRC::Client that your plugin did
+not "handle" the message and it should be propagated further down the
+plugin chain for other plugins to handle.
+
+
 
 ```perl6
     unit class IRC::Client::Plugin::Foo:ver<1.001001>;
@@ -260,21 +341,6 @@ Sends a message to the server, automatically appending `\r\n`.
 ```
 Sends a `PRIVMSG` message specified in the second argument
 to the user/channel specified as the first argument.
-
-## Included Plugins
-
-### `IRC::Client::Plugin::Debugger`
-
-    plugins => [IRC::Client::Plugin::Debugger.new]
-
-Including this plugin will pretty-print parsed IRC messages on STDOUT.
-
-### `IRC::Client::Plugin::PingPong`
-
-    plugins-essential => [IRC::Client::Plugin::PingPong.new]
-
-This plugin responds to server's `PING` requests and is automatically
-included in the `plugins-essential` by default.
 
 # REPOSITORY
 
