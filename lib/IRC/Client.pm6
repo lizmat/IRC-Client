@@ -19,13 +19,15 @@ class IRC::Client:ver<1.002001> {
     has @!plugs             = [|@!plugins-essential, |@!plugins];
 
     method run {
+        .irc-start-up: self for @!plugs.grep(*.^can: 'irc-start-up');
+
         await IO::Socket::Async.connect( $!host, $!port ).then({
             $!sock = .result;
             $.ssay("NICK $!nick\n");
             $.ssay("USER $!username $!userhost $!host :$!userreal\n");
             $.ssay("JOIN $_\n") for @!channels;
 
-            .register: self for @!plugs.grep(*.^can: 'register');
+            .irc-connected: self for @!plugs.grep(*.^can: 'irc-connected');
 
             react {
                 whenever $!sock.Supply -> $str is copy {

@@ -371,6 +371,9 @@ response.
 ## Special Events
 
 ```perl6
+    method irc-start-up   ($irc) { ... } # once per client run
+    method irc-connected  ($irc) { ... } # once per server connection
+
     method irc-all-events ($irc, $e) { ... }
     method irc-privmsg-me ($irc, $e) { ... }
     method irc-notice-me  ($irc, $e) { ... }
@@ -379,12 +382,37 @@ response.
 ```
 In addition to the [standard IRC commands](#standard-irc-commands), you can
 register several special cases. They're handled in the event chain in the order
-shown above. That is, if a plugin returns [`IRC_HANDLED`](#irc_handled) after
+shown above (except for [`irc-start-up`](#irc-start-up) and
+[`irc-connected`](#irc-connected) that do not offect command-triggered events).
+That is, if a plugin returns [`IRC_HANDLED`](#irc_handled) after
 processing, say, [`irc-all-events`](#irc-all-events) event, its
 [`irc-notice-me`](#irc-notice-me) handler won't be triggered, even if it would
 otherwise.
 
 The available special events are as follows:
+
+### `irc-start-up`
+
+```perl6
+    method irc-start-up ($irc) { ... }
+```
+Passed IRC::Client object as the only argument. Triggered right when the
+IRC::Client is [`.run`](#run), which means most of
+[METHODS FOR PLUGINS](#methods-for-plugins) **cannot** be used, as no connection
+has been made yet. This event will be issued only once per [`.run`](#run)
+and the method's return value is discarded.
+
+### `irc-connected`
+
+```perl6
+    method irc-connected ($irc) { ... }
+```
+Passed IRC::Client object as the only argument. Triggered right when we
+get a connection to the server, identify with it and issue `JOIN` commands
+to enter the channels. Note that at this point it is not guaranteed that the
+client is already in all the channels it's meant to join.
+This event will be issued only once per connection to the server
+and the method's return value is discarded.
 
 ### `irc-all-events`
 
@@ -404,7 +432,7 @@ stop handling ALL other messages
 ```perl6
     method irc-privmsg-me ($irc, $e) { ... }
 ```
-Triggered when the IRC `PRIVMSG` command is received, where the receipient
+Triggered when the IRC `PRIVMSG` command is received, where the recipient
 is the client (as opposed to some channel).
 
 ### `irc-notice-me`
@@ -412,7 +440,7 @@ is the client (as opposed to some channel).
 ```perl6
     method irc-notice-me ($irc, $e) { ... }
 ```
-Triggered when the IRC `NOTICE` command is received, where the receipient
+Triggered when the IRC `NOTICE` command is received, where the recipient
 is the client (as opposed to some channel).
 
 ### `irc-unhandled`
