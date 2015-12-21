@@ -42,14 +42,14 @@ processing the data.
 use IRC::Client::Plugin; # import constants
 unit class IRC::Client::Plugin::Debugger is IRC::Client::Plugin;
 
-method register($irc) {
+method irc-connected($irc) {
     Supply.interval( 5, 5 ).tap({
         $irc.privmsg($_, "I'm an annoying bot!")
             for $irc.channels;
     })
 }
 
-method all-events ($irc, $e) {
+method irc-all-events ($irc, $e) {
     say "We've got a private message"
         if $e<command> eq 'PRIVMSG' and $e<params>[0] eq $irc.nick;
 
