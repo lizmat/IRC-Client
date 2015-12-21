@@ -5,6 +5,7 @@ use IRC::Client::Plugin::Debugger;
 
 my $irc = IRC::Client.new(
     :host('10.10.11.12'),
+    :channels<#perl6bot #zofbot>
     :debug,
     plugins => [
         IRC::Client::Plugin::Debugger.new
