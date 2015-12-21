@@ -19,6 +19,49 @@ IRC::Client - Extendable Internet Relay Chat client
     ).run;
 ```
 
+## Custom plugins
+
+### Basic response to an IRC command:
+
+The plugin chain handling the message will stop after this plugin.
+
+```
+unit class IRC::Client::Plugin::PingPong is IRC::Client::Plugin;
+method irc-ping ($irc, $msg) { $irc.ssay("PONG {$irc.nick} $msg<params>[0]") }
+```
+
+### More involved handling
+
+On startup, start sending message `I'm an annoying bot` to all channels
+every five seconds. We also subscribe to all events and print some debugging
+info. By returning a special constant, we tell other plugins to continue
+processing the data.
+
+```
+use IRC::Client::Plugin; # import constants
+unit class IRC::Client::Plugin::Debugger is IRC::Client::Plugin;
+
+method register($irc) {
+    Supply.interval( 5, 5 ).tap({
+        $irc.privmsg($_, "I'm an annoying bot!")
+            for $irc.channels;
+    })
+}
+
+method all-events ($irc, $e) {
+    say "We've got a private message"
+        if $e<command> eq 'PRIVMSG' and $e<params>[0] eq $irc.nick;
+
+    # Store arbitrary data in the `pipe` for other plugins to use
+    $e<pipe><respond-to-notice> = True
+        if $e<command> eq 'PRIVMSG';
+
+    say $e, :indent(4);
+    return IRC_NOT_HANDLED;
+}
+
+```
+
 # TABLE OF CONTENTS
 - [NAME](#name)
 - [SYNOPSIS](#synopsis)
@@ -68,49 +111,6 @@ IRC::Client - Extendable Internet Relay Chat client
 - [BUGS](#bugs)
 - [AUTHOR](#author)
 - [LICENSE](#license)
-
-## Custom plugins
-
-### Basic response to an IRC command:
-
-The plugin chain handling the message will stop after this plugin.
-
-```
-unit class IRC::Client::Plugin::PingPong is IRC::Client::Plugin;
-method irc-ping ($irc, $msg) { $irc.ssay("PONG {$irc.nick} $msg<params>[0]") }
-```
-
-### More involved handling
-
-On startup, start sending message `I'm an annoying bot` to all channels
-every five seconds. We also subscribe to all events and print some debugging
-info. By returning a special constant, we tell other plugins to continue
-processing the data.
-
-```
-use IRC::Client::Plugin; # import constants
-unit class IRC::Client::Plugin::Debugger is IRC::Client::Plugin;
-
-method register($irc) {
-    Supply.interval( 5, 5 ).tap({
-        $irc.privmsg($_, "I'm an annoying bot!")
-            for $irc.channels;
-    })
-}
-
-method all-events ($irc, $e) {
-    say "We've got a private message"
-        if $e<command> eq 'PRIVMSG' and $e<params>[0] eq $irc.nick;
-
-    # Store arbitrary data in the `pipe` for other plugins to use
-    $e<pipe><respond-to-notice> = True
-        if $e<command> eq 'PRIVMSG';
-
-    say $e, :indent(4);
-    return IRC_NOT_HANDLED;
-}
-
-```
 
 # DESCRIPTION
 
