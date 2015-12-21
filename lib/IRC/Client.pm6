@@ -34,10 +34,15 @@ class IRC::Client:ver<1.002001> {
                     EVENTS: for @$events -> $e {
                         $e<pipe>    = {};
 
+                        for @!plugs.grep(*.^can: 'irc-all-events') -> $p {
+                            my $res = $p.all-events(self, $e);
+                            next EVENTS unless $res === IRC_NOT_HANDLED;
+                        }
+
                         if ( $e<command> eq 'PRIVMSG'
                             and $e<params>[0] eq $!nick
                         ) {
-                            for @!plugs.grep(*.^can: 'privmsg-me') -> $p {
+                            for @!plugs.grep(*.^can: 'irc-privmsg-me') -> $p {
                                 my $res = $p.privmsg-me(self, $e);
                                 next EVENTS unless $res === IRC_NOT_HANDLED;
                             }
@@ -46,15 +51,10 @@ class IRC::Client:ver<1.002001> {
                         if ( $e<command> eq 'NOTICE'
                             and $e<params>[0] eq $!nick
                         ) {
-                            for @!plugs.grep(*.^can: 'notice-me') -> $p {
+                            for @!plugs.grep(*.^can: 'irc-notice-me') -> $p {
                                 my $res = $p.notice-me(self, $e);
                                 next EVENTS unless $res === IRC_NOT_HANDLED;
                             }
-                        }
-
-                        for @!plugs.grep(*.^can: 'all-events') -> $p {
-                            my $res = $p.all-events(self, $e);
-                            next EVENTS unless $res === IRC_NOT_HANDLED;
                         }
 
                         my $cmd = 'irc-' ~ $e<command>.lc;
@@ -63,7 +63,7 @@ class IRC::Client:ver<1.002001> {
                             next EVENTS unless $res === IRC_NOT_HANDLED;
                         }
 
-                        for @!plugs.grep(*.^can: 'unhandled') -> $p {
+                        for @!plugs.grep(*.^can: 'irc-unhandled') -> $p {
                             my $res = $p.unhandled(self, $e);
                             next EVENTS unless $res === IRC_NOT_HANDLED;
                         }

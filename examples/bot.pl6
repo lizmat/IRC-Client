@@ -4,7 +4,7 @@ use IRC::Client;
 use IRC::Client::Plugin::Debugger;
 
 my $irc = IRC::Client.new(
-    :host('localhost'),
+    :host('10.10.11.12'),
     :debug,
     plugins => [
         IRC::Client::Plugin::Debugger.new

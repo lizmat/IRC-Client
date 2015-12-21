@@ -187,6 +187,27 @@ working order of any IRC client. **Defaults to:**
 Takes no arguments. Starts the IRC client. Exits when the connection
 to the IRC server ends.
 
+# METHODS FOR PLUGINS
+
+You can make use of these `IRC::Client` methods in your plugins:
+
+## `.ssay`
+
+```perl6
+    $irc.ssay("Foo bar!");
+```
+Sends a message to the server, automatically appending `\r\n`. Mnemonic:
+**s**erver **say**.
+
+
+## `.privmsg`
+
+```perl6
+    $irc.privmsg( 'Zoffix', 'Hallo!' );
+```
+Sends a `PRIVMSG` message specified in the second argument
+to the user/channel specified as the first argument.
+
 # INCLUDED PLUGINS
 
 Currently, this distribution comes with two IRC Client plugins:
@@ -260,7 +281,7 @@ class.
 Specifies that plugin handled the message and the plugin chain processing
 should stop immediatelly. Plugins later in the chain won't know this
 message ever came. Unless you explicitly return
-[`IRC_NOT_HANDLED`](#IRC_NOT_HANDLED) constant, IRC::Client will assume
+[`IRC_NOT_HANDLED`](#irc_not_handled) constant, IRC::Client will assume
 `IRC_HANDLED` was returned.
 
 ### `IRC_NOT_HANDLED`
@@ -272,75 +293,79 @@ Returning this constant indicates to IRC::Client that your plugin did
 not "handle" the message and it should be propagated further down the
 plugin chain for other plugins to handle.
 
+## Subscribing to IRC events
 
-
-```perl6
-    unit class IRC::Client::Plugin::Foo:ver<1.001001>;
-
-    multi method msg () { True }
-    multi method msg ($irc, $msg) {
-        $irc.privmsg( Zoffix => Dump $msg, :indent(4) );
-    }
-
-    multi method interval () {  6  }
-    multi method interval ($irc) {
-        $irc.privmsg(
-            $irc.channels[0], "5 seconds passed. Time is now " ~ now
-        );
-    }
-```
-
-Above is a sample plugin. You can choose to respond either to server
-messages or do things at a specific interval.
-
-### Responding to server messages
+### Standard IRC commands
 
 ```perl6
-    multi method msg () { True }
-    multi method msg ($irc, $msg) {
-        $irc.privmsg( Zoffix => Dump $msg, :indent(4) );
-    }
+    method irc-privmsg ($irc, $e) { ... }
+    method irc-notice  ($irc, $e) { ... }
 ```
+To subscribe to an IRC event, simply declare a method named `irc-COMMAND`,
+where `COMMAND` is the IRC command you want to handle. The method takes
+two positional arguments: an `IRC::Client` object and the parsed IRC
+message.
 
-If your plugin can resond to server messages, declare two multi methods
-`msg` as seen above. The one without parameters needs to return `True`
-(or `False`, if your plugin does not respond to messages). The second
-gets the `IRC::Client` object as the first argument and the parsed message
-as the second argument.
+You'll likely generate a response based on the content of the parsed message
+and use one of the [METHODS FOR PLUGINS](#methods-for-plugins) to send that
+response.
 
-### Acting in intervals
+## Special Events
 
 ```perl6
-    multi method interval () {  6  }
-    multi method interval ($irc) {
-        $irc.privmsg(
-            $irc.channels[0], "5 seconds passed. Time is now " ~ now
-        );
-    }
+    method irc-all-events ($irc, $e) { ... }
+    method irc-privmsg-me ($irc, $e) { ... }
+    method irc-notice-me  ($irc, $e) { ... }
+    ... # all other handlers for standard IRC commands
+    method irc-unhandled  ($irc, $e) { ... }
 ```
-Your plugin can also repsond in intervals. Declare an `interval` multi
-that takes no arguments and returns an interval in seconds that your
-action should happen in (return `0` if your plugin does not handle intervals).
-The other multi method `interval` takes the `IRC::Client` as the argument.
+In addition to the [standard IRC commands](#standard-irc-commands), you can
+register several special cases. They're handled in the event chain in the order
+shown above. That is, if a plugin returns [`IRC_HANDLED`](#irc_handled) after
+processing, say, [`irc-all-events`](#irc-all-events) event, its
+[`irc-notice-me`](#irc-notice-me) handler won't be triggered, even if it would
+otherwise.
 
-## Methods for plugins
+The available special events are as follows:
 
-You can make use of these `IRC::Client` methods in your plugins:
-
-### `.ssay`
+### `irc-all-events`
 
 ```perl6
-    $irc.ssay("Foo bar!");
+    method irc-all-events ($irc, $e) { ... }
 ```
-Sends a message to the server, automatically appending `\r\n`.
+Triggered for all IRC commands received, regardless of their content. As this
+method will be triggered before any others, you can use this to
+pre-process the message, for example. ***WARNING:*** **since
+[`IRC_HANDLED` constant](#irc_handled) is returned by default, if you do not
+explicitly return [`IRC_NOT_HANDLED`](#irc_not_handled), your client will
+stop handling ALL other messages
+***
 
-### `.privmsg`
+### `irc-privmsg-me`
 
 ```perl6
-    $irc.privmsg( Zoffix => "Hallo!" );
+    method irc-privmsg-me ($irc, $e) { ... }
 ```
-Sends a `PRIVMSG` message specified in the second argument
-to the user/channel specified as the first argument.
+Triggered when the IRC `PRIVMSG` command is received, where the receipient
+is the client (as opposed to some channel).
+
+### `irc-notice-me`
+
+```perl6
+    method irc-notice-me ($irc, $e) { ... }
+```
+Triggered when the IRC `NOTICE` command is received, where the receipient
+is the client (as opposed to some channel).
+
+### `irc-unhandled`
+
+```perl6
+    method irc-unhandled ($irc, $e) { ... }
+```
+
+This is the same as [`irc-all-events`](#irc-all-events), except it's triggered
+**after** all other events were tried. This method can be used to catch
+any unhandled events.
 
 # REPOSITORY
 

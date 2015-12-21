@@ -1,5 +1,7 @@
 ## Just some notes jotted down while reading RFCs
 
+This is only for my own use and is not meant to be of any use to anyone else.
+
 #### RFC 1459
 
 http://irchelp.org/irchelp/rfc/rfc.html
