@@ -62,8 +62,8 @@ IRC::Client - Extendable Internet Relay Chat client
     - [Contents of the parsed IRC message](#contents-of-the-parsed-irc-message)
         - [`command`](#command)
         - [`params`](#params)
-        - [pipe](#pipe)
-        - [who](#who)
+        - [`pipe`](#pipe)
+        - [`who`](#who)
 - [REPOSITORY](#repository)
 - [BUGS](#bugs)
 - [AUTHOR](#author)
@@ -507,7 +507,7 @@ Contains the IRC command this message represents.
 ```
 Constains the array of parameters for the IRC command.
 
-### pipe
+### `pipe`
 
 ```perl6
     pipe => { },
@@ -517,7 +517,7 @@ While any plugin can modify any key of the parsed command's hash, the provided
 `pipe` hash is simply a means to provide some standard, agreed-upon name
 of a key to pass information around.
 
-### who
+### `who`
 
 ```perl6
     #fdss
