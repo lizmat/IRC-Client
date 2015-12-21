@@ -25,7 +25,7 @@ IRC::Client - Extendable Internet Relay Chat client
 
 The plugin chain handling the message will stop after this plugin.
 
-```
+```perl6
 unit class IRC::Client::Plugin::PingPong is IRC::Client::Plugin;
 method irc-ping ($irc, $msg) { $irc.ssay("PONG {$irc.nick} $msg<params>[0]") }
 ```
@@ -37,7 +37,7 @@ every five seconds. We also subscribe to all events and print some debugging
 info. By returning a special constant, we tell other plugins to continue
 processing the data.
 
-```
+```perl6
 use IRC::Client::Plugin; # import constants
 unit class IRC::Client::Plugin::Debugger is IRC::Client::Plugin;
 
