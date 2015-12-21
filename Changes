@@ -1,4 +1,14 @@
 Revision History for 'IRC::Client' Perl 6 Distribution
 
+2.001001  2015-12-21
+  [Redesign plugin system]
+    - each IRC command can now be implemented with a specific method of
+        name 'irc-command'
+    - Added individual privmsg-me and notice-me methods
+    - Removed `interval` and `msg` plugin methods.
+    - Added `irc-start-up` and `irc-connected` plugin methods
+  [Other]
+    - Improved debug output
+
 1.001001  2015-11-19
   - First version released on an unsuspecting world
