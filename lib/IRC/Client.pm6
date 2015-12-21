@@ -2,7 +2,7 @@ use v6;
 use IRC::Parser; # parse-irc
 use IRC::Client::Plugin::PingPong;
 use IRC::Client::Plugin;
-class IRC::Client:ver<1.002001> {
+class IRC::Client:ver<2.001001> {
     has Bool:D $.debug                          = False;
     has Str:D  $.host                           = 'localhost';
     has Int:D  $.port where 0 <= $_ <= 65535    = 6667;

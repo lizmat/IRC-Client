@@ -1,4 +1,4 @@
-unit class IRC::Grammar::Actions:ver<1.001001>;
+unit class IRC::Grammar::Actions:ver<2.001001>;
 method TOP ($/) { $/.make: $<message>>>.made }
 method message ($/) {
     my $pref = $/<prefix>;
