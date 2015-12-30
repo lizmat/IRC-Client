@@ -1,15 +1,16 @@
 {
     "perl"         : "6.c",
     "name"         : "IRC::Client",
-    "version"      : "2.001001",
+    "version"      : "2.001002",
     "description"  : "Extendable Internet Relay Chat client",
     "depends"      : [ "Data::Dump" ],
     "test-depends" : [ "Test" ],
     "provides"     : {
-        "IRC::Client" : "lib/IRC/Client.pm6",
-        "IRC::Grammar" : "lib/IRC/Grammar.pm6",
-        "IRC::Parser" : "lib/IRC/Parser.pm6",
-        "IRC::Grammar::Actions" : "lib/IRC/Grammar/Actions.pm6",
+        "IRC::Client"                   : "lib/IRC/Client.pm6",
+        "IRC::Grammar"                  : "lib/IRC/Grammar.pm6",
+        "IRC::Parser"                   : "lib/IRC/Parser.pm6",
+        "IRC::Grammar::Actions"         : "lib/IRC/Grammar/Actions.pm6",
+        "IRC::Client::Plugin"           : "lib/IRC/Client/Plugin.pm6",
         "IRC::Client::Plugin::Debugger" : "lib/IRC/Client/Plugin/Debugger.pm6",
         "IRC::Client::Plugin::PingPong" : "lib/IRC/Client/Plugin/PingPong.pm6"
     },
