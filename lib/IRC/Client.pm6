@@ -24,13 +24,17 @@ class IRC::Client:ver<2.001001> {
         await IO::Socket::Async.connect( $!host, $!port ).then({
             $!sock = .result;
             $.ssay("NICK $!nick\n");
-            $.ssay("USER $!username $!userhost $!host :$!userreal\n");
-            $.ssay("JOIN $_\n") for @!channels;
+            $.ssay("USER $!username $!username $!host :$!userreal\n");
+            $.ssay("JOIN {@!channels[]} x\n");
 
             .irc-connected: self for @!plugs.grep(*.^can: 'irc-connected');
 
+            # my $left-overs = '';
             react {
-                whenever $!sock.Supply -> $str is copy {
+                whenever $!sock.Supply :bin -> $buf is copy {
+                    my $str = try $buf.decode: 'utf8';
+                    $str or $str = $buf.decode: 'latin-1';
+                    # $str ~= $left-overs;
                     $!debug and "[server {DateTime.now}] {$str}".put;
                     my $events = parse-irc $str;
                     EVENTS: for @$events -> $e {
@@ -80,7 +84,7 @@ class IRC::Client:ver<2.001001> {
             say "Closing connection";
             $!sock.close;
 
-            CATCH { warn .backtrace }
+            # CATCH { warn .backtrace }
         });
     }
 
@@ -91,7 +95,7 @@ class IRC::Client:ver<2.001001> {
     }
 
     method privmsg (Str $who, Str $what) {
-        my $msg = ":$!nick!$!username\@$!userhost PRIVMSG $who :$what\n";
+        my $msg = "PRIVMSG $who :$what\n";
         $!debug and "{plug-name}$msg".put;
         $!sock.print("$msg\n");
         self;
