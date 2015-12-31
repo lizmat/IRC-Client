@@ -69,12 +69,18 @@ class IRC::Client:ver<2.001001> {
                             my $res = $p.irc-unhandled(self, $e);
                             next EVENTS unless $res === IRC_NOT_HANDLED;
                         }
+
+                        CATCH { warn .backtrace }
                     }
                 }
+
+                CATCH { warn .backtrace }
             }
 
             say "Closing connection";
             $!sock.close;
+
+            CATCH { warn .backtrace }
         });
     }
 
