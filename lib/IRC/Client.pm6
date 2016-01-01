@@ -5,7 +5,7 @@ use IRC::Client::Plugin;
 class IRC::Client:ver<2.002001> {
     has Bool:D $.debug                          = False;
     has Str:D  $.host                           = 'localhost';
-    has Str:D  $.password;
+    has Str    $.password;
     has Int:D  $.port where 0 <= $_ <= 65535    = 6667;
     has Str:D  $.nick                           = 'Perl6IRC';
     has Str:D  $.username                       = 'Perl6IRC';
