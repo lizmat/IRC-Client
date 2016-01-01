@@ -185,7 +185,8 @@ Specifies the hostname of the IRC server to connect to. **Defaults to:**
     password => 's3cret',
 ```
 Specifies the password for the IRC server. (on Freenode, for example, this
-is the NickServ password that identifies to services).
+is the NickServ password that identifies to services). **Defaults to:** no
+password.
 
 ### `port`
 
