@@ -8,13 +8,13 @@ token message { [':' <prefix> <SPACE> ]? <command> <params> \n }
     }
         token servername { <host> }
         token nick { <letter> [ <letter> | <number> | <special> ]* }
-        token user { <-[\ \0\r\n]>+?  <before [<SPACE> | '@']>}
+        token user { <-[\ \x0\r\n]>+?  <before [<SPACE> | '@']>}
         token host { <-[\s!@]>+ }
     token command { <letter>+ | <number>**3 }
     token params { <SPACE>* [ ':' <trailing> | <middle> <params> ]? }
-        token middle { <-[:\ \0\r\n]> <-[\ \0\r\n]>* }
-        token trailing { <-[\0\r\n]>* }
+        token middle { <-[:\ \x0\r\n]> <-[\ \x0\r\n]>* }
+        token trailing { <-[\x0\r\n]>* }
 
     token letter { <[a..zA..Z]> }
     token number { <[0..9]> }
-    token special { <[-\[\]\\`^{}]> }
+    token special { <[-_\[\]\\`^{}]> }
