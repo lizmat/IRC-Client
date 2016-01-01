@@ -2,9 +2,10 @@ use v6;
 use IRC::Parser; # parse-irc
 use IRC::Client::Plugin::PingPong;
 use IRC::Client::Plugin;
-class IRC::Client:ver<2.001001> {
+class IRC::Client:ver<2.002001> {
     has Bool:D $.debug                          = False;
     has Str:D  $.host                           = 'localhost';
+    has Str:D  $.password;
     has Int:D  $.port where 0 <= $_ <= 65535    = 6667;
     has Str:D  $.nick                           = 'Perl6IRC';
     has Str:D  $.username                       = 'Perl6IRC';
@@ -23,6 +24,7 @@ class IRC::Client:ver<2.001001> {
 
         await IO::Socket::Async.connect( $!host, $!port ).then({
             $!sock = .result;
+            $.ssay("PASS $!password\n") if $!password.defined;
             $.ssay("NICK $!nick\n");
             $.ssay("USER $!username $!username $!host :$!userreal\n");
             $.ssay("JOIN {@!channels[]} x\n");

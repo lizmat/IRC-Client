@@ -77,6 +77,7 @@ method irc-all-events ($irc, $e) {
     - [`new`](#new)
         - [`debug`](#debug)
         - [`host`](#host)
+        - [`password`](#password)
         - [`port`](#port)
         - [`nick`](#nick)
         - [`username`](#username)
@@ -147,6 +148,7 @@ my $irc = IRC::Client.new;
 my $irc = IRC::Client.new(
     debug             => False,
     host              => 'localhost',
+    password          => 's3cret',
     port              => 6667,
     nick              => 'Perl6IRC',
     username          => 'Perl6IRC',
@@ -176,6 +178,14 @@ will be printed by the modules on the STDOUT. **Defaults to:** `False`
 ```
 Specifies the hostname of the IRC server to connect to. **Defaults to:**
 `localhost`
+
+### `password`
+
+```perl6
+    password => 's3cret',
+```
+Specifies the password for the IRC server. (on Freenode, for example, this
+is the NickServ password that identifies to services).
 
 ### `port`
 
