@@ -40,42 +40,7 @@ class IRC::Client:ver<2.002001> {
                     $!debug and "[server {DateTime.now}] {$str}".put;
                     my $events = parse-irc $str;
                     EVENTS: for @$events -> $e {
-                        $e<pipe>    = {};
-
-                        for @!plugs.grep(*.^can: 'irc-all-events') -> $p {
-                            my $res = $p.irc-all-events(self, $e);
-                            next EVENTS unless $res === IRC_NOT_HANDLED;
-                        }
-
-                        if ( $e<command> eq 'PRIVMSG'
-                            and $e<params>[0] eq $!nick
-                        ) {
-                            for @!plugs.grep(*.^can: 'irc-privmsg-me') -> $p {
-                                my $res = $p.irc-privmsg-me(self, $e);
-                                next EVENTS unless $res === IRC_NOT_HANDLED;
-                            }
-                        }
-
-                        if ( $e<command> eq 'NOTICE'
-                            and $e<params>[0] eq $!nick
-                        ) {
-                            for @!plugs.grep(*.^can: 'irc-notice-me') -> $p {
-                                my $res = $p.irc-notice-me(self, $e);
-                                next EVENTS unless $res === IRC_NOT_HANDLED;
-                            }
-                        }
-
-                        my $cmd = 'irc-' ~ $e<command>.lc;
-                        for @!plugs.grep(*.^can: $cmd) -> $p {
-                            my $res = $p."$cmd"(self, $e);
-                            next EVENTS unless $res === IRC_NOT_HANDLED;
-                        }
-
-                        for @!plugs.grep(*.^can: 'irc-unhandled') -> $p {
-                            my $res = $p.irc-unhandled(self, $e);
-                            next EVENTS unless $res === IRC_NOT_HANDLED;
-                        }
-
+                        self.handle-event: $e;
                         CATCH { warn .backtrace }
                     }
                 }
@@ -101,6 +66,52 @@ class IRC::Client:ver<2.002001> {
         $!debug and "{plug-name}$msg".put;
         $!sock.print("$msg\n");
         self;
+    }
+}
+
+method handle-event ($e) {
+    $e<pipe>    = {};
+
+    for @!plugs.grep(*.^can: 'irc-all-events') -> $p {
+        my $res = $p.irc-all-events(self, $e);
+        next EVENTS unless $res === IRC_NOT_HANDLED;
+    }
+
+    if ( $e<command> eq 'PRIVMSG' and $e<params>[0] eq $!nick ) {
+        for @!plugs.grep(*.^can: 'irc-privmsg-me') -> $p {
+            my $res = $p.irc-privmsg-me(self, $e);
+            next EVENTS unless $res === IRC_NOT_HANDLED;
+        }
+    }
+
+    if ( $e<command> eq 'NOTICE' and $e<params>[0] eq $!nick ) {
+        for @!plugs.grep(*.^can: 'irc-notice-me') -> $p {
+            my $res = $p.irc-notice-me(self, $e);
+            next EVENTS unless $res === IRC_NOT_HANDLED;
+        }
+    }
+
+    if (   ( $e<command> eq 'PRIVMSG' and $e<params>[0] eq $!nick )
+        or ( $e<command> eq 'NOTICE'  and $e<params>[0] eq $!nick )
+        or ( $e<command> eq 'PRIVMSG'
+                and $e<params>[1] ~~ /:i ^ "$!nick" <[,:]> \s+/
+        )
+    ) {
+        for @!plugs.grep(*.^can: 'irc-addressed') -> $p {
+            my $res = $p.irc-notice-me(self, $e);
+            next EVENTS unless $res === IRC_NOT_HANDLED;
+        }
+    }
+
+    my $cmd = 'irc-' ~ $e<command>.lc;
+    for @!plugs.grep(*.^can: $cmd) -> $p {
+        my $res = $p."$cmd"(self, $e);
+        next EVENTS unless $res === IRC_NOT_HANDLED;
+    }
+
+    for @!plugs.grep(*.^can: 'irc-unhandled') -> $p {
+        my $res = $p.irc-unhandled(self, $e);
+        next EVENTS unless $res === IRC_NOT_HANDLED;
     }
 }
 
