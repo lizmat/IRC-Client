@@ -82,7 +82,7 @@ The plugin chain handling the message will stop after this plugin.
 
 ```perl6
 unit class IRC::Client::Plugin::PingPong is IRC::Client::Plugin;
-method irc-ping ($irc, $msg) { $irc.ssay("PONG {$irc.nick} $msg<params>[0]") }
+method irc-ping ($irc, $e) { $irc.ssay("PONG {$irc.nick} $e<params>[0]") }
 ```
 
 ### More involved handling
