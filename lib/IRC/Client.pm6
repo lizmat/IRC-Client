@@ -78,16 +78,16 @@ method handle-event ($e) {
     }
 
     my $nick = $!nick;
-    if (   ( $e<command> eq 'PRIVMSG' and $e<params>[0] eq $!nick )
-        or ( $e<command> eq 'NOTICE'  and $e<params>[0] eq $!nick )
+    if (   ( $e<command> eq 'PRIVMSG' and $e<params>[0] eq $nick )
+        or ( $e<command> eq 'NOTICE'  and $e<params>[0] eq $nick )
         or ( $e<command> eq 'PRIVMSG'
                 and $e<params>[1] ~~ /:i ^ $nick <[,:]> \s+/
         )
     ) {
         my $where = ($e<who><nick>, $e<who><nick>);
         $where[0] = $e<params>[0]
-            unless ( $e<command> eq 'PRIVMSG' and $e<params>[0] eq $!nick )
-                or ( $e<command> eq 'NOTICE'  and $e<params>[0] eq $!nick );
+            unless ( $e<command> eq 'PRIVMSG' and $e<params>[0] eq $nick )
+                or ( $e<command> eq 'NOTICE'  and $e<params>[0] eq $nick );
 
         for @!plugs.grep(*.^can: 'irc-to-me') -> $p {
             my $res = $p.irc-to-me(self, $e, |$where);
