@@ -91,13 +91,21 @@ method respond (
     Str:D :$where is required,
     Str:D :$what  is required is copy,
     Str:D :$who,
+          :$when  where Dateish|Instant;
 ) {
     $what = "$who, $what" if $who and $where ~~ /^<[#&]>/;
     my $method = $how.fc eq 'PRIVMSG'.fc ?? 'privmsg'
         !! $how.fc eq 'NOTICE'.fc ?? 'notice'
             !! fail 'Unknown :$how specified. Use PRIVMSG or NOTICE';
 
-    self."$method"($where, $what);
+    if $when {
+        Promise.at($when).then: { self."$method"($where, $what) };
+        CATCH { warn .backtrace }
+    }
+    else {
+        self."$method"($where, $what);
+    }
+    self;
 }
 
 method run {

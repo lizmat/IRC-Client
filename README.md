@@ -283,9 +283,10 @@ to the user/channel specified as the first argument.
 ```perl6
     $irc.respond:
         :where<#zofbot>
-        :what('Hallo how are you?!')
+        :what("Hallo how are you?! It's been 1 hour!")
         :how<privmsg>
         :who<Zoffix>
+        :when( now + 3600 )
     ;
 ```
 Generates a response based on the provided arguments, which are as follows:
@@ -325,6 +326,16 @@ send the message to.
 valid in any way). If the `where` argument is set to a name of a channel,
 then the method will modify the `what` argument, by prepending
 `$who, ` to it.
+
+### `when`
+
+```perl6
+    $irc.respond: :when(now+5) ... # respond in 5 seconds
+    $irc.respond: :when(DateTime.new: :2016year :1month :2day) ...
+```
+**Optional**. Takes a `Dateish` or `Instant` value that specifies when the
+response should be generated. If omited, the response will be generated
+as soon as possible. **By default** is not specified.
 
 ## `.ssay`
 
