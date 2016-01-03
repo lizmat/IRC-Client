@@ -31,6 +31,7 @@ IRC::Client - Extendable Internet Relay Chat client
 - [METHODS FOR PLUGINS](#methods-for-plugins)
     - [`.ssay`](#ssay)
     - [`.privmsg`](#privmsg)
+    - [`.notice`](#notice)
 - [INCLUDED PLUGINS](#included-plugins)
     - [IRC::Client::Plugin::Debugger](#ircclientplugindebugger)
     - [IRC::Client::Plugin::PingPong](#ircclientpluginpingpong)
@@ -279,6 +280,14 @@ Sends a message to the server, automatically appending `\r\n`. Mnemonic:
     $irc.privmsg( 'Zoffix', 'Hallo!' );
 ```
 Sends a `PRIVMSG` message specified in the second argument
+to the user/channel specified as the first argument.
+
+## `.notice`
+
+```perl6
+    $irc.notice( 'Zoffix', 'Hallo!' );
+```
+Sends a `NOTICE` message specified in the second argument
 to the user/channel specified as the first argument.
 
 # INCLUDED PLUGINS

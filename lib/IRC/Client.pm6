@@ -69,6 +69,13 @@ method privmsg (Str $who, Str $what) {
     self;
 }
 
+method notice (Str $who, Str $what) {
+    my $msg = "NOTICE $who :$what\n";
+    $!debug and "{plug-name}$msg".put;
+    $!sock.print("$msg\n");
+    self;
+}
+
 method handle-event ($e) {
     $e<pipe>    = {};
 
