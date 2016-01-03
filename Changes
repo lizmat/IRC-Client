@@ -1,13 +1,15 @@
 Revision History for 'IRC::Client' Perl 6 Distribution
 
-2.002001 2016-01-03
-  - Fixed grammar parsing errors that ignored nicks/usernames with underscores
-      and digit 0 (#8)
-  - Added server password support (#3)
+2.003001 Unreleased
   [New Events]
     - Added `irc-to-me` event
   [New Methods]
     - Added `notice` event
+
+2.002001 2016-01-01
+  - Fixed grammar parsing errors that ignored nicks/usernames with underscores
+      and digit 0 (#8)
+  - Added server password support (#3)
 
 2.001002 2015-12-30
   - Minor doc updates and fixed missing prepreqs in META.info file
