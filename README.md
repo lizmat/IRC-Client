@@ -126,9 +126,8 @@ method irc-all-events ($irc, $e) {
 
 # DESCRIPTION
 
-***Note: this is a preview dev release. Things might change and new things
-might get added rapidly. The first stable version is currently planned
-to appear by January 3, 2016***
+***Note: this is module is currently experimental. Things might change and
+new things will get added rapidly.***
 
 This modules lets you create
 [IRC clients](https://en.wikipedia.org/wiki/Internet_Relay_Chat)
