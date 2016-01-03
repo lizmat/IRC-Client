@@ -29,9 +29,10 @@ IRC::Client - Extendable Internet Relay Chat client
         - [`plugins-essential`](#plugins-essential)
     - [`run`](#run)
 - [METHODS FOR PLUGINS](#methods-for-plugins)
-    - [`.ssay`](#ssay)
-    - [`.privmsg`](#privmsg)
     - [`.notice`](#notice)
+    - [`.privmsg`](#privmsg)
+    - [`.respond`](#respond)
+    - [`.ssay`](#ssay)
 - [INCLUDED PLUGINS](#included-plugins)
     - [IRC::Client::Plugin::Debugger](#ircclientplugindebugger)
     - [IRC::Client::Plugin::PingPong](#ircclientpluginpingpong)
@@ -265,14 +266,13 @@ to the IRC server ends.
 
 You can make use of these `IRC::Client` methods in your plugins:
 
-## `.ssay`
+## `.notice`
 
 ```perl6
-    $irc.ssay("Foo bar!");
+    $irc.notice( 'Zoffix', 'Hallo!' );
 ```
-Sends a message to the server, automatically appending `\r\n`. Mnemonic:
-**s**erver **say**.
-
+Sends a `NOTICE` message specified in the second argument
+to the user/channel specified as the first argument.
 
 ## `.privmsg`
 
@@ -282,13 +282,61 @@ Sends a message to the server, automatically appending `\r\n`. Mnemonic:
 Sends a `PRIVMSG` message specified in the second argument
 to the user/channel specified as the first argument.
 
-## `.notice`
+## `.respond`
 
 ```perl6
-    $irc.notice( 'Zoffix', 'Hallo!' );
+    $irc.respond:
+        :where<#zofbot>
+        :what('Hallo how are you?!')
+        :how<privmsg>
+        :who<Zoffix>
+    ;
 ```
-Sends a `NOTICE` message specified in the second argument
-to the user/channel specified as the first argument.
+Generates a response based on the provided arguments, which are as follows:
+
+### `where`
+
+```perl6
+    $irc.respond: :where<Zoffix> ...
+    $irc.respond: :where<#zofbot> ...
+```
+**Mandatory**. Takes either a nickname or a channel name where to
+send the message to.
+
+### `what`
+
+```perl6
+    $irc.respond: :what('Hallo how are you?!') ...
+```
+**Mandatory**. Takes a string, which is the message to be sent.
+
+### `how`
+
+```perl6
+    $irc.respond: :how<privmsg> ...
+    $irc.respond: :how<notice> ...
+```
+**Optional**. Specifies whether the message should be sent using
+`PRIVMSG` or `NOTICE` IRC commands. **Valid values** are `privmsg` and `notice`
+(case-insensitive).
+
+### `who`
+
+```perl6
+    $irc.respond: :who<Zoffix> ...
+```
+**Optional**. Takes a string with a nickname (which doesn't need to be
+valid in any way). If the `where` argument is set to a name of a channel,
+then the method will modify the `what` argument, by prepending
+`$who, ` to it.
+
+## `.ssay`
+
+```perl6
+    $irc.ssay("Foo bar!");
+```
+Sends a message to the server, automatically appending `\r\n`. Mnemonic:
+**s**erver **say**.
 
 # INCLUDED PLUGINS
 

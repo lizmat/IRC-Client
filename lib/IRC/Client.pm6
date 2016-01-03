@@ -20,62 +20,6 @@ has @.plugins-essential = [
 ];
 has @!plugs             = [|@!plugins-essential, |@!plugins];
 
-method run {
-    .irc-start-up: self for @!plugs.grep(*.^can: 'irc-start-up');
-
-    await IO::Socket::Async.connect( $!host, $!port ).then({
-        $!sock = .result;
-        $.ssay("PASS $!password\n") if $!password.defined;
-        $.ssay("NICK $!nick\n");
-        $.ssay("USER $!username $!username $!host :$!userreal\n");
-        $.ssay("JOIN {@!channels[]}\n");
-
-        .irc-connected: self for @!plugs.grep(*.^can: 'irc-connected');
-
-        # my $left-overs = '';
-        react {
-            whenever $!sock.Supply :bin -> $buf is copy {
-                my $str = try $buf.decode: 'utf8';
-                $str or $str = $buf.decode: 'latin-1';
-                # $str ~= $left-overs;
-                $!debug and "[server {DateTime.now}] {$str}".put;
-                my $events = parse-irc $str;
-                for @$events -> $e {
-                    self.handle-event: $e;
-                    CATCH { warn .backtrace }
-                }
-            }
-
-            CATCH { warn .backtrace }
-        }
-
-        say "Closing connection";
-        $!sock.close;
-
-        # CATCH { warn .backtrace }
-    });
-}
-
-method ssay (Str:D $msg) {
-    $!debug and "{plug-name}$msg".put;
-    $!sock.print("$msg\n");
-    self;
-}
-
-method privmsg (Str $who, Str $what) {
-    my $msg = "PRIVMSG $who :$what\n";
-    $!debug and "{plug-name}$msg".put;
-    $!sock.print("$msg\n");
-    self;
-}
-
-method notice (Str $who, Str $what) {
-    my $msg = "NOTICE $who :$what\n";
-    $!debug and "{plug-name}$msg".put;
-    $!sock.print("$msg\n");
-    self;
-}
-
 method handle-event ($e) {
     $e<pipe>    = {};
 
@@ -127,6 +71,78 @@ method handle-event ($e) {
         return unless $res === IRC_NOT_HANDLED;
     }
 }
+
+method notice (Str $who, Str $what) {
+    my $msg = "NOTICE $who :$what\n";
+    $!debug and "{plug-name}$msg".put;
+    $!sock.print("$msg\n");
+    self;
+}
+
+method privmsg (Str $who, Str $what) {
+    my $msg = "PRIVMSG $who :$what\n";
+    $!debug and "{plug-name}$msg".put;
+    $!sock.print("$msg\n");
+    self;
+}
+
+method respond (
+    Str:D :$how   = 'privmsg',
+    Str:D :$where is required,
+    Str:D :$what  is required is copy,
+    Str:D :$who,
+) {
+    $what = "$who, $what" if $who and $where ~~ /^<[#&]>/;
+    my $method = $how.fc eq 'PRIVMSG'.fc ?? 'privmsg'
+        !! $how.fc eq 'NOTICE'.fc ?? 'notice'
+            !! fail 'Unknown :$how specified. Use PRIVMSG or NOTICE';
+
+    self."$method"($where, $what);
+}
+
+method run {
+    .irc-start-up: self for @!plugs.grep(*.^can: 'irc-start-up');
+
+    await IO::Socket::Async.connect( $!host, $!port ).then({
+        $!sock = .result;
+        $.ssay("PASS $!password\n") if $!password.defined;
+        $.ssay("NICK $!nick\n");
+        $.ssay("USER $!username $!username $!host :$!userreal\n");
+        $.ssay("JOIN {@!channels[]}\n");
+
+        .irc-connected: self for @!plugs.grep(*.^can: 'irc-connected');
+
+        # my $left-overs = '';
+        react {
+            whenever $!sock.Supply :bin -> $buf is copy {
+                my $str = try $buf.decode: 'utf8';
+                $str or $str = $buf.decode: 'latin-1';
+                # $str ~= $left-overs;
+                $!debug and "[server {DateTime.now}] {$str}".put;
+                my $events = parse-irc $str;
+                for @$events -> $e {
+                    self.handle-event: $e;
+                    CATCH { warn .backtrace }
+                }
+            }
+
+            CATCH { warn .backtrace }
+        }
+
+        say "Closing connection";
+        $!sock.close;
+
+        # CATCH { warn .backtrace }
+    });
+}
+
+method ssay (Str:D $msg) {
+    $!debug and "{plug-name}$msg".put;
+    $!sock.print("$msg\n");
+    self;
+}
+
+#### HELPER SUBS
 
 sub plug-name {
     my $plug = callframe(3).file;
