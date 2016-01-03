@@ -47,6 +47,7 @@ IRC::Client - Extendable Internet Relay Chat client
         - [`irc-all-events`](#irc-all-events)
         - [`irc-privmsg-me`](#irc-privmsg-me)
         - [`irc-notice-me`](#irc-notice-me)
+        - [`irc-to-me`](#irc-to-me)
         - [`irc-unhandled`](#irc-unhandled)
     - [Contents of the parsed IRC message](#contents-of-the-parsed-irc-message)
         - [`command`](#command)
@@ -390,6 +391,7 @@ response.
     method irc-connected  ($irc) { ... } # once per server connection
 
     method irc-all-events ($irc, $e) { ... }
+    method irc-to-me      ($irc, $e) { ... }
     method irc-privmsg-me ($irc, $e) { ... }
     method irc-notice-me  ($irc, $e) { ... }
     ... # all other handlers for standard IRC commands
@@ -441,6 +443,23 @@ pre-process the message, for example. ***WARNING:*** **since
 explicitly return [`IRC_NOT_HANDLED`](#irc_not_handled), your client will
 stop handling ALL other messages
 ***
+
+### `irc-to-me`
+
+```perl6
+    method irc-to-me ($irc, $e, $where, $who) {
+        $irc.privmsg: $where, "$who, you talkin' to me?";
+    }
+```
+Triggered when: the IRC `PRIVMSG` command is received, where the recipient
+is the client (as opposed to some channel); the `NOTICE` command is
+received, or the `PRIVMSG` command is received, where the recipient is the
+channel and the message begins with client's nickname (i.e. the client
+was addressed in channel. Along with `IRC::Client` object and the event
+hash contained in `$e`, this method also receives two additional positional
+arguments: `$where`, which is where to send the response (will be the channel
+name or the name of the user who sent the message); and `$who`, which is the
+nickname of the user who sent the message.
 
 ### `irc-privmsg-me`
 
