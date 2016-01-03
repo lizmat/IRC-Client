@@ -35,13 +35,20 @@ method handle-event ($e) {
                 and $e<params>[1] ~~ /:i ^ $nick <[,:]> \s+/
         )
     ) {
-        my @where = ($e<who><nick>, $e<who><nick>);
-        @where[0] = $e<params>[0]
+        my %res = :where($e<who><nick> ),
+                  :who(  $e<who><nick> ),
+                  :how(  $e<command>   ),
+                  :what( $e<params>[1] );
+
+        %res<where> = $e<params>[0] # this message was said in the channel
             unless ( $e<command> eq 'PRIVMSG' and $e<params>[0] eq $nick )
                 or ( $e<command> eq 'NOTICE'  and $e<params>[0] eq $nick );
 
+        %res<what>.subst-mutate: /:i ^ $nick <[,:]> \s+/, ''
+            if %res<where> ~~ /^ <[#&]>/;
+
         for @!plugs.grep(*.^can: 'irc-to-me') -> $p {
-            my $res = $p.irc-to-me(self, $e, |@where);
+            my $res = $p.irc-to-me(self, $e, %res);
             return unless $res === IRC_NOT_HANDLED;
         }
     }

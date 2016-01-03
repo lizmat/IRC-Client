@@ -511,19 +511,27 @@ stop handling ALL other messages
 ### `irc-to-me`
 
 ```perl6
-    method irc-to-me ($irc, $e, $where, $who) {
-        $irc.privmsg: $where, "$who, you talkin' to me?";
+    method irc-to-me ($irc, $e, %res) {
+        $irc.respond: |%res, :what("You told me: %res<what>");
     }
 ```
 Triggered when: the IRC `PRIVMSG` command is received, where the recipient
 is the client (as opposed to some channel); the `NOTICE` command is
 received, or the `PRIVMSG` command is received, where the recipient is the
 channel and the message begins with client's nickname (i.e. the client
-was addressed in channel. Along with `IRC::Client` object and the event
-hash contained in `$e`, this method also receives two additional positional
-arguments: `$where`, which is where to send the response (will be the channel
-name or the name of the user who sent the message); and `$who`, which is the
-nickname of the user who sent the message.
+was addressed in channel.
+
+Along with `IRC::Client` object and the event
+hash contained in `$e`, this method also receives an additional positional
+argument that is a hash containing the correct `$where`, `$who`, `$how`, and
+`$what` arguments to generate a response using [`.respond method`](#respond).
+You'll likely want to change the `$what` argument. You can do that by
+specifying `:what('...')` after slipping the `|%res`, as shown in the example
+above.
+
+Also, note: the supplied `$what` argument will have the client's
+nickname removed from it. Use the params in `$e` if you want the exact message
+that was said.
 
 ### `irc-privmsg-me`
 
