@@ -98,7 +98,8 @@ method respond (
     Str:D :$where is required,
     Str:D :$what  is required is copy,
     Str:D :$who,
-          :$when  where Dateish|Instant;
+          :$when  where Any|Dateish|Instant;
+          # TODO: remove Any: https://rt.perl.org/Ticket/Display.html?id=127142
 ) {
     $what = "$who, $what" if $who and $where ~~ /^<[#&]>/;
     my $method = $how.fc eq 'PRIVMSG'.fc ?? 'privmsg'
