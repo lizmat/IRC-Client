@@ -1,12 +1,11 @@
 Revision History for 'IRC::Client' Perl 6 Distribution
 
-2.003001 Unreleased
+2.003001 2016-01-6
   [New Events]
     - Added `irc-to-me` event
   [New Methods]
     - Added `notice` method
     - Added `respond` method
-
 
 2.002001 2016-01-01
   - Fixed grammar parsing errors that ignored nicks/usernames with underscores
