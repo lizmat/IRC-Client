@@ -14,6 +14,6 @@
         "IRC::Client::Plugin::Debugger" : "lib/IRC/Client/Plugin/Debugger.pm6",
         "IRC::Client::Plugin::PingPong" : "lib/IRC/Client/Plugin/PingPong.pm6"
     },
-    "author"       : "Zoffix Znet",
-    "source-url"   : "git://github.com/zoffixznet/perl6-IRC-Client.git"
+    "authors"       : ["Zoffix Znet"],
+    "support"       : {"source"   : "git://github.com/zoffixznet/perl6-IRC-Client.git"}
 }
