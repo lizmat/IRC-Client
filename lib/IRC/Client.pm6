@@ -28,6 +28,12 @@ method handle-event ($e) {
         return unless $res === IRC_NOT_HANDLED;
     }
 
+    # Wait for END_MOTD or ERR_NOMOTD before attempting to join
+    if $e<command> eq '422' | '376' {
+        $.ssay("JOIN {@!channels[]}\n");
+        .irc-connected: self for @!plugs.grep(*.^can: 'irc-connected');
+    }
+
     my $nick = $!nick;
     if (   ( $e<command> eq 'PRIVMSG' and $e<params>[0] eq $nick )
         or ( $e<command> eq 'NOTICE'  and $e<params>[0] eq $nick )
@@ -124,9 +130,6 @@ method run {
         $.ssay("PASS $!password\n") if $!password.defined;
         $.ssay("NICK $!nick\n");
         $.ssay("USER $!username $!username $!host :$!userreal\n");
-        $.ssay("JOIN {@!channels[]}\n");
-
-        .irc-connected: self for @!plugs.grep(*.^can: 'irc-connected');
 
         # my $left-overs = '';
         react {
