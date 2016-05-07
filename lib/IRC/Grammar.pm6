@@ -1,4 +1,4 @@
-unit grammar IRC::Grammar:ver<2.003001>;
+unit grammar IRC::Grammar;
 token TOP { <message>+ }
 token SPACE { ' '+ }
 token message { [':' <prefix> <SPACE> ]? <command> <params> \n }

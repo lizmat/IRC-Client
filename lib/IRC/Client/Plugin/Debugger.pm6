@@ -1,6 +1,6 @@
 use Data::Dump;
 use IRC::Client::Plugin;
-unit class IRC::Client::Plugin::Debugger:ver<2.003001> is IRC::Client::Plugin;
+unit class IRC::Client::Plugin::Debugger is IRC::Client::Plugin;
 
 method irc-all-events ($irc, $e) {
     say Dump $e, :indent(4);
