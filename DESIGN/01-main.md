@@ -68,3 +68,37 @@ implementation. This includes user's plugins responsible for handling
 events.
 
 ###
+
+## Message Delivery
+
+An event listener receives the event message in the form of an object.
+The object must provide all the relevant information about the source
+and content of the message.
+
+The message object's attributes must be mutable, and where appropriate,
+it must provide the means to send the message back to the originator
+of the message. For example, here's a potential implementation of
+`PRIVMSG` handler that receives the message object:
+
+    use IRC::Client::Plugin;
+    unit Plugin::Foo is IRC::Client::Plugin;
+
+    method irc-privmsg ($msg) {
+        return IRC_NOT_HANDLED unless $msg.channel eq '#perl6';
+        $msg.what = "Nice to meet you, $msg.who()";
+        $msg.send;
+    }
+
+The message object should include a means to access the Client Object to
+perform operations best suited for it and not the message object. Here is
+a possible implementation to re-emit a `NOTICE` message sent to channel
+`#perl6` as a `PRIVMSG` message.
+
+    method irc-notice ($msg) {
+        if $msg.channel eq '#perl6' {
+            $msg.how = 'PRIVMSG';
+            $msg.irc.emit: 'PRIVMSG', $msg;
+        }
+
+        return IRC_NOT_HANDLED;
+    }
