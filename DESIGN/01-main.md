@@ -178,35 +178,6 @@ These sets of events do not have a corresponding IRC command defined by the
 protocol and instead are offered to make listening for a specific kind
 of events easier.
 
-## `irc-mode-channel`
-
-```perl6
-    # :zoffix!zoffix@127.0.0.1 MODE #perl6 +o zoffix2
-    # :zoffix!zoffix@127.0.0.1 MODE #perl6 +bbb Foo!*@* Bar!*@* Ber!*@*
-
-    method irc-mode-channel ($msg) {
-        printf "Nick %s with usermask %s set mode(s) %s in channel %s\n",
-            .nick, .usermask, .modes, .channel given $msg;
-    }
-```
-
-Emitted when IRC `MODE` command is received and it's being operated on a
-channel, see `irc-mode` event for details.
-
-## `irc-mode-user`
-
-```perl6
-    # :zoffix2!f@127.0.0.1 MODE zoffix2 +w
-
-    method irc-mode-user ($msg) {
-        printf "Nick %s with usermask %s set mode(s) %s on user %s\n",
-            .nick, .usermask, .modes, .who given $msg;
-    }
-```
-
-Emitted when IRC `MODE` command is received and it's being operated on a
-user, see `irc-mode` event for details.
-
 ## `irc-to-me`
 
 ```perl6
@@ -333,6 +304,35 @@ Similar to `irc-started`, except will be emitted every time a
 *successful* connection to the server is made and we joined all
 of the requested channels. That is, we'll wait to either receive the
 full user list or error message for each of the channels we're joining.
+
+## `irc-mode-channel`
+
+```perl6
+    # :zoffix!zoffix@127.0.0.1 MODE #perl6 +o zoffix2
+    # :zoffix!zoffix@127.0.0.1 MODE #perl6 +bbb Foo!*@* Bar!*@* Ber!*@*
+
+    method irc-mode-channel ($msg) {
+        printf "Nick %s with usermask %s set mode(s) %s in channel %s\n",
+            .nick, .usermask, .modes, .channel given $msg;
+    }
+```
+
+Emitted when IRC `MODE` command is received and it's being operated on a
+channel, see `irc-mode` event for details.
+
+## `irc-mode-user`
+
+```perl6
+    # :zoffix2!f@127.0.0.1 MODE zoffix2 +w
+
+    method irc-mode-user ($msg) {
+        printf "Nick %s with usermask %s set mode(s) %s on user %s\n",
+            .nick, .usermask, .modes, .who given $msg;
+    }
+```
+
+Emitted when IRC `MODE` command is received and it's being operated on a
+user, see `irc-mode` event for details.
 
 # Numeric Events
 
