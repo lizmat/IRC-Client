@@ -138,13 +138,35 @@ A plugin can send messages and emit events at will:
     }
 ```
 
-## Supported Events
+## Supported Named Events
 
-### Channel Operations
+### `irc-nick`
 
-[RFC 1459, 4.2](https://tools.ietf.org/html/rfc1459#section-4.2)
+```perl6
+    # :zoffix!zoffix@127.0.0.1 NICK not-zoffix
 
-#### `irc-join`
+    method irc-nick ($msg) {
+        printf "%s changed nickname to %s\n", .nick, .new-nick given $msg;
+    }
+```
+
+[RFC 2812, 3.1.2](https://tools.ietf.org/html/rfc2812#section-3.1.2).
+Emitted when a user changes their nickname.
+
+### `irc-quit`
+
+```perl6
+    # :zoffix!zoffix@127.0.0.1 QUIT :Quit: Leaving
+
+    method irc-quit ($msg) {
+        printf "%s has quit (%s)\n", .nick, .reason given $msg;
+    }
+```
+
+[RFC 2812, 3.1.7](https://tools.ietf.org/html/rfc2812#section-3.1.7).
+Emitted when a user quits the server.
+
+### `irc-join`
 
 ```perl6
     # :zoffix!zoffix@127.0.0.1 JOIN :#perl6
@@ -154,10 +176,10 @@ A plugin can send messages and emit events at will:
     }
 ```
 
-[RFC 1459, 4.2.1](https://tools.ietf.org/html/rfc1459#section-4.2.1).
-Emitted when user joins a channel.
+[RFC 2812, 3.2.1](https://tools.ietf.org/html/rfc2812#section-3.2.1).
+Emitted when a user joins a channel.
 
-#### `irc-part`
+### `irc-part`
 
 ```perl6
     # :zoffix!zoffix@127.0.0.1 PART #perl6 :Leaving
@@ -167,10 +189,10 @@ Emitted when user joins a channel.
     }
 ```
 
-[RFC 1459, 4.2.2](https://tools.ietf.org/html/rfc1459#section-4.2.2).
-Emitted when user leaves a channel.
+[RFC 2812, 3.2.2](https://tools.ietf.org/html/rfc2812#section-3.2.2).
+Emitted when a user leaves a channel.
 
-#### `irc-mode`
+### `irc-mode`
 
 ```perl6
     # :zoffix!zoffix@127.0.0.1 MODE #perl6 +o zoffix2
@@ -185,13 +207,13 @@ Emitted when user leaves a channel.
         }
         else {
             # user mode change
-            printf "Nick %s set mode(s) %s on user %s\n",
+            printf "%s set mode(s) %s on user %s\n",
                 .nick, .modes, .who given $msg;
         }
     }
 ```
 
-[RFC 1459, 4.2.3](https://tools.ietf.org/html/rfc1459#section-4.2.3).
+[RFC 2812, 3.1.5](https://tools.ietf.org/html/rfc2812#section-3.1.5)/[RFC 2812, 3.2.3](https://tools.ietf.org/html/rfc2812#section-3.2.3).
 Emitted when IRC `MODE` command is received. As the command is dual-purpose,
 the message object will have either `.channel` method available
 (for channel mode changes) or `.who` method (for user mode changes). See
@@ -204,7 +226,7 @@ is the mode set and the value is the argument for that mode (i.e. "limit",
 For user modes, the `.modes` method returns a list of `Str` of the modes
 set.
 
-#### `irc-topic`
+### `irc-topic`
 
 ```perl6
     # :zoffix!zoffix@127.0.0.1 TOPIC #perl6 :meow
@@ -215,22 +237,83 @@ set.
     }
 ```
 
-[RFC 1459, 4.2.4](https://tools.ietf.org/html/rfc1459#section-4.2.4).
-Emitted when a user changes topic of a channel.
+[RFC 2812, 3.2.4](https://tools.ietf.org/html/rfc2812#section-3.2.4).
+Emitted when a user changes the topic of a channel.
 
-#### `irc-invite`
+### `irc-invite`
 
 ```perl6
     # :zoffix!zoffix@127.0.0.1 INVITE zoffix2 :#perl6
 
     method irc-invite ($msg) {
-        printf "%s invited us to channel %s\n",
-            .nick, .channel given $msg;
+        printf "%s invited us to channel %s\n", .nick, .channel given $msg;
     }
 ```
 
-[RFC 1459, 4.2.7](https://tools.ietf.org/html/rfc1459#section-4.2.7).
+[RFC 2812, 3.2.7](https://tools.ietf.org/html/rfc2812#section-3.2.7).
 Emitted when a user invites us to a channel.
+
+### `irc-kick`
+
+```perl6
+    # :zoffix!zoffix@127.0.0.1 KICK #perl6 zoffix2 :go away
+
+    method irc-kick ($msg) {
+        printf "%s kicked %s out of %s (%s)\n",
+            .nick, .who, .channel, .reason given $msg;
+    }
+```
+
+[RFC 2812, 3.2.8](https://tools.ietf.org/html/rfc2812#section-3.2.8).
+Emitted when someone kicks a user out of a channel.
+
+### `irc-privmsg`
+
+```perl6
+    # :zoffix!zoffix@127.0.0.1 PRIVMSG #perl6 :hello
+    # :zoffix!zoffix@127.0.0.1 PRIVMSG zoffix2 :hey bruh
+
+    method irc-privmsg ($msg) {
+        if $msg?.channel {
+            # message sent to a channel
+            printf "%s said `%s` to channel %s\n",
+                .nick, .what, .channel given $msg;
+        }
+        else {
+            # private message
+            printf "%s messaged us: %s\n", .nick, .what given $msg;
+        }
+    }
+```
+
+[RFC 2812, 3.3.1](https://tools.ietf.org/html/rfc2812#section-3.3.1).
+Emitted when a user sends a message either to a channel
+or a private message to us. See *Convenience Events* section for a number
+of more convenient ways to listen to messages.
+
+### `irc-notice`
+
+```perl6
+    # :zoffix!zoffix@127.0.0.1 NOTICE #perl6 :Notice me!
+    # :zoffix!zoffix@127.0.0.1 NOTICE zoffix2 :did you notice me?
+
+    method irc-notice ($msg) {
+        if $msg?.channel {
+            # notice sent to a channel
+            printf "%s sent a notice `%s` to channel %s\n",
+                .nick, .what, .channel given $msg;
+        }
+        else {
+            # private notice
+            printf "%s sent us a notice: %s\n", .nick, .what given $msg;
+        }
+    }
+```
+
+[RFC 2812, 3.3.2](https://tools.ietf.org/html/rfc2812#section-3.3.2).
+Emitted when a user sends a notice either to a channel
+or a private notice to us. See *Convenience Events* section for a number
+of more convenient ways to listen to notices and messages.
 
 ### Convenience Events
 
@@ -266,3 +349,118 @@ channel, see `irc-mode` event for details.
 
 Emitted when IRC `MODE` command is received and it's being operated on a
 user, see `irc-mode` event for details.
+
+### `irc-to-me`
+
+```perl6
+    # :zoffix!zoffix@127.0.0.1 PRIVMSG zoffix2 :hello
+    # :zoffix!zoffix@127.0.0.1 NOTICE zoffix2 :hello
+    # :zoffix!zoffix@127.0.0.1 PRIVMSG #perl6 :zoffix2, hello
+
+    method irc-to-me ($msg) {
+        printf "%s told us `%s` using %s\n",
+            .nick, .what, .how given $msg;
+    }
+```
+
+Emitted when a user sends us a message as a private message, notice, or
+addresses us in a channel. The `.respond` method of the Message
+Object is the most convenient way to respond back to the sender of the message.
+
+The `.how` method returns a `Pair` where the key is the message type used
+(`PRIVMSG` or `NOTICE`) and the value is the addressee of that message
+(a channel or us).
+
+### `irc-addressed`
+
+```perl6
+    # :zoffix!zoffix@127.0.0.1 PRIVMSG #perl6 :zoffix2, hello
+
+    method irc-addressed ($msg) {
+        printf "%s told us `%s` in channel %s\n",
+            .nick, .what, .channel given $msg;
+    }
+```
+
+Emitted when a user addresses us in a channel. Specifically, this means
+their message starts with our nickname, followed by optional comma or colon,
+followed by whitespace. That prefix will be stripped from the message.
+
+### `irc-mentioned`
+
+```perl6
+    # :zoffix!zoffix@127.0.0.1 PRIVMSG #perl6 :Is zoffix2 a robot?
+
+    method irc-mentioned ($msg) {
+        printf "%s mentioned us in channel %s when they said %s\n",
+            .nick, .channel, .what given $msg;
+    }
+```
+
+Emitted when a user mentions us in a channel. Specifically, this means
+their message contains our nickname separated by a word boundary on each side.
+
+### `irc-privmsg-channel`
+
+```perl6
+    # :zoffix!zoffix@127.0.0.1 PRIVMSG #perl6 :hello
+
+    method irc-privmsg-channel ($msg) {
+        printf "%s said `%s` to channel %s\n",
+            .nick, .what, .channel given $msg;
+    }
+```
+
+Emitted when a user sends a message to a channel.
+
+### `irc-privmsg-me`
+
+```perl6
+    # :zoffix!zoffix@127.0.0.1 PRIVMSG zoffix2 :hey bruh
+
+    method irc-privmsg-me ($msg) {
+        printf "%s messaged us: %s\n", .nick, .what given $msg;
+    }
+```
+
+Emitted when a user sends us a private message.
+
+### `irc-notice-channel`
+
+```perl6
+    # :zoffix!zoffix@127.0.0.1 NOTICE #perl6 :Notice me!
+
+    method irc-notice-channel ($msg) {
+        printf "%s sent a notice `%s` to channel %s\n",
+            .nick, .what, .channel given $msg;
+    }
+```
+
+Emitted when a user sends a notice to a channel.
+
+### `irc-privmsg-me`
+
+```perl6
+    # :zoffix!zoffix@127.0.0.1 NOTICE zoffix2 :did you notice me?
+
+    method irc-notice-me ($msg) {
+        printf "%s sent us a notice: %s\n", .nick, .what given $msg;
+    }
+```
+
+Emitted when a user sends us a private notice.
+
+## Supported Numeric Events
+
+The following are numeric IRC events the client supports. They can be
+subscribed to by defining either a method listening to the numeric code
+or to the name of the event as defined by [RFC 2812, section 5](https://tools.ietf.org/html/rfc2812#section-5). The names are the same
+as in the RFC, except underscore is changed into a hyphen and the name
+is lowercased. For example, this is a way to subscribe to event 375 that
+marks the starts of MOTD (Message Of The Day):
+
+    method irc-375 ($msg) { ... }
+
+    # or
+
+    method irc-rpl-motdstart ($msg) { ... }
