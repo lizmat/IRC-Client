@@ -456,8 +456,8 @@ The following are numeric IRC events the client supports. They can be
 subscribed to by defining either a method listening to the numeric code
 or to the name of the event as defined by [RFC 2812, section 5](https://tools.ietf.org/html/rfc2812#section-5). The names are the same
 as in the RFC, except underscore is changed into a hyphen and the name
-is lowercased. For example, this is a way to subscribe to event 375 that
-marks the starts of MOTD (Message Of The Day):
+is lowercased. For example, this is a way to subscribe to event
+`375  RPL_MOTDSTART` that marks the starts of MOTD (Message Of The Day):
 
     method irc-375 ($msg) { ... }
 
