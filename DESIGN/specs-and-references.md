@@ -1,6 +1,7 @@
 
 # Specs
 
+* [Numerics and other awesome info](https://www.alien.net.au/irc/)
 * [RFC 1459](https://tools.ietf.org/html/rfc1459)
 * [RFC 2810](https://tools.ietf.org/html/rfc2810)
 * [RFC 2811](https://tools.ietf.org/html/rfc2811)

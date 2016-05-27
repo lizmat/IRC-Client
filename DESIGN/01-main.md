@@ -350,7 +350,7 @@ channel, see `irc-mode` event for details.
 Emitted when IRC `MODE` command is received and it's being operated on a
 user, see `irc-mode` event for details.
 
-### `irc-to-me`
+#### `irc-to-me`
 
 ```perl6
     # :zoffix!zoffix@127.0.0.1 PRIVMSG zoffix2 :hello
@@ -371,7 +371,7 @@ The `.how` method returns a `Pair` where the key is the message type used
 (`PRIVMSG` or `NOTICE`) and the value is the addressee of that message
 (a channel or us).
 
-### `irc-addressed`
+#### `irc-addressed`
 
 ```perl6
     # :zoffix!zoffix@127.0.0.1 PRIVMSG #perl6 :zoffix2, hello
@@ -386,7 +386,7 @@ Emitted when a user addresses us in a channel. Specifically, this means
 their message starts with our nickname, followed by optional comma or colon,
 followed by whitespace. That prefix will be stripped from the message.
 
-### `irc-mentioned`
+#### `irc-mentioned`
 
 ```perl6
     # :zoffix!zoffix@127.0.0.1 PRIVMSG #perl6 :Is zoffix2 a robot?
@@ -400,7 +400,7 @@ followed by whitespace. That prefix will be stripped from the message.
 Emitted when a user mentions us in a channel. Specifically, this means
 their message contains our nickname separated by a word boundary on each side.
 
-### `irc-privmsg-channel`
+#### `irc-privmsg-channel`
 
 ```perl6
     # :zoffix!zoffix@127.0.0.1 PRIVMSG #perl6 :hello
@@ -413,7 +413,7 @@ their message contains our nickname separated by a word boundary on each side.
 
 Emitted when a user sends a message to a channel.
 
-### `irc-privmsg-me`
+#### `irc-privmsg-me`
 
 ```perl6
     # :zoffix!zoffix@127.0.0.1 PRIVMSG zoffix2 :hey bruh
@@ -425,7 +425,7 @@ Emitted when a user sends a message to a channel.
 
 Emitted when a user sends us a private message.
 
-### `irc-notice-channel`
+#### `irc-notice-channel`
 
 ```perl6
     # :zoffix!zoffix@127.0.0.1 NOTICE #perl6 :Notice me!
@@ -438,7 +438,7 @@ Emitted when a user sends us a private message.
 
 Emitted when a user sends a notice to a channel.
 
-### `irc-privmsg-me`
+#### `irc-privmsg-me`
 
 ```perl6
     # :zoffix!zoffix@127.0.0.1 NOTICE zoffix2 :did you notice me?
@@ -450,17 +450,48 @@ Emitted when a user sends a notice to a channel.
 
 Emitted when a user sends us a private notice.
 
-## Supported Numeric Events
+#### `irc-started`
 
-The following are numeric IRC events the client supports. They can be
-subscribed to by defining either a method listening to the numeric code
-or to the name of the event as defined by [RFC 2812, section 5](https://tools.ietf.org/html/rfc2812#section-5). The names are the same
-as in the RFC, except underscore is changed into a hyphen and the name
-is lowercased. For example, this is a way to subscribe to event
-`375  RPL_MOTDSTART` that marks the starts of MOTD (Message Of The Day):
+```perl6
+    method irc-started {
+        $.do-some-sort-of-init-setup;
+    }
+```
 
-    method irc-375 ($msg) { ... }
+Emitted when the IRC client is started. Useful for doing setup work, like
+initializing database connections, etc. Note: this event will fire only once,
+even if the client reconnects to the server numerous times. *IMPORTANT:*
+when this event fires, there's no guarantee we event started a connection to
+the server, let alone connected successfully.
 
-    # or
+#### `irc-connected`
 
-    method irc-rpl-motdstart ($msg) { ... }
+```perl6
+    method irc-connected {
+        $.do-some-sort-of-per-connection-setup;
+    }
+```
+
+Similar to `irc-started`, except will be emitted every time a
+*successful* connection to the server is made and we joined all
+of the requested channels. That is, we'll wait to either receive the
+full user list or error message for each of the channels we're joining.
+
+### Numeric Events
+
+Numeric IRC events can be subscribed to by defining a method with name
+`irc-` followed by the numeric code of the event (e.g. `irc-001`). The
+arguments of the event can be accessed via `.args` method that returns a
+list of strings:
+
+```perl6
+    method irc-004 ($msg) {
+        say "Here are the arguments of the RPL_MYINFO event:";
+        .say for $msg.args;
+    }
+```
+
+See [this reference](https://www.alien.net.au/irc/irc2numerics.html) for
+a detailed list of numerics and their arguments available in the wild. Note:
+the client will emit an event for any received numeric with a 3-digit
+code, regardless of whether it is listed in that reference.
