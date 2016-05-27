@@ -74,6 +74,7 @@ of the method starts with `irc-` and followed by the lowercase name of the
 event. User-defined events follow the same pattern, except they start with
 `irc-custom-`:
 
+```perl6
     use IRC::Client::Plugin;
     unit Plugin::Foo is IRC::Client::Plugin;
 
@@ -87,6 +88,7 @@ event. User-defined events follow the same pattern, except they start with
         return IRC_NEXT unless $random > 5;
         $.irc.send: where => '#perl6', what => 'Custom event triggered!';
     }
+```
 
 An event listener receives the event message in the form of an object.
 The object must provide all the relevant information about the source
@@ -97,25 +99,30 @@ it must provide a means to send the message back to the originator
 of the message. For example, here's a potential implementation of
 `PRIVMSG` handler that receives the message object:
 
+```perl6
     method irc-privmsg ($msg) {
         return IRC_NEXT unless $msg.channel eq '#perl6';
         $msg.reply: 'Nice to meet you!';
     }
+```
 
 The message object should include a means to access the Client Object to
 perform operations best suited for it and not the message object. Here is
 a possible implementation to re-emit a `NOTICE` message sent to channel
 `#perl6` as a `PRIVMSG` message.
 
+```perl6
     method irc-notice ($msg) {
         $.irc.emit: 'PRIVMSG', $msg
             if $msg.channel eq '#perl6';
 
         IRC_NEXT;
     }
+```
 
 A plugin can send messages and emit events at will:
 
+```perl6
     method irc-connected {
         Supply.interval(60).tap: {
             $.irc.send: where => '#perl6', what  => 'One minute passed!!';
@@ -129,6 +136,7 @@ A plugin can send messages and emit events at will:
             $.irc.emit: 'CUSTOM-MY-EVENT', 'One hour passed!';
         }
     }
+```
 
 ## Supported Events
 
@@ -138,28 +146,33 @@ A plugin can send messages and emit events at will:
 
 #### `irc-join`
 
+```perl6
     # :zoffix!zoffix@127.0.0.1 JOIN :#perl6
 
     method irc-join ($msg) {
         printf "%s joined channel %s\n", .nick, .channel given $msg;
     }
+```
 
 [RFC 1459, 4.2.1](https://tools.ietf.org/html/rfc1459#section-4.2.1).
 Emitted when user joins a channel.
 
 #### `irc-part`
 
+```perl6
     # :zoffix!zoffix@127.0.0.1 PART #perl6 :Leaving
 
     method irc-part ($msg) {
         printf "%s left channel %s (%s)\n", .nick, .channel, .reason given $msg;
     }
+```
 
 [RFC 1459, 4.2.2](https://tools.ietf.org/html/rfc1459#section-4.2.2).
 Emitted when user leaves a channel.
 
 #### `irc-mode`
 
+```perl6
     # :zoffix!zoffix@127.0.0.1 MODE #perl6 +o zoffix2
     # :zoffix!zoffix@127.0.0.1 MODE #perl6 +bbb Foo!*@* Bar!*@* Ber!*@*
     # :zoffix2!f@127.0.0.1 MODE zoffix2 +w
@@ -176,6 +189,7 @@ Emitted when user leaves a channel.
                 .nick, .modes, .who given $msg;
         }
     }
+```
 
 [RFC 1459, 4.2.3](https://tools.ietf.org/html/rfc1459#section-4.2.3).
 Emitted when IRC `MODE` command is received. As the command is dual-purpose,
@@ -192,24 +206,28 @@ set.
 
 #### `irc-topic`
 
+```perl6
     # :zoffix!zoffix@127.0.0.1 TOPIC #perl6 :meow
 
     method irc-topic ($msg) {
         printf "%s set topic of channel %s to %s\n",
             .nick, .channel, .topic given $msg;
     }
+```
 
 [RFC 1459, 4.2.4](https://tools.ietf.org/html/rfc1459#section-4.2.4).
 Emitted when a user changes topic of a channel.
 
 #### `irc-invite`
 
+```perl6
     # :zoffix!zoffix@127.0.0.1 INVITE zoffix2 :#perl6
 
     method irc-invite ($msg) {
         printf "%s invited us to channel %s\n",
             .nick, .channel given $msg;
     }
+```
 
 [RFC 1459, 4.2.7](https://tools.ietf.org/html/rfc1459#section-4.2.7).
 Emitted when a user invites us to a channel.
@@ -222,6 +240,7 @@ of events easier.
 
 #### `irc-mode-channel`
 
+```perl6
     # :zoffix!zoffix@127.0.0.1 MODE #perl6 +o zoffix2
     # :zoffix!zoffix@127.0.0.1 MODE #perl6 +bbb Foo!*@* Bar!*@* Ber!*@*
 
@@ -229,18 +248,21 @@ of events easier.
         printf "Nick %s with usermask %s set mode(s) %s in channel %s\n",
             .nick, .usermask, .modes, .channel given $msg;
     }
+```
 
 Emitted when IRC `MODE` command is received and it's being operated on a
 channel, see `irc-mode` event for details.
 
 #### `irc-mode-user`
 
+```perl6
     # :zoffix2!f@127.0.0.1 MODE zoffix2 +w
 
     method irc-mode-user ($msg) {
         printf "Nick %s with usermask %s set mode(s) %s on user %s\n",
             .nick, .usermask, .modes, .who given $msg;
     }
+```
 
 Emitted when IRC `MODE` command is received and it's being operated on a
 user, see `irc-mode` event for details.
