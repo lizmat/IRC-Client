@@ -354,6 +354,7 @@ event. User-defined events follow the same pattern, except they start with
         $msg.reply: 'Nice to meet you!';
     }
 
+    # Listen to custom client-generated events:
     method irc-custom-my-event ($some, $random, :$args) {
         return IRC_NEXT unless $random > 5;
         $.irc.send: where => '#perl6', what => 'Custom event triggered!';
@@ -364,10 +365,9 @@ An event listener receives the event message in the form of an object.
 The object must provide all the relevant information about the source
 and content of the message.
 
-The message object's attributes must be mutable, and where appropriate,
-it must provide a means to send the message back to the originator
-of the message. For example, here's a potential implementation of
-`PRIVMSG` handler that receives the message object:
+The message object, where appropriate, must provide a means to send a reply
+back to the originator of the message. For example, here's a potential
+implementation of `PRIVMSG` handler that receives the message object:
 
 ```perl6
     method irc-privmsg ($msg) {
