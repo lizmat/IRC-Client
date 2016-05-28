@@ -282,14 +282,14 @@ Returns an `IRC::Client::Channel` object for the channel given as positional
 argument, or `False` if no such channel seems to exist. Unless our client is
 currently *on* that channel, that existence is
 determined with `LIST` IRC command, so there will be some false negatives,
-such as when attempting to get an object for a channel with secret mode set
-that we are currently aren't on.
+such as when attempting to get an object for a channel with secret mode set.
 
-The channel object provides the following methods. The Client Object tracks
-state for any of the joined channels, so some information will be cached
+The Client Object tracks state for any of the joined channels, so some
+information obtainable via the Channel Object will be cached
 and retrieved from that state, whenever possible. Otherwise, a request
 to the server will be generated. Return values will be empty (empty lists
-or empty strings) when requests fail.
+or empty strings) when requests fail. The channel object provides the
+following methods. 
 
 ### `.has`
 
