@@ -121,7 +121,7 @@ or sending messages.
 A program may have multiple Client Objects, but each of them can be connected
 only to one IRC server. The client object provides these methods:
 
-## `.irc` (access from inside a plugin)
+## `$.irc` (access from inside a plugin)
 
 ```perl6
     use IRC::Client::Plugin;
