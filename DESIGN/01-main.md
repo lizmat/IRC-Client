@@ -376,20 +376,6 @@ implementation of `PRIVMSG` handler that receives the message object:
     }
 ```
 
-The message object should include a means to access the Client Object to
-perform operations best suited for it and not the message object. Here is
-a possible implementation to re-emit a `NOTICE` message sent to channel
-`#perl6` as a `PRIVMSG` message.
-
-```perl6
-    method irc-notice ($msg) {
-        $.irc.emit: 'PRIVMSG', $msg
-            if $msg.channel eq '#perl6';
-
-        IRC_NEXT;
-    }
-```
-
 A plugin can send messages and emit events at will:
 
 ```perl6
