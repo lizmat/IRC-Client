@@ -386,7 +386,7 @@ A plugin can send messages and emit events at will:
         Promise.in(60*60).then: {
             $.irc.send:
                 where => 'Zoffix',
-                what => 'I lived for one hour already!",
+                what => 'I lived for one hour already!',
                 :notice;
 
             $.irc.emit-custom: 'MY-EVENT', 'One hour passed!';
