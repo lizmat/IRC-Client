@@ -278,8 +278,9 @@ given here will be passed as is to listener methods.
     }
 ```
 
-Returns a `IRC::Client::Channel` object for the channel given as positional
-argument, or `False` if no such channel seem to exist. That existence is
+Returns an `IRC::Client::Channel` object for the channel given as positional
+argument, or `False` if no such channel seems to exist. Unless our client is
+currently *on* that channel, that existence is
 determined with `LIST` IRC command, so there will be some false negatives,
 such as when attempting to get an object for a channel with secret mode set
 that we are currently aren't on.
