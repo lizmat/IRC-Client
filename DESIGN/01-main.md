@@ -370,7 +370,7 @@ back to the originator of the message. For example, here's a potential
 implementation of `PRIVMSG` handler that receives the message object:
 
 ```perl6
-    method irc-privmsg ($msg) {
+    method irc-privmsg-channel ($msg) {
         return IRC_NEXT unless $msg.channel eq '#perl6';
         $msg.reply: 'Nice to meet you!';
     }
