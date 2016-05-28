@@ -623,9 +623,10 @@ Emitted when a user sends us a private notice.
 
 Emitted when the IRC client is started. Useful for doing setup work, like
 initializing database connections, etc. Note: this event will fire only once,
-even if the client reconnects to the server numerous times. *IMPORTANT:*
-when this event fires, there's no guarantee we event started a connection to
-the server, let alone connected successfully.
+even if the client reconnects to the server numerous times. Note that
+unlike most events, this event does *not* receive a Message Object. 
+**IMPORTANT:** when this event fires, there's no guarantee we even started a
+connection to the server, let alone connected successfully.
 
 ## `irc-connected`
 
