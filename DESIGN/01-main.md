@@ -792,6 +792,10 @@ is the mode set and the value is the argument for that mode (i.e. "limit",
 For user modes, the `.modes` method returns a list of `Str` of the modes
 set.
 
+The received message objectect will be one of the subclasses of
+`IRC::Client::Message::Mode` object: `IRC::Client::Message::Mode::Channel`
+or `IRC::Client::Message::Mode::User`.
+
 ## `irc-topic`
 
 ```perl6
