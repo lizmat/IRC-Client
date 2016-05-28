@@ -640,6 +640,7 @@ Similar to `irc-started`, except will be emitted every time a
 *successful* connection to the server is made and we joined all
 of the requested channels. That is, we'll wait to either receive the
 full user list or error message for each of the channels we're joining.
+Note that unlike most events, this event does *not* receive a Message Object.
 
 ## `irc-mode-channel`
 
