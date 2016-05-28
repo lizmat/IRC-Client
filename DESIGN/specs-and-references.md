@@ -10,6 +10,7 @@
 * [WebIRC](https://irc.wiki/WebIRC)
 * [CTCP SPEC](http://cpansearch.perl.org/src/HINRIK/POE-Component-IRC-6.78/docs/ctcpspec.html)
 * [DCC Description](http://www.irchelp.org/irchelp/rfc/dccspec.html)
+* [DCC2](https://tools.ietf.org/id/draft-smith-irc-dcc2-negotiation-00.txt)
 
 # Future
 

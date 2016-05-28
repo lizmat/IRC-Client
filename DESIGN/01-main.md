@@ -172,6 +172,81 @@ A plugin can send messages and emit events at will:
         }
     }
 ```
+
+# Message Object Interface
+
+The message object received by all non-custom events is an event-specific
+subclass of `IRC::Client::Message`. The subclass is named
+`IRC::Client::Message::$NAME`, where `$NAME` is:
+
+* Named and Convenience events use their names without `irc-` part, with any `-`
+changed to `::` and with each word written in `Title Case`. e.g.
+message object for `irc-privmsg-me` is `IRC::Client::Message::Privmsg::Me`
+* Numeric events always receive `IRC::Client::Message::Numeric` message
+object, regardless of the actual number of the event.
+
+Along with event-specific methods
+described under each event, the `IRC::Client::Message` offers the following
+methods:
+
+## `.nick`
+
+```perl6
+    say $msg.nick ~ " says hello";
+```
+
+Contains the nickname of the sender of the message.
+
+## `.username`
+
+```perl6
+    say $msg.nick ~ " has username " ~ $msg.username;
+```
+
+Contains the username of the sender of the message.
+
+## `.host`
+
+```perl6
+    say $msg.nick ~ " is connected from " ~ $msg.host;
+```
+
+Hostname of sender of the message.
+
+## `.usermask`
+
+```perl6
+    say $msg.usermask;
+```
+
+Nick, username, and host combined into a full usermask, e.g.
+`Zoffix!zoffix@zoffix.com`
+
+## `.reply`
+
+```perl6
+    $msg.reply: 'I love you too'
+        if $msg.what ~~ /'I love you'/;
+```
+
+Replies back to a message. For example, if we received the message as a
+private message to us, the reply will be a private message back to the
+user. Same for notices. For in-channel messages, `irc-addressed`
+and `irc-to-me` will address the sender in return, while all other in-channel
+events will not.
+
+**NOTE:** this method is only available for these events:
+
+* `irc-privmsg`
+* `irc-notice`
+* `irc-to-me`
+* `irc-addressed`
+* `irc-mentioned`
+* `irc-privmsg-channel`
+* `irc-privmsg-me`
+* `irc-notice-channel`
+* `irc-privmsg-me`
+
 # Convenience Events
 
 These sets of events do not have a corresponding IRC command defined by the
