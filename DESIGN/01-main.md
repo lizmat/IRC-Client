@@ -439,10 +439,10 @@ The message object received by all non-custom events is an event-specific
 subclass of `IRC::Client::Message`. The subclass is named
 `IRC::Client::Message::$NAME`, where `$NAME` is:
 
-* Named and Convenience events use their names without `irc-` part, with any `-`
+* *Named* and *Convenience* events use their names without `irc-` part, with any `-`
 changed to `::` and with each word written in `Title Case`. e.g.
 message object for `irc-privmsg-me` is `IRC::Client::Message::Privmsg::Me`
-* Numeric events always receive `IRC::Client::Message::Numeric` message
+* *Numeric* events always receive `IRC::Client::Message::Numeric` message
 object, regardless of the actual number of the event.
 
 Along with event-specific methods
@@ -668,6 +668,20 @@ channel, see `irc-mode` event for details.
 
 Emitted when IRC `MODE` command is received and it's being operated on a
 user, see `irc-mode` event for details.
+
+## `irc-all`
+
+```perl6
+    method irc-all ($msg) {
+        say "Received an event: $msg.perl()";
+        return IRC_NEXT;
+    }
+```
+
+Emitted for all events and is mostly useful for debugging. The type of the
+message object received will depend on the type of the event that generated
+the message. This event will be triggered *AFTER* all other event handlers
+in the current plugin are processed.
 
 # Numeric Events
 
