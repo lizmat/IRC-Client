@@ -94,9 +94,7 @@ The implementation distribution may also include several plugins that may
 be commonly needed by users. Such plugins are not enabled by default and
 the user must request their inclusion with code.
 
-# Core
-
-## Client Object
+# Client Object
 
 Client Object represents a connected IRC client and is aware of and can
 manipulate its state, such as disconnecting, joining or parting a channel,
@@ -105,11 +103,217 @@ or sending messages.
 A program may have multiple Client Objects, but each of them can be connected
 only to one IRC server.
 
-A relevant Client Object must be easily accessible to the user of the
-implementation. This includes user's plugins responsible for handling
-events.
+## `.irc` (access from inside a plugin)
 
-## Message Delivery
+```perl6
+    use IRC::Client::Plugin;
+    unit Plugin::Foo is IRC::Client::Plugin;
+
+    method irc-privmsg-me ($msg) {
+        $.irc.send:
+            where => '#perl6',
+            what => "$msg.nick() just sent me a secret! It's $msg.what()";
+    }
+```
+
+A plugin inherits from `IRC::Client::Plugin`, which provides `$.irc`
+attribute containing the Client Object, allowing the plugin to utilize all
+of the methods it provides.
+
+## `.new`
+
+```perl6
+    my $irc = IRC::Client.new:
+        ...
+        :plugins(
+            IRC::Client::Plugin::Factoid.new,
+            My::Plugin.new,
+            class :: is IRC::Client::Plugin {
+                method irc-privmsg-me ($msg) { $msg.repond: 'Go away!'; }
+            },
+        );
+```
+
+*Not to be used inside plugins.*
+Creates a new `IRC::Client` object. Along with the usual arguments like
+nick, username, server address, etc, takes `:plugins` argument that
+lists the plugins to include. All messages will be handed to each plugin
+in the order they are defined here.
+
+## `.run`
+
+```perl6
+    $irc.run;
+```
+
+*Not to be used inside plugins.*
+Starts the client, connecting to the server and maintaining that connection
+and not returning until an explicit  `.quit` is issued. If the connection
+breaks, the client will attempt to reconnect.
+
+## `.quit`
+
+```perl6
+    $.irc.quit;
+
+    $.irc.quit: 'Reason';
+```
+
+Disconnects from the server. Takes an option string to be given to the
+server as the reson for quitting.
+
+## `.part`
+
+```per6
+    $.irc.part: '#perl6';
+
+    $.irc.part: '#perl6', 'Leaving';
+```
+
+Exits a channel. Takes two positional strings: the channel to part
+and an optional parting message. Causes the client object to discard any state
+kept for this channel.
+
+## `.join`
+
+```perl6
+    $.irc.join '#perl6', '#perl7';
+```
+
+Joins channels given as positional arguments.
+
+## `.send`
+
+```perl6
+    $.irc.send: where => '#perl6', what => 'Hello, Perl 6!';
+    
+    $.irc.send: where => 'Zoffix', what => 'Hi, Zoffie!';
+    
+    $.irc.send: where => 'Zoffix', what => 'Notice me, senpai!', :notice;
+```
+
+Sends a message specified by `what` argument
+either to a user or a channel specified by `:where` argument. If `Bool`
+argument `:notice` is set to true, will send a *notice* instead of regular
+message.
+
+## `.nick`
+
+```perl6
+    $.irc.nick: 'ZofBot', 'ZofBot_', 'ZofBot__';
+```
+
+Attempts to change the nick of the client. Takes one or more positional
+arguments that are a list of nicks to try.
+
+## `.emit`
+
+```perl6
+    $.irc.emit: $msg;
+
+    $.irc.emit: IRC::Client::Message::Privmsg.new:
+        nick => 'Zoffix',
+        what => 'Hello',
+        ...;
+    ...
+    method irc-privmsg ($msg) {
+        say "$msg.nick() said $msg.what()... or did they?";
+    }
+```
+
+Takes an object of any of `IRC::Client::Message::*` subclass and emits it
+as if it were a new event. That is, it will propagate through the plugin chain
+starting at the first plugin, and not the one emiting the event, and the
+plugins can't tell whether the message is self-generated or something that
+came from the server.
+
+## `.emit-custom`
+
+```perl6
+    $.irc.emit-custom: 'my-event', 'just', 'some', :args;
+```
+
+Same idea as `.emit`, except a custom event is emitted. The first positional
+argument specifies the name of the event to emit. Any other arguments
+given here will be passed as is to listener methods.
+
+## `.channel`
+
+```perl6
+    method irc-addressed ($msg) {
+        if $msg.what ~~ /'kick' \s+ $<nick>=\S+/ {
+            $msg.reply: "I don't see $<nick> up in here"
+                unless $.irc.channel($msg.channel).?has: ~$<nick>;
+        }
+        
+        if $msg.what ~~ /'topic' \s+ $<channel>=\S+/ {
+            return $msg.reply: $_
+                    ?? "Channel $<channel> does not exist"
+                    !! "Topic in $<channel> is $_.topic()"
+                given $.irc.channel: ~$<channel>;
+        }
+    }
+```
+
+Returns a `IRC::Client::Channel` object for the channel given as positional
+argument, or `False` if no such channel seem to exist. That existence is
+determined with `LIST` IRC command, so there will be some false negatives,
+such as when attempting to get an object for a channel with secret mode set
+that we are currently aren't on.
+
+The channel object provides the following methods. The Client Object tracks
+state for any of the joined channels, so some information will be cached
+and retrieved from that state, whenever possible. Otherwise, a request
+to the server will be generated. Return values will be empty (empty lists
+or empty strings) when requests fail.
+
+### `.has`
+
+```perl6
+    $.irc.channel('#perl6').has: 'Zoffix';
+```
+
+Returns `True` or `False` indicating whether a user with the given nick is 
+present on the channel.
+
+### `.topic`
+
+```perl6
+    say "Topic of the channel is " ~ $.irc.channel('#perl6').topic;
+```
+
+Returns the `TOPIC` of the channel.
+
+### `.modes`
+
+```perl6
+    say $.irc.channel('#perl6').modes;
+    # ('s', 'n', 't')
+```
+
+Returns a list of single-letter codes for currently active channel modes
+on the channel. Note, this does not include any bans.
+
+### `.bans`
+
+```perl6
+    say $.irc.channel('#perl6').bans;
+    # ('*!spammer@*', 'warezbot!*@*')
+```
+
+Returns a list of currently active ban masks on the channel.
+
+### `.names`
+
+```perl6
+    say $.irc.channel('#perl6').names;
+    # ('@Zoffix', '+zoffixs-helper', 'not-zoffix')
+```
+
+Returns a list of nicks present on the channel, each potentially prefixed
+with a [channel membership prefix](https://www.alien.net.au/irc/chanmembers.html)
+
+# Message Delivery
 
 An event listener is defined by a method in a plugin class. The name
 of the method starts with `irc-` and followed by the lowercase name of the
@@ -175,10 +379,49 @@ A plugin can send messages and emit events at will:
                 what => 'I lived for one hour already!",
                 :notice;
 
-            $.irc.emit: 'CUSTOM-MY-EVENT', 'One hour passed!';
+            $.irc.emit-custom: 'MY-EVENT', 'One hour passed!';
         }
     }
 ```
+
+# Response Constants
+
+Multiple plugins can listen to the same event. The event message will be
+handed to each of the plugins in the sequence they are defined when the
+Client Object is initialized. Each handler can use predefined response
+constants to signal whether the handling of this particular event message
+should stop or continue onto the next plugin. These response constants
+are `IRC_NEXT` and `IRC_DONE` and are exported by `IRC::Client::Plugin`.
+
+## `IRC_NEXT`
+
+```perl6
+    method irc-privmsg-channel ($msg) {
+        return IRC_NEXT unless $msg.channel eq '#perl6';
+        ....
+    }
+```
+
+Signals that the message should continue to be passed on to any further
+plugins that subscribed to handle it.
+
+## `IRC_DONE`
+
+```perl6
+    method irc-privmsg-channel ($msg) {
+        return IRC_DONE if $msg.channel eq '#perl6';
+    }
+
+    # or just...
+
+    method irc-privmsg-channel ($msg) {}
+```
+
+Signals that the message has been handled and should NOT be passed on
+to any further plugins. **Note:** you don't have to explicitly return this
+value; anything other than returning `IRC_NEXT` is the same as returning
+`IRC_DONE`.
+
 
 # Message Object Interface
 
@@ -497,7 +740,7 @@ Emitted when a user leaves a channel.
     # :zoffix2!f@127.0.0.1 MODE zoffix2 +w
 
     method irc-mode ($msg) {
-        if $msg?.channel {
+        if $msg.?channel {
             # channel mode change
             printf "%s set mode(s) %s in channel %s\n",
                 .nick, .modes, .channel given $msg;
@@ -571,7 +814,7 @@ Emitted when someone kicks a user out of a channel.
     # :zoffix!zoffix@127.0.0.1 PRIVMSG zoffix2 :hey bruh
 
     method irc-privmsg ($msg) {
-        if $msg?.channel {
+        if $msg.?channel {
             # message sent to a channel
             printf "%s said `%s` to channel %s\n",
                 .nick, .what, .channel given $msg;
@@ -595,7 +838,7 @@ of more convenient ways to listen to messages.
     # :zoffix!zoffix@127.0.0.1 NOTICE zoffix2 :did you notice me?
 
     method irc-notice ($msg) {
-        if $msg?.channel {
+        if $msg.?channel {
             # notice sent to a channel
             printf "%s sent a notice `%s` to channel %s\n",
                 .nick, .what, .channel given $msg;
@@ -611,3 +854,18 @@ of more convenient ways to listen to messages.
 Emitted when a user sends a notice either to a channel
 or a private notice to us. See *Convenience Events* section for a number
 of more convenient ways to listen to notices and messages.
+
+# Custom Events
+
+There is support for custom events. A custom event is emitted by calling
+`.emit-custom` method on the Client Object and is subscribed to via
+`irc-custom-*` methods:
+
+```perl6
+    $.irc.emit-custom: 'my-event', 'just', 'some', :args;
+    ...
+    method irc-custom-my-event ($just, $some, :$args) { }
+```
+
+No Message Object is involved in custom events.
+
