@@ -155,7 +155,7 @@ of the methods it provides.
 *Not to be used inside plugins.*
 Creates a new `IRC::Client` object. Along with the usual arguments like
 nick, username, server address, etc, takes `:plugins` argument that
-lists the plugins to include. All messages will be handed to each plugin
+lists the plugins to include. All messages will be propagated through plugins
 in the order they are defined here.
 
 ## `.run`
@@ -198,7 +198,7 @@ kept for this channel.
     $.irc.join '#perl6', '#perl7';
 ```
 
-Joins channels given as positional arguments.
+Attempts to joins channels given as positional arguments.
 
 ## `.send`
 
@@ -214,6 +214,11 @@ Sends a message specified by `what` argument
 either to a user or a channel specified by `:where` argument. If `Bool`
 argument `:notice` is set to true, will send a *notice* instead of regular
 message.
+
+Note that in IRC bots that respond to commands from other users a more
+typical way to reply to those commands would be by calling
+`.reply` method on the Message Object, rather than using `.send` method.
+
 
 ## `.nick`
 
