@@ -60,7 +60,7 @@
 
 # PURPOSE
 
-The purpose of IRC::Client is to provide serve as a fully-functional IRC
+The purpose of IRC::Client is to serve as a fully-functional IRC
 client that--unlike programs like HexChat or mIRC--provide a programmatic
 interface to IRC. So, for example, to send a message to a channel, instead
 of typing a message in a message box and pressing ENTER, a method is called
@@ -119,7 +119,7 @@ manipulate its state, such as disconnecting, joining or parting a channel,
 or sending messages.
 
 A program may have multiple Client Objects, but each of them can be connected
-only to one IRC server.
+only to one IRC server. The client object provides these methods:
 
 ## `.irc` (access from inside a plugin)
 
