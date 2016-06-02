@@ -158,9 +158,7 @@ A possible `.new` setup may look something like this:
 ```
 
 Use of multiple servers is facilitated via server nicknames and using
-them as a method call to obtain the correct Client Object. A special
-nickname of `all` is reserved to mean the command must be issued to ALL
-connected servers. For example:
+them as a method call to obtain the correct Client Object. For example:
 
 ```perl6
     $.irc.quit; # quits all servers
