@@ -149,7 +149,7 @@ A possible `.new` setup may look something like this:
                 :server<irc.perl.org>,
                 :channels<#perl #perl-help>
             ),
-            s-perler => (
+            s-alistair => (
                 :nick<Party Party_ Party__> # nick override
                 :server<irc.perl6.pary>,
                 :channels<#perler>
