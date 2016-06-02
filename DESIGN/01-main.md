@@ -113,14 +113,74 @@ The implementation distribution may also include several plugins that may
 be commonly needed by users. Such plugins are not enabled by default and
 the user must request their inclusion with code.
 
+# Multi-Server Interface
+
+The interface described in the rest of this document assumes a connection
+to a single server. Should the client be connected to multiple-servers at
+the time, issuing commands described will apply *every* server. **Plugin
+authors must keep this fact in mind, when writing plugins, as forgetting
+to handle multiple servers can result in unwanted behaviour.***
+
+The same reasoning applies to the `.new` method: attributes, such as
+nicknames, usernames, etc. given without associating them with a server will
+apply to ALL connected servers. Configuration for individual servers is
+given via `:servers` named parameter as a list of `Pairs`. The key
+is the nickname of server and must be a valid method name. It's recommended
+to choose something that won't end up an actual method on the Client Object.
+It's guaranteed methods starting with `s-` will always be safe to use. The
+value is a list of pairs that can be accepted by the Client Object as named
+parameters (except for `:servers`) that specify the configuration for that
+specific server, overriding any of the non-server-specific parameters already
+set.
+
+A possible `.new` setup may look something like this:
+
+```perl6
+    my $irc = IRC::Client.new:
+        :nick<ZofBot ZofBot_ ZofBot__> # nicks to try to use on ALL servers,
+        :servers(
+            s-leliana => (
+                :server<irc.freenode.net>,
+                :channels<#perl #perl6 #perl7>
+            ),
+            s-morrigan => (
+                :server<irc.perl.org>,
+                :channels<#perl #perl-help>
+            ),
+            s-perler => (
+                :nick<Party Party_ Party__> # nick override
+                :server<irc.perl6.pary>,
+                :channels<#perler>
+            ),
+        ),
+```
+
+Use of multiple servers is facilitated via server nicknames and using
+them as a method call to obtain the correct Client Object. A special
+nickname of `all` is reserved to mean the command must be issued to ALL
+connected servers. For example:
+
+```perl6
+    $.irc.quit; # quits all servers
+    $.irc.s-leliana.quit; # quits only the s-leliana server
+
+    # send a message to #perl6 channel on s-morrigan server
+    $.irc.s-morrigan.send: where => '#perl6', what => 'hello';
+```
+
+The Message Object will also contain a `.server` method value of which
+is the nickname of the server from which the message arrived. In general,
+the most common way to generate messages will be using `.reply` on the Message
+Object, making the multi-server paradigm completely transparent.
+
 # Client Object
 
 Client Object represents a connected IRC client and is aware of and can
 manipulate its state, such as disconnecting, joining or parting a channel,
 or sending messages.
 
-A program may have multiple Client Objects, but each of them can be connected
-only to one IRC server. The client object provides these methods:
+A Client Object must support the ability to connect to multiple servers.
+The client object provides these methods:
 
 ## `$.irc` (access from inside a plugin)
 
@@ -205,9 +265,9 @@ Attempts to joins channels given as positional arguments.
 
 ```perl6
     $.irc.send: where => '#perl6', what => 'Hello, Perl 6!';
-    
+
     $.irc.send: where => 'Zoffix', what => 'Hi, Zoffie!';
-    
+
     $.irc.send: where => 'Zoffix', what => 'Notice me, senpai!', :notice;
 ```
 
@@ -269,7 +329,7 @@ given here will be passed as is to listener methods.
             $msg.reply: "I don't see $<nick> up in here"
                 unless $.irc.channel($msg.channel).?has: ~$<nick>;
         }
-        
+
         if $msg.what ~~ /'topic' \s+ $<channel>=\S+/ {
             return $msg.reply: $_
                     ?? "Channel $<channel> does not exist"
@@ -290,7 +350,7 @@ information obtainable via the Channel Object will be cached
 and retrieved from that state, whenever possible. Otherwise, a request
 to the server will be generated. Return values will be empty (empty lists
 or empty strings) when requests fail. The channel object provides the
-following methods. 
+following methods.
 
 ### `.has`
 
@@ -298,7 +358,7 @@ following methods.
     $.irc.channel('#perl6').has: 'Zoffix';
 ```
 
-Returns `True` or `False` indicating whether a user with the given nick is 
+Returns `True` or `False` indicating whether a user with the given nick is
 present on the channel.
 
 ### `.topic`
@@ -625,7 +685,7 @@ Emitted when a user sends us a private notice.
 Emitted when the IRC client is started. Useful for doing setup work, like
 initializing database connections, etc. Note: this event will fire only once,
 even if the client reconnects to the server numerous times. Note that
-unlike most events, this event does *not* receive a Message Object. 
+unlike most events, this event does *not* receive a Message Object.
 **IMPORTANT:** when this event fires, there's no guarantee we even started a
 connection to the server, let alone connected successfully.
 
