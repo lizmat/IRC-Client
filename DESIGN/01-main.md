@@ -5,6 +5,7 @@
     - [Client-Generated Events](#client-generated-events)
     - [Possibility of Non-Blocking Code](#possibility-of-non-blocking-code)
 - [DESIGN](#design)
+- [Multi-Server Interface](#multi-server-interface)
 - [Client Object](#client-object)
     - [`$.irc` (access from inside a plugin)](#irc-access-from-inside-a-plugin)
     - [`.new`](#new)
