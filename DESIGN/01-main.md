@@ -118,9 +118,10 @@ the user must request their inclusion with code.
 
 The interface described in the rest of this document assumes a connection
 to a single server. Should the client be connected to multiple-servers at
-the time, issuing commands described will apply *every* server. **Plugin
-authors must keep this fact in mind, when writing plugins, as forgetting
-to handle multiple servers can result in unwanted behaviour.***
+the time, issuing commands described will apply to *every* connected server.
+A server must be specified to issue a command to a single server.
+**Plugin authors must keep this fact in mind, when writing plugins, as
+forgetting to handle multiple servers can result in unwanted behaviour.**
 
 The same reasoning applies to the `.new` method: attributes, such as
 nicknames, usernames, etc. given without associating them with a server will
