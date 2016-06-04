@@ -13,6 +13,7 @@ has Str:D  $.userhost                    = 'localhost';
 has Str:D  $.userreal                    = 'Perl6 IRC Client';
 has Str:D  @.channels                    = ['#perl6'];
 has        @.plugins;
+has        @.servers;
 has IO::Socket::Async   $!sock;
 
 method run {
@@ -28,24 +29,17 @@ method run {
                 my $str = try $buf.decode: 'utf8';
                 $str or $str = $buf.decode: 'latin-1';
                 $str ~= $left-overs;
-                $!debug and "[server {DateTime.now}] {$str}".put;
-                (my $events, $left-overs) = IRC::Client::Grammar.parse(
-                    $str, actions => IRC::Client::Grammar::Actions
-                ).made;
 
-                for @$events -> $e {
-                    say "[event] $e";
-                    CATCH { warn .backtrace }
-                }
+                (my $events, $left-overs) = self!parse: $str;
+                # for @$events -> $e {
+                #     say "[event] $e";
+                #     CATCH { warn .backtrace }
+                # }
             }
 
             CATCH { warn .backtrace }
         }
-
-        say "Closing connection";
         $!sock.close;
-
-        # CATCH { warn .backtrace }
     });
 }
 
@@ -53,4 +47,14 @@ method !ssay (Str:D $msg) {
     $!debug and "$msg".put;
     $!sock.print("$msg\n");
     self;
+}
+
+method !parse (Str:D $str) {
+    return IRC::Client::Grammar.parse(
+        $str,
+        actions => IRC::Client::Grammar::Actions.new(
+            irc    => self,
+            server => 'dummy',
+        ),
+    ).made;
 }
