@@ -5,5 +5,7 @@ use IRC::Client;
 my $irc = IRC::Client.new(
     :nick('IRCBot' ~ now.Int)
     :debug
-    :port<5667>
+    :channels<#zofbot>
+    :host<irc.freenode.net>
+    #:port<5667>
 ).run;
