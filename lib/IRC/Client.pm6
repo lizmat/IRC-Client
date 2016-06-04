@@ -19,9 +19,9 @@ has IO::Socket::Async   $!sock;
 method run {
     await IO::Socket::Async.connect( $!host, $!port ).then({
         $!sock = .result;
-        self!ssay: "PASS $!password\n" if $!password.defined;
-        self!ssay: "NICK $!nick\n";
-        self!ssay: "USER $!username $!username $!host :$!userreal\n";
+        self!ssay: "PASS $!password" if $!password.defined;
+        self!ssay: "NICK $!nick";
+        self!ssay: "USER $!username $!username $!host :$!userreal";
 
         my $left-overs = '';
         react {
@@ -31,10 +31,10 @@ method run {
                 $str ~= $left-overs;
 
                 (my $events, $left-overs) = self!parse: $str;
-                # for @$events -> $e {
-                #     say "[event] $e";
-                #     CATCH { warn .backtrace }
-                # }
+                for $events.grep: *.defined -> $e {
+                    $!debug and debug-print $e;
+                    CATCH { warn .backtrace }
+                }
             }
 
             CATCH { warn .backtrace }
@@ -44,7 +44,7 @@ method run {
 }
 
 method !ssay (Str:D $msg) {
-    $!debug and "$msg".put;
+    $!debug and debug-print $msg;
     $!sock.print("$msg\n");
     self;
 }
@@ -57,4 +57,16 @@ method !parse (Str:D $str) {
             server => 'dummy',
         ),
     ).made;
+}
+
+sub debug-print ($str, $dir where * eq 'in' | 'out') {
+    state $color = try {
+        require Terminal::ANSIColor;
+        $color = GLOBAL::Terminal::ANSIColor::EXPORT::DEFAULT::<&color>;
+    } // sub (Str $s) { '' };
+
+    put ( $dir eq 'in'
+        ?? $color('bold blue' ) ~ '▬▬▬▶ '
+        !! $color('bold green') ~ '◀▬▬▬ '
+    ) ~ $color('bold red') ~ join $color('reset'), $str.split: ' ', 2;
 }

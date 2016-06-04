@@ -1,16 +1,9 @@
 use v6;
 use lib 'lib';
-use IRC::Client::Grammar;
-use IRC::Client::Grammar:Actions;
+use IRC::Client;
 
-say IRC::Client::Grammar.parse(
-    'PRIVMSG #perl6 :hello',
-    actions => IRC::Client::Grammar::Actions.new,
-).made;
-
-# use IRC::Client;
-#
-# my $irc = IRC::Client.new(
-#     :debug
-#     :port<5667>
-# ).run;
+my $irc = IRC::Client.new(
+    :nick('IRCBot' ~ now.Int)
+    :debug
+    :port<5667>
+).run;
