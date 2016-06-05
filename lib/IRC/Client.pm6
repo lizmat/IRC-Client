@@ -19,7 +19,8 @@ method run {
     self!prep-servers;
 
     for %!servers.kv -> $s-name, $s-conf {
-        %!servers{ $s-name }<promise>
+        say "LAUNCHING $s-name [$s-conf]";
+        $s-conf<promise>
         = IO::Socket::Async.connect( $s-conf<host>, $s-conf<port> ).then({
             $s-conf<sock> = .result;
 
@@ -41,24 +42,21 @@ method run {
 
                     (my $events, $left-overs)
                     = self!parse: $str, :server($s-name);
-                    # say $events, $left-overs;
                     for $events.grep: *.defined -> $e {
-                        say $e;
-                        CATCH { warn .backtrace }
                         $!debug and debug-print $e, :in;
-                        # self!handle-event: $e, $s-name;
+                        self!handle-event: $e;
                     }
                 }
             }
             $s-conf<sock>.close;
-        })
+        });
     }
     await Promise.allof: %!servers.values».<promise>;
 }
 
-method send-cmd ($cmd, *@args) {
+method send-cmd ($cmd, *@args, :$server) {
     @args[*-1] = ':' ~ @args[*-1];
-    self!ssay: join ' ', $cmd, @args;
+    self!ssay: :$server, join ' ', $cmd, @args;
 }
 
 method !prep-servers {
@@ -72,21 +70,21 @@ method !prep-servers {
 }
 
 method !handle-event ($e) {
-    # given $e.command {
-    #     when '001'  { self!ssay: "JOIN @.channels[]", :server($e.server); }
-    #     when 'PING' { $e.reply }
-    #     when 'JOIN' {
-    #         say "Joined channel $e.channel()"
-    #             if $e.nick eq $!nick;
-    #     }
-    # }
-    #
-    # my $method = 'irc-' ~ $e.^name.subst('IRC::Client::Message::', '')
-    #     .lc.subst: '::', '-', :g;
-    # $!debug >= 2 and debug-print "emitting `$method`", :sys;
-    # for self!plugs-that-can: $method {
-    #     last if ."$method"($e).^name eq 'IRC_FLAG_HANDLED';
-    # }
+    given $e.command {
+        when '001'  { self!ssay: "JOIN @.channels[]", :server($e.server); }
+        when 'PING' { $e.reply }
+        when 'JOIN' {
+            say "Joined channel $e.channel()"
+                if $e.nick eq $!nick;
+        }
+    }
+
+    my $method = 'irc-' ~ $e.^name.subst('IRC::Client::Message::', '')
+        .lc.subst: '::', '-', :g;
+    $!debug >= 2 and debug-print "emitting `$method`", :sys;
+    for self!plugs-that-can: $method {
+        last if ."$method"($e).^name eq 'IRC_FLAG_HANDLED';
+    }
 }
 
 method !plugs-that-can ($method) {
@@ -94,8 +92,7 @@ method !plugs-that-can ($method) {
 }
 
 method !ssay (Str:D $msg, :$server = '*') {
-    return;
-    $!debug and debug-print $msg, :out;
+    $!debug and debug-print $msg, :out, :$server;
     %!servers{ $server }<sock>.print("$msg\n");
     self;
 }
@@ -110,13 +107,15 @@ method !parse (Str:D $str, :$server) {
     ).made;
 }
 
-sub debug-print (Str(Any) $str, :$in, :$out, :$sys) {
-    return;
+sub debug-print (Str(Any) $str, :$in, :$out, :$sys, :$server) {
     state &colored = try {
         require Terminal::ANSIColor;
         &colored
         = GLOBAL::Terminal::ANSIColor::EXPORT::DEFAULT::<&colored>;
     } // sub (Str $s) { '' };
+
+    my $server-str = $server
+        ?? colored($server, 'bold white on_green') ~ ' ' !! '';
 
     my @bits = $str.split: ' ';
     if $in {
@@ -129,11 +128,11 @@ sub debug-print (Str(Any) $str, :$in, :$out, :$sys) {
         @bits[$cmd] = @bits[$cmd] ~~ /^ <[0..9]>**3 $/
             ?? colored(@bits[$cmd], 'bold red')
             !! colored(@bits[$cmd], 'bold yellow');
-        put colored('▬▬▶ ', 'bold blue' ) ~ @bits.join: ' ';
+        put colored('▬▬▶ ', 'bold blue' ) ~ $server-str ~ @bits.join: ' ';
     }
     elsif $out {
         @bits[0] = colored @bits[0], 'bold magenta';
-        put colored('◀▬▬ ', 'bold green') ~ @bits.join: ' ';
+        put colored('◀▬▬ ', 'bold green') ~ $server-str ~ @bits.join: ' ';
     }
     elsif $sys {
         put colored(' ' x 4 ~ '↳', 'bold white') ~ ' '

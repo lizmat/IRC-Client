@@ -37,12 +37,12 @@ role Privmsg does M { has $.text; }
 role Privmsg::Channel does Privmsg {
     has $.channel;
     method reply ($text, :$where) {
-        $.irc.send-cmd: 'PRIVMSG', $where // $.channel, $text;
+        $.irc.send-cmd: 'PRIVMSG', $where // $.channel, $text, :$.server;
     }
 }
 role Privmsg::Me does Privmsg {
     method reply ($text, :$where) {
         $where //= $.nick;
-        $.irc.send-cmd: 'PRIVMSG', $where, $text;
+        $.irc.send-cmd: 'PRIVMSG', $where, $text, :$.server;
     }
 }
