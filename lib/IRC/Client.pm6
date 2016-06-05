@@ -13,41 +13,60 @@ has Str:D  $.userhost                    = 'localhost';
 has Str:D  $.userreal                    = 'Perl6 IRC Client';
 has Str:D  @.channels                    = ['#perl6'];
 has        @.plugins;
-has        @.servers;
-has IO::Socket::Async   $!sock;
+has        %.servers;
 
 method run {
-    await IO::Socket::Async.connect( $!host, $!port ).then({
-        $!sock = .result;
-        self!ssay: "PASS $!password" if $!password.defined;
-        self!ssay: "NICK $!nick";
-        self!ssay: "USER $!username $!username $!host :$!userreal";
+    self!prep-servers;
 
-        react {
-            CATCH { warn .backtrace }
+    for %!servers.kv -> $s-name, $s-conf {
+        %!servers{ $s-name }<promise> =
+        IO::Socket::Async.connect( $s-conf<host>, $s-conf<port> ).then({
+            $s-conf<sock> = .result;
 
-            whenever $!sock.Supply :bin -> $buf is copy {
-                state $left-overs = '';
-                my $str = try $buf.decode: 'utf8';
-                $str or $str = $buf.decode: 'latin-1';
-                $str = $left-overs ~ $str;
+            self!ssay: "PASS $!password", :server($s-name)
+                if $!password.defined;
+            self!ssay: "NICK $!nick", :server($s-name);
+            self!ssay:
+                "USER $!username $!username $!host :$!userreal",
+                :server($s-name);
 
-                (my $events, $left-overs) = self!parse: $str;
-                $str ~~ /$<left>=(\N*)$/;
-                for $events.grep: *.defined -> $e {
-                    CATCH { warn .backtrace }
-                    $!debug and debug-print $e, :in;
-                    self!handle-event: $e;
+            react {
+                CATCH { warn .backtrace }
+
+                whenever $s-conf<sock>.Supply :bin -> $buf is copy {
+                    state $left-overs = '';
+                    my $str = try $buf.decode: 'utf8';
+                    $str or $str = $buf.decode: 'latin-1';
+                    $str = $left-overs ~ $str;
+
+                    (my $events, $left-overs) = self!parse: $str;
+                    for $events.grep: *.defined -> $e {
+                        CATCH { warn .backtrace }
+                        $!debug and debug-print $e, :in;
+                        self!handle-event: $e;
+                    }
                 }
             }
-        }
-        $!sock.close;
-    });
+            $s-conf<sock>.close;
+        })
+    }
+    say %!servers.values».<promise>;
+    await %!servers.values».<promise>;
 }
 
 method send-cmd ($cmd, *@args) {
     @args[*-1] = ':' ~ @args[*-1];
     self!ssay: join ' ', $cmd, @args;
+}
+
+method !prep-servers {
+    %!servers = '*' => {} unless %!servers;
+
+    for %!servers.values -> $s {
+        $s{$_} //= self."$_"()
+            for <host password port nick username userhost userreal>;
+        $s<channels> = @.channels;
+    }
 }
 
 method !handle-event ($e) {
@@ -72,9 +91,9 @@ method !plugs-that-can ($method) {
     return @!plugins.grep(*.^can: $method);
 }
 
-method !ssay (Str:D $msg) {
+method !ssay (Str:D $msg, :$server = '*') {
     $!debug and debug-print $msg, :out;
-    $!sock.print("$msg\n");
+    %!servers{ $server }<sock>.print("$msg\n");
     self;
 }
 
