@@ -44,8 +44,8 @@ method run {
                     # say $events, $left-overs;
                     for $events.grep: *.defined -> $e {
                         say $e;
-                        # CATCH { warn .backtrace }
-                        # $!debug and debug-print $e, :in;
+                        CATCH { warn .backtrace }
+                        $!debug and debug-print $e, :in;
                         # self!handle-event: $e, $s-name;
                     }
                 }
