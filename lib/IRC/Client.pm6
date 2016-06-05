@@ -18,11 +18,11 @@ has        %.servers;
 method run {
     self!prep-servers;
 
+    my $lock = Lock.new;
     for %!servers.kv -> $s-name, $s-conf {
-        say "LAUNCHING $s-name [$s-conf]";
         $s-conf<promise>
-        = IO::Socket::Async.connect( $s-conf<host>, $s-conf<port> ).then({
-            $s-conf<sock> = .result;
+        = IO::Socket::Async.connect($s-conf<host>, $s-conf<port>).then: -> $v {
+            $lock.protect: { $s-conf<sock> = $v.result; };
 
             self!ssay: "PASS $!password", :server($s-name)
                 if $!password.defined;
@@ -49,7 +49,7 @@ method run {
                 }
             }
             $s-conf<sock>.close;
-        });
+        };
     }
     await Promise.allof: %!servers.values».<promise>;
 }
@@ -92,7 +92,7 @@ method !plugs-that-can ($method) {
 }
 
 method !ssay (Str:D $msg, :$server = '*') {
-    $!debug and debug-print $msg, :out, :$server;
+    # $!debug and debug-print $msg, :out, :$server;
     %!servers{ $server }<sock>.print("$msg\n");
     self;
 }
@@ -112,7 +112,7 @@ sub debug-print (Str(Any) $str, :$in, :$out, :$sys, :$server) {
         require Terminal::ANSIColor;
         &colored
         = GLOBAL::Terminal::ANSIColor::EXPORT::DEFAULT::<&colored>;
-    } // sub (Str $s) { '' };
+    } // sub (Str $s, $) { $s };
 
     my $server-str = $server
         ?? colored($server, 'bold white on_green') ~ ' ' !! '';
