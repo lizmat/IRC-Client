@@ -19,8 +19,8 @@ method run {
     self!prep-servers;
 
     for %!servers.kv -> $s-name, $s-conf {
-        %!servers{ $s-name }<promise> =
-        IO::Socket::Async.connect( $s-conf<host>, $s-conf<port> ).then({
+        %!servers{ $s-name }<promise>
+        = IO::Socket::Async.connect( $s-conf<host>, $s-conf<port> ).then({
             $s-conf<sock> = .result;
 
             self!ssay: "PASS $!password", :server($s-name)
@@ -39,19 +39,21 @@ method run {
                     $str or $str = $buf.decode: 'latin-1';
                     $str = $left-overs ~ $str;
 
-                    (my $events, $left-overs) = self!parse: $str;
+                    (my $events, $left-overs)
+                    = self!parse: $str, :server($s-name);
+                    # say $events, $left-overs;
                     for $events.grep: *.defined -> $e {
-                        CATCH { warn .backtrace }
-                        $!debug and debug-print $e, :in;
-                        self!handle-event: $e;
+                        say $e;
+                        # CATCH { warn .backtrace }
+                        # $!debug and debug-print $e, :in;
+                        # self!handle-event: $e, $s-name;
                     }
                 }
             }
             $s-conf<sock>.close;
         })
     }
-    say %!servers.values».<promise>;
-    await %!servers.values».<promise>;
+    await Promise.allof: %!servers.values».<promise>;
 }
 
 method send-cmd ($cmd, *@args) {
@@ -70,21 +72,21 @@ method !prep-servers {
 }
 
 method !handle-event ($e) {
-    given $e.command {
-        when '001'  { self!ssay: "JOIN @.channels[]"; }
-        when 'PING' { $e.reply }
-        when 'JOIN' {
-            say "Joined channel $e.channel()"
-                if $e.nick eq $!nick;
-        }
-    }
-
-    my $method = 'irc-' ~ $e.^name.subst('IRC::Client::Message::', '')
-        .lc.subst: '::', '-', :g;
-    $!debug >= 2 and debug-print "emitting `$method`", :sys;
-    for self!plugs-that-can: $method {
-        last if ."$method"($e).^name eq 'IRC_FLAG_HANDLED';
-    }
+    # given $e.command {
+    #     when '001'  { self!ssay: "JOIN @.channels[]", :server($e.server); }
+    #     when 'PING' { $e.reply }
+    #     when 'JOIN' {
+    #         say "Joined channel $e.channel()"
+    #             if $e.nick eq $!nick;
+    #     }
+    # }
+    #
+    # my $method = 'irc-' ~ $e.^name.subst('IRC::Client::Message::', '')
+    #     .lc.subst: '::', '-', :g;
+    # $!debug >= 2 and debug-print "emitting `$method`", :sys;
+    # for self!plugs-that-can: $method {
+    #     last if ."$method"($e).^name eq 'IRC_FLAG_HANDLED';
+    # }
 }
 
 method !plugs-that-can ($method) {
@@ -92,22 +94,24 @@ method !plugs-that-can ($method) {
 }
 
 method !ssay (Str:D $msg, :$server = '*') {
+    return;
     $!debug and debug-print $msg, :out;
     %!servers{ $server }<sock>.print("$msg\n");
     self;
 }
 
-method !parse (Str:D $str) {
+method !parse (Str:D $str, :$server) {
     return |IRC::Client::Grammar.parse(
         $str,
         actions => IRC::Client::Grammar::Actions.new(
             irc    => self,
-            server => 'dummy',
+            server => $server,
         ),
     ).made;
 }
 
 sub debug-print (Str(Any) $str, :$in, :$out, :$sys) {
+    return;
     state &colored = try {
         require Terminal::ANSIColor;
         &colored
