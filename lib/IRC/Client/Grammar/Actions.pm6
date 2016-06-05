@@ -40,8 +40,8 @@ method message ($match) {
         irc      => $!irc,
         nick     => %args<who><nick>//'',
         server   => $!server,
+        usermask => ~($match<prefix>//''),
         username => %args<who><user>//'';
-    .<usermask> = .<nick> ~ '!' ~ .<username> ~ '@' ~ .<host> given %msg-args;
 
     my $msg;
     given %msg-args<command> {
@@ -53,11 +53,17 @@ method message ($match) {
                 :channel( %args<params>[0] ),
                 |%msg-args;
         }
-        when 'NOTICE'  { $msg = msg-notice  %args, %msg-args }
-        when 'MODE'    { $msg = msg-mode    %args, %msg-args }
-        when 'PING'    { $msg = IRC::Client::Message::Ping.new: |%msg-args; }
-        when 'PRIVMSG' { $msg = msg-privmsg %args, %msg-args }
-        default { $msg = IRC::Client::Message::Unknown.new: |%msg-args }
+        when 'PART' {
+            $msg = IRC::Client::Message::Part.new:
+                :channel( %args<params>[0] ),
+                |%msg-args;
+        }
+        when 'NOTICE'  { $msg = msg-notice  %args, %msg-args                  }
+        when 'MODE'    { $msg = msg-mode    %args, %msg-args                  }
+        when 'PING'    { $msg = IRC::Client::Message::Ping.new: |%msg-args    }
+        when 'PRIVMSG' { $msg = msg-privmsg %args, %msg-args                  }
+        when 'QUIT'    { $msg = IRC::Client::Message::Quit.new: |%msg-args    }
+        default        { $msg = IRC::Client::Message::Unknown.new: |%msg-args }
     }
 
     $match.make: $msg;

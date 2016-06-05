@@ -1,6 +1,6 @@
 unit grammar IRC::Client::Grammar;
-token TOP { <message>+ <leftovers> }
-token leftovers { \N* }
+token TOP { <message>+ <left-overs> }
+token left-overs { \N* }
 token SPACE { ' '+ }
 token message { [':' <prefix> <SPACE> ]? <command> <params> \n }
     token prefix  {

@@ -10,7 +10,7 @@ role IRC::Client::Message {
     has Str:D $.server   is required;
     has       @.args     is required;
 
-    method Str { "$.command @.args[]" }
+    method Str { ":$!usermask $!command @!args[]" }
 }
 
 constant M = IRC::Client::Message;
@@ -23,11 +23,26 @@ role Mode             does M       { has @.modes;                            }
 role Mode::Channel    does Mode    { has $.channel;                          }
 role Mode::Me         does Mode    {                                         }
 role Numeric          does M       {                                         }
-role Privmsg          does M       { has $.text;                             }
-role Privmsg::Channel does Privmsg { has $.channel;                          }
-role Privmsg::Me      does Privmsg {                                         }
-role Unknown          does M       { method Str { "❚⚠❚ $.command @.args[]" } }
+role Part             does M       { has $.channel;                          }
+role Quit             does M       {                                         }
+role Unknown          does M       {
+    method Str { "❚⚠❚ :$.usermask $.command @.args[]" }
+}
 
 role Ping does M {
     method reply { $.irc.send-cmd: 'PONG', @.args; }
+}
+
+role Privmsg does M { has $.text; }
+role Privmsg::Channel does Privmsg {
+    has $.channel;
+    method reply ($text, :$where) {
+        $.irc.send-cmd: 'PRIVMSG', $where // $.channel, $text;
+    }
+}
+role Privmsg::Me does Privmsg {
+    method reply ($text, :$where) {
+        $where //= $.nick;
+        $.irc.send-cmd: 'PRIVMSG', $where, $text;
+    }
 }
