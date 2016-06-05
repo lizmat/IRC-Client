@@ -15,14 +15,20 @@ has Str:D  @.channels                    = ['#perl6'];
 has        @.plugins;
 has        %.servers;
 
+my &colored = try {
+    require Terminal::ANSIColor;
+    &colored
+    = GLOBAL::Terminal::ANSIColor::EXPORT::DEFAULT::<&colored>;
+} // sub (Str $s, $) { $s };
+
 method run {
     self!prep-servers;
 
     my $lock = Lock.new;
     for %!servers.kv -> $s-name, $s-conf {
         $s-conf<promise>
-        = IO::Socket::Async.connect($s-conf<host>, $s-conf<port>).then: -> $v {
-            $lock.protect: { $s-conf<sock> = $v.result; };
+        = IO::Socket::Async.connect($s-conf<host>, $s-conf<port>).then: {
+            $lock.protect: { $s-conf<sock> = .result; };
 
             self!ssay: "PASS $!password", :server($s-name)
                 if $!password.defined;
@@ -43,8 +49,8 @@ method run {
                     (my $events, $left-overs)
                     = self!parse: $str, :server($s-name);
                     for $events.grep: *.defined -> $e {
-                        $!debug and debug-print $e, :in;
-                        self!handle-event: $e;
+                        $!debug and debug-print $e, :in, :server($e.server);
+                        $lock.protect: { self!handle-event: $e; };
                     }
                 }
             }
@@ -66,16 +72,20 @@ method !prep-servers {
         $s{$_} //= self."$_"()
             for <host password port nick username userhost userreal>;
         $s<channels> = @.channels;
+        $s<socket> = Nil;
     }
 }
 
 method !handle-event ($e) {
     given $e.command {
-        when '001'  { self!ssay: "JOIN @.channels[]", :server($e.server); }
+        when '001'  {
+            %!servers{ $e.server }<nick> = $e.args[0];
+            self!ssay: "JOIN @.channels[]", :server($e.server);
+        }
         when 'PING' { $e.reply }
         when 'JOIN' {
             say "Joined channel $e.channel()"
-                if $e.nick eq $!nick;
+                if $e.nick eq %!servers{ $e.server }<nick>;
         }
     }
 
@@ -92,7 +102,7 @@ method !plugs-that-can ($method) {
 }
 
 method !ssay (Str:D $msg, :$server = '*') {
-    # $!debug and debug-print $msg, :out, :$server;
+    $!debug and debug-print $msg, :out, :$server;
     %!servers{ $server }<sock>.print("$msg\n");
     self;
 }
@@ -108,14 +118,8 @@ method !parse (Str:D $str, :$server) {
 }
 
 sub debug-print (Str(Any) $str, :$in, :$out, :$sys, :$server) {
-    state &colored = try {
-        require Terminal::ANSIColor;
-        &colored
-        = GLOBAL::Terminal::ANSIColor::EXPORT::DEFAULT::<&colored>;
-    } // sub (Str $s, $) { $s };
-
     my $server-str = $server
-        ?? colored($server, 'bold white on_green') ~ ' ' !! '';
+        ?? colored($server, 'bold white on_cyan') ~ ' ' !! '';
 
     my @bits = $str.split: ' ';
     if $in {

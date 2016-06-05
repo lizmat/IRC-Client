@@ -8,9 +8,9 @@ role IRC::Client::Message {
     has Str:D $.usermask is required;
     has Str:D $.command  is required;
     has Str:D $.server   is required;
-    has       @.args     is required;
+    has       $.args     is required;
 
-    method Str { ":$!usermask $!command @!args[]" }
+    method Str { ":$!usermask $!command $!args[]" }
 }
 
 constant M = IRC::Client::Message;
@@ -26,11 +26,11 @@ role Numeric          does M       {                                         }
 role Part             does M       { has $.channel;                          }
 role Quit             does M       {                                         }
 role Unknown          does M       {
-    method Str { "❚⚠❚ :$.usermask $.command @.args[]" }
+    method Str { "❚⚠❚ :$.usermask $.command $.args[]" }
 }
 
 role Ping does M {
-    method reply { $.irc.send-cmd: 'PONG', @.args; }
+    method reply { $.irc.send-cmd: 'PONG', $.args, :$.server; }
 }
 
 role Privmsg does M { has $.text; }
