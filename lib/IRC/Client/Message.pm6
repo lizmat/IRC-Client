@@ -22,6 +22,7 @@ role Notice::Me       does Notice  {                                         }
 role Mode             does M       { has @.modes;                            }
 role Mode::Channel    does Mode    { has $.channel;                          }
 role Mode::Me         does Mode    {                                         }
+role Nick             does M       { has $.new-nick;                         }
 role Numeric          does M       {                                         }
 role Part             does M       { has $.channel;                          }
 role Quit             does M       {                                         }

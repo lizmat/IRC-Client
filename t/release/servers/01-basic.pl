@@ -1,7 +1,12 @@
-# A fairly simple example:
 use strict;
 use warnings;
+use JSON::Meth;
+use 5.020;
 use POE qw(Component::Server::IRC);
+
+$|++;
+
+my ($Port) = @ARGV;
 
 my %config = (
     servername => 'simple.poco.server.irc',
@@ -24,44 +29,34 @@ sub _start {
     my ($kernel, $heap) = @_[KERNEL, HEAP];
 
     $heap->{ircd}->yield('register', 'all');
-
-    # Anyone connecting from the loopback gets spoofed hostname
-    # $heap->{ircd}->add_auth(
-    #     mask     => '*@localhost',
-    #     spoof    => 'm33p.com',
-    #     no_tilde => 1,
-    # );
-
-    # We have to add an auth as we have specified one above.
     $heap->{ircd}->add_auth(mask => '*@*');
-
-    # Start a listener on the 'standard' IRC port.
-    $heap->{ircd}->add_listener(port => 5667);
-
-    # Add an operator who can connect from localhost
-    $heap->{ircd}->add_operator(
-        {
-            username => 'moo',
-            password => 'fishdont',
-        }
-    );
+    $heap->{ircd}->add_listener(port => $Port);
+    $heap->{ircd}->add_operator({
+        username => 'moo',
+        password => 'fishdont',
+    });
 }
 
 sub _default {
     my ($event, @args) = @_[ARG0 .. $#_];
+    say {
+        event => $event,
+        args  => \@args,
+    }->$j;
 
-    print "$event: ";
-    for my $arg (@args) {
-        if (ref($arg) eq 'ARRAY') {
-            print "[", join ( ", ", @$arg ), "] ";
-        }
-        elsif (ref($arg) eq 'HASH') {
-            print "{", join ( ", ", %$arg ), "} ";
-        }
-        else {
-            print "'$arg' ";
-        }
-    }
 
-    print "\n";
+ #    print "$event: ";
+ #    for my $arg (@args) {
+ #        if (ref($arg) eq 'ARRAY') {
+ #            print "[", join ( ", ", @$arg ), "] ";
+ #        }
+ #        elsif (ref($arg) eq 'HASH') {
+ #            print "{", join ( ", ", %$arg ), "} ";
+ #        }
+ #        else {
+ #            print "'$arg' ";
+ #        }
+ #    }
+ #
+ #    print "\n";
  }

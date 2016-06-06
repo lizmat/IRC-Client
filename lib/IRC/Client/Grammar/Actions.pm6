@@ -58,6 +58,11 @@ method message ($match) {
                 :channel( %args<params>[0] ),
                 |%msg-args;
         }
+        when 'NICK'    {
+            $msg = IRC::Client::Message::Nick.new:
+                :new-nick( %args<params>[0] ),
+                |%msg-args;
+        }
         when 'NOTICE'  { $msg = msg-notice  %args, %msg-args                  }
         when 'MODE'    { $msg = msg-mode    %args, %msg-args                  }
         when 'PING'    { $msg = IRC::Client::Message::Ping.new: |%msg-args    }

@@ -37,14 +37,14 @@ method run {
                 "USER $!username $!username $!host :$!userreal",
                 :server($s-name);
 
+            my $left-overs = '';
             react {
                 CATCH { warn .backtrace }
 
                 whenever $s-conf<sock>.Supply :bin -> $buf is copy {
-                    state $left-overs = '';
                     my $str = try $buf.decode: 'utf8';
                     $str or $str = $buf.decode: 'latin-1';
-                    $str = $left-overs ~ $str;
+                    $str = ($left-overs//'') ~ $str;
 
                     (my $events, $left-overs)
                     = self!parse: $str, :server($s-name);
@@ -84,8 +84,8 @@ method !handle-event ($e) {
         }
         when 'PING' { $e.reply }
         when 'JOIN' {
-            say "Joined channel $e.channel()"
-                if $e.nick eq %!servers{ $e.server }<nick>;
+            # say "Joined channel $e.channel() on $e.server()"
+                # if $e.nick eq %!servers{ $e.server }<nick>;
         }
     }
 
