@@ -80,7 +80,7 @@ method !handle-event ($e) {
     given $e.command {
         when '001'  {
             %!servers{ $e.server }<nick> = $e.args[0];
-            self!ssay: "JOIN @.channels[]", :server($e.server);
+            self!ssay: "JOIN $_", :server($e.server) for @.channels;
         }
         when 'PING' { $e.reply }
         when 'JOIN' {

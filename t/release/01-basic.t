@@ -1,12 +1,15 @@
 use lib <lib t/release>;
 use Test;
+use Test::Notice;
 use IRC::Client;
 use Test::IRC::Server;
 
 my $Wait = (%*ENV<IRC_CLIENT_TEST_WAIT>//1) * 5;
 
+notice 'Testing connection to one server and joining two channels';
+
+diag 'Starting IRC Server';
 my $s = Test::IRC::Server.new;
-# $s.start;
 END { $s.kill };
 
 loop {
@@ -14,6 +17,7 @@ loop {
     sleep 0.5;
 }
 
+diag 'Starting IRC Client';
 start {
     my $irc = IRC::Client.new(
         :debug(%*ENV<IRC_CLIENT_DEBUG>//0)
@@ -25,6 +29,7 @@ start {
     ).run;
 }
 
+diag 'Waiting for things to happen...';
 Promise.in($Wait).then: {$s.kill}
 await $s.promise;
 
@@ -40,6 +45,9 @@ my $out = [
         :event("ircd_daemon_nick")},
     {
         :args($[["IRCBot!~Perl6IRC\@simple.poco.server.irc", "#perl6"],]), :event("ircd_daemon_join")
+    },
+    {
+        :args($[["IRCBot!~Perl6IRC\@simple.poco.server.irc", "#perl7"],]), :event("ircd_daemon_join")
     }
 ];
 
@@ -52,17 +60,3 @@ for $s.out {
 is-deeply $s.out, $out, 'Server output looks right';
 
 done-testing;
-
-# sleep 10;
-
-# dd $s.out;
-#
-# [
-#     {:args($[[Any],]),                :event("ircd_registered")  },
-#     {:args($[[5000, 1, "0.0.0.0"],]), :event("ircd_listener_add")}
-# ]
-
-
-# ok 1;
-# done-testing;
-#
