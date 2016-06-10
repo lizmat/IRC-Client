@@ -12,12 +12,13 @@ class MyPlug does IRC::Client::Plugin {
 my $irc = IRC::Client.new(
     :nick('IRCBot' ~ now.Int)
     :debug<1>
-    # :channels<#zofbot>
+    :channels<#perl6 #perl7>
     # :host<irc.freenode.net>
     :port<6667>
     :servers(
         mine     => { :port<5667> },
-        inspircd => {             },
+
+        # inspircd => {             },
         # freenode => { :host<irc.freenode.net> },
     )
     :plugins(MyPlug.new)
