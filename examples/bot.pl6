@@ -15,11 +15,11 @@ my $irc = IRC::Client.new(
     :channels<#perl6 #perl7>
     # :host<irc.freenode.net>
     :port<6667>
-    :servers(
-        mine     => { :port<5667> },
+    # :servers(
+        # mine     => { :port<5667> },
 
         # inspircd => {             },
         # freenode => { :host<irc.freenode.net> },
-    )
+    # )
     :plugins(MyPlug.new)
 ).run;

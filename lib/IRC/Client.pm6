@@ -93,7 +93,7 @@ method !handle-event ($e) {
         .lc.subst: '::', '-', :g;
     $!debug >= 2 and debug-print "emitting `$method`", :sys;
     for self!plugs-that-can: $method {
-        last if ."$method"($e).^name eq 'IRC_FLAG_HANDLED';
+        last if ."$method"($e).?^name.&[eq]: 'IRC_FLAG_HANDLED';
     }
 }
 
