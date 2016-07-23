@@ -165,7 +165,7 @@ them as a method call to obtain the correct Client Object. For example:
     $.irc.s-leliana.quit; # quits only the s-leliana server
 
     # send a message to #perl6 channel on s-morrigan server
-    $.irc.s-morrigan.send: where => '#perl6', what => 'hello';
+    $.irc.s-morrigan.send: where => '#perl6', text => 'hello';
 ```
 
 The Message Object will also contain a `.server` method value of which
@@ -191,7 +191,7 @@ The client object provides these methods:
     method irc-privmsg-me ($msg) {
         $.irc.send:
             where => '#perl6',
-            what => "$msg.nick() just sent me a secret! It's $msg.what()";
+            text => "$msg.nick() just sent me a secret! It's $msg.text()";
     }
 ```
 
@@ -264,14 +264,14 @@ Attempts to joins channels given as positional arguments.
 ## `.send`
 
 ```perl6
-    $.irc.send: where => '#perl6', what => 'Hello, Perl 6!';
+    $.irc.send: where => '#perl6', text => 'Hello, Perl 6!';
 
-    $.irc.send: where => 'Zoffix', what => 'Hi, Zoffie!';
+    $.irc.send: where => 'Zoffix', text => 'Hi, Zoffie!';
 
-    $.irc.send: where => 'Zoffix', what => 'Notice me, senpai!', :notice;
+    $.irc.send: where => 'Zoffix', text => 'Notice me, senpai!', :notice;
 ```
 
-Sends a message specified by `what` argument
+Sends a message specified by `text` argument
 either to a user or a channel specified by `:where` argument. If `Bool`
 argument `:notice` is set to true, will send a *notice* instead of regular
 message.
@@ -297,11 +297,11 @@ arguments that are a list of nicks to try.
 
     $.irc.emit: IRC::Client::Message::Privmsg.new:
         nick => 'Zoffix',
-        what => 'Hello',
+        text => 'Hello',
         ...;
     ...
     method irc-privmsg ($msg) {
-        say "$msg.nick() said $msg.what()... or did they?";
+        say "$msg.nick() said $msg.text()... or did they?";
     }
 ```
 
@@ -325,12 +325,12 @@ given here will be passed as is to listener methods.
 
 ```perl6
     method irc-addressed ($msg) {
-        if $msg.what ~~ /'kick' \s+ $<nick>=\S+/ {
+        if $msg.text ~~ /'kick' \s+ $<nick>=\S+/ {
             $msg.reply: "I don't see $<nick> up in here"
                 unless $.irc.channel($msg.channel).?has: ~$<nick>;
         }
 
-        if $msg.what ~~ /'topic' \s+ $<channel>=\S+/ {
+        if $msg.text ~~ /'topic' \s+ $<channel>=\S+/ {
             return $msg.reply: $_
                     ?? "Channel $<channel> does not exist"
                     !! "Topic in $<channel> is $_.topic()"
@@ -418,7 +418,7 @@ event. User-defined events follow the same pattern, except they start with
     # Listen to custom client-generated events:
     method irc-custom-my-event ($some, $random, :$args) {
         return IRC_NEXT unless $random > 5;
-        $.irc.send: where => '#perl6', what => 'Custom event triggered!';
+        $.irc.send: where => '#perl6', text => 'Custom event triggered!';
     }
 ```
 
@@ -442,12 +442,12 @@ A plugin can send messages and emit events at will:
 ```perl6
     method irc-connected {
         Supply.interval(60).tap: {
-            $.irc.send: where => '#perl6', what  => 'One minute passed!!';
+            $.irc.send: where => '#perl6', text  => 'One minute passed!!';
         };
         Promise.in(60*60).then: {
             $.irc.send:
                 where => 'Zoffix',
-                what => 'I lived for one hour already!',
+                text => 'I lived for one hour already!',
                 :notice;
 
             $.irc.emit-custom: 'MY-EVENT', 'One hour passed!';
@@ -547,7 +547,7 @@ Nick, username, and host combined into a full usermask, e.g.
 
 ```perl6
     $msg.reply: 'I love you too'
-        if $msg.what ~~ /'I love you'/;
+        if $msg.text ~~ /'I love you'/;
 ```
 
 Replies back to a message. For example, if we received the message as a
@@ -583,7 +583,7 @@ of events easier.
 
     method irc-to-me ($msg) {
         printf "%s told us `%s` using %s\n",
-            .nick, .what, .how given $msg;
+            .nick, .text, .how given $msg;
     }
 ```
 
@@ -602,7 +602,7 @@ The `.how` method returns a `Pair` where the key is the message type used
 
     method irc-addressed ($msg) {
         printf "%s told us `%s` in channel %s\n",
-            .nick, .what, .channel given $msg;
+            .nick, .text, .channel given $msg;
     }
 ```
 
@@ -617,7 +617,7 @@ followed by whitespace. That prefix will be stripped from the message.
 
     method irc-mentioned ($msg) {
         printf "%s mentioned us in channel %s when they said %s\n",
-            .nick, .channel, .what given $msg;
+            .nick, .channel, .text given $msg;
     }
 ```
 
@@ -631,7 +631,7 @@ their message contains our nickname separated by a word boundary on each side.
 
     method irc-privmsg-channel ($msg) {
         printf "%s said `%s` to channel %s\n",
-            .nick, .what, .channel given $msg;
+            .nick, .text, .channel given $msg;
     }
 ```
 
@@ -643,7 +643,7 @@ Emitted when a user sends a message to a channel.
     # :zoffix!zoffix@127.0.0.1 PRIVMSG zoffix2 :hey bruh
 
     method irc-privmsg-me ($msg) {
-        printf "%s messaged us: %s\n", .nick, .what given $msg;
+        printf "%s messaged us: %s\n", .nick, .text given $msg;
     }
 ```
 
@@ -656,7 +656,7 @@ Emitted when a user sends us a private message.
 
     method irc-notice-channel ($msg) {
         printf "%s sent a notice `%s` to channel %s\n",
-            .nick, .what, .channel given $msg;
+            .nick, .text, .channel given $msg;
     }
 ```
 
@@ -668,7 +668,7 @@ Emitted when a user sends a notice to a channel.
     # :zoffix!zoffix@127.0.0.1 NOTICE zoffix2 :did you notice me?
 
     method irc-notice-me ($msg) {
-        printf "%s sent us a notice: %s\n", .nick, .what given $msg;
+        printf "%s sent us a notice: %s\n", .nick, .text given $msg;
     }
 ```
 
@@ -908,11 +908,11 @@ Emitted when someone kicks a user out of a channel.
         if $msg.?channel {
             # message sent to a channel
             printf "%s said `%s` to channel %s\n",
-                .nick, .what, .channel given $msg;
+                .nick, .text, .channel given $msg;
         }
         else {
             # private message
-            printf "%s messaged us: %s\n", .nick, .what given $msg;
+            printf "%s messaged us: %s\n", .nick, .text given $msg;
         }
     }
 ```
@@ -932,11 +932,11 @@ of more convenient ways to listen to messages.
         if $msg.?channel {
             # notice sent to a channel
             printf "%s sent a notice `%s` to channel %s\n",
-                .nick, .what, .channel given $msg;
+                .nick, .text, .channel given $msg;
         }
         else {
             # private notice
-            printf "%s sent us a notice: %s\n", .nick, .what given $msg;
+            printf "%s sent us a notice: %s\n", .nick, .text given $msg;
         }
     }
 ```
