@@ -40,7 +40,7 @@
     - [`irc-privmsg-channel`](#irc-privmsg-channel)
     - [`irc-privmsg-me`](#irc-privmsg-me)
     - [`irc-notice-channel`](#irc-notice-channel)
-    - [`irc-privmsg-me`](#irc-privmsg-me-1)
+    - [`irc-notice-me`](#irc-notice-me)
     - [`irc-started`](#irc-started)
     - [`irc-connected`](#irc-connected)
     - [`irc-mode-channel`](#irc-mode-channel)
@@ -662,7 +662,7 @@ Emitted when a user sends us a private message.
 
 Emitted when a user sends a notice to a channel.
 
-## `irc-privmsg-me`
+## `irc-notice-me`
 
 ```perl6
     # :zoffix!zoffix@127.0.0.1 NOTICE zoffix2 :did you notice me?
@@ -959,4 +959,3 @@ There is support for custom events. A custom event is emitted by calling
 ```
 
 No Message Object is involved in custom events.
-
