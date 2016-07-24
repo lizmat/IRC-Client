@@ -16,9 +16,6 @@ role IRC::Client::Message {
 constant M = IRC::Client::Message;
 
 role Join             does M       { has $.channel;                          }
-role Notice           does M       { has $.text;                             }
-role Notice::Channel  does Notice  { has $.channel;                          }
-role Notice::Me       does Notice  {                                         }
 role Mode             does M       { has @.modes;                            }
 role Mode::Channel    does Mode    { has $.channel;                          }
 role Mode::Me         does Mode    {                                         }
@@ -34,16 +31,40 @@ role Ping does M {
     method reply { $.irc.send-cmd: 'PONG', $.args, :$.server; }
 }
 
-role Privmsg does M { has $.text; }
+role Privmsg does M {
+    has      $.text    is rw;
+    has Bool $.replied is rw = False;
+    method Str { $.text }
+}
 role Privmsg::Channel does Privmsg {
     has $.channel;
     method reply ($text, :$where) {
-        $.irc.send-cmd: 'PRIVMSG', $where // $.channel, $text, :$.server;
+        $.irc.send-cmd: 'PRIVMSG', $where // $.channel, "$.nick, $text",
+            :$.server;
     }
 }
 role Privmsg::Me does Privmsg {
     method reply ($text, :$where) {
-        $where //= $.nick;
-        $.irc.send-cmd: 'PRIVMSG', $where, $text, :$.server;
+        $.irc.send-cmd: 'PRIVMSG', $where // $.nick, $text, :$.server;
+    }
+}
+
+role Notice does M {
+    has      $.text    is rw;
+    has Bool $.replied is rw = False;
+    method Str { $.text }
+}
+role Notice::Channel does Notice {
+    has $.channel;
+    method reply ($text, :$where) {
+        $.irc.send-cmd: 'NOTICE', $where // $.channel, "$.nick, $text",
+            :$.server;
+        $.replied = True;
+    }
+}
+role Notice::Me does Notice {
+    method reply ($text, :$where) {
+        $.irc.send-cmd: 'NOTICE', $where // $.nick, $text, :$.server;
+        $.replied = True;
     }
 }

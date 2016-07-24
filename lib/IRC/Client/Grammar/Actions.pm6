@@ -45,7 +45,7 @@ method message ($match) {
 
     my $msg;
     given %msg-args<command> {
-        when /^ $<command>=(<[0..9]>**3) $/ {
+        when /^ <[0..9]>**3 $/ {
             $msg = IRC::Client::Message::Numeric.new: |%msg-args;
         }
         when 'JOIN' {
