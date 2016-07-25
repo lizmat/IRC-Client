@@ -19,6 +19,7 @@ has Str:D  $.username                    = 'Perl6IRC';
 has Str:D  $.userhost                    = 'localhost';
 has Str:D  $.userreal                    = 'Perl6 IRC Client';
 has Str:D  @.channels                    = ['#perl6'];
+has        @.filters where .all ~~ Callable;
 has        @.plugins;
 has        %.servers;
 has Bool   $!is-connected                = False;
@@ -93,8 +94,32 @@ method send (:$where!, :$text!, :$server, :$notice) {
 }
 
 method send-cmd ($cmd, *@args is copy, :$server) {
-    @args[*-1] = ':' ~ @args[*-1];
-    self!ssay: :$server, join ' ', $cmd, @args;
+    CATCH { default { warn $_; warn .backtrace } }
+
+    say "About to check filter stuff `{@!filters}`";
+    if $cmd eq 'NOTICE'|'PRIVMSG' and @!filters
+        and my @f = @!filters.grep({
+            .signature.ACCEPTS: \(@args[0], where => @args[1])
+        })
+    {
+        say "Starting filtering: `@args[]`";
+        start {
+            CATCH { default { warn $_; warn .backtrace } }
+
+            my ($where, $text) = @args;
+            for @f -> $f {
+                given $f.signature.params.elems {
+                    when 1 { $text = $f($text); }
+                    when 2 { ($text, $where) = $f($text, :$where) }
+                }
+            }
+            self!ssay: :$server, join ' ', $cmd, $where, ":$text";
+        }
+    }
+    else {
+        @args[*-1] = ':' ~ @args[*-1];
+        self!ssay: :$server, join ' ', $cmd, @args;
+    }
 }
 
 method !prep-servers {
@@ -166,7 +191,11 @@ method !handle-event ($e) {
         for self!plugs-that-can($event, $e) {
             my $res = ."$event"($e);
             next if $res ~~ IRC_FLAG_NEXT;
-            $e.reply: $res unless $res ~~ Nil;
+            if $res ~~ Promise {
+                $res.then: { $e.reply: $^r unless $^r ~~ Nil or $e.replied; }
+            } else {
+                $e.reply: $res unless $res ~~ Nil or $e.replied;
+            }
             last EVENT;
 
             CATCH { default { warn $_, .backtrace; } }
