@@ -99,10 +99,11 @@ method send-cmd ($cmd, *@args is copy, :$server) {
     say "About to check filter stuff `{@!filters}`";
     if $cmd eq 'NOTICE'|'PRIVMSG' and @!filters
         and my @f = @!filters.grep({
-            .signature.ACCEPTS: \(@args[0], where => @args[1])
+               .signature.ACCEPTS: \(@args[1])
+            or .signature.ACCEPTS: \(@args[1], where => @args[0])
         })
     {
-        say "Starting filtering: `@args[]`";
+        say "Starting filtering: `@f[]`";
         start {
             CATCH { default { warn $_; warn .backtrace } }
 
