@@ -20,7 +20,7 @@ All of the functionality is implemented as "plugins," which are passed to
 the `:plugins` attribute. Plugins are just regular classes, altough they can
 do the `IRC::Client::Plugin` role to obtain extra functionality.
 
-To subscribe to subscribe to one of [the events](02-event-reference.md), simply
+To subscribe to one of [the events](02-event-reference.md), simply
 create a method with event's name in your class. The tutorial will use the
 `irc-to-me` event, which is a convenience event fired when the bot is addressed
 in-channel or someone sends it a notice or a private message.
