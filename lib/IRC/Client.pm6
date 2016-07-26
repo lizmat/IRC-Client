@@ -94,8 +94,6 @@ method send (:$where!, :$text!, :$server, :$notice) {
 }
 
 method send-cmd ($cmd, *@args is copy, :$server, :$prefix = '') {
-    CATCH { default { warn $_; warn .backtrace } }
-
     if $cmd eq 'NOTICE'|'PRIVMSG' and @!filters
         and my @f = @!filters.grep({
                .signature.ACCEPTS: \(@args[1])
@@ -104,7 +102,6 @@ method send-cmd ($cmd, *@args is copy, :$server, :$prefix = '') {
     {
         start {
             CATCH { default { warn $_; warn .backtrace } }
-
             my ($where, $text) = @args;
             for @f -> $f {
                 given $f.signature.params.elems {
