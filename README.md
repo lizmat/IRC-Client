@@ -11,7 +11,7 @@ IRC::Client - Extendable Internet Relay Chat client
     use Pastebin::Shadowcat;
 
     .run with IRC::Client.new:
-        :host<localhost>
+        :host<irc.freenode.net>
         :channels<#perl6bot #zofbot>
         :debug
         :plugins(
@@ -34,7 +34,7 @@ and output post-processing.
 # DOCUMENTATION MAP
 
 * [Basics Tutorial](docs/01-basics.md)
-* [Event reference](docs/01-event-reference.md)
+* [Event reference](docs/02-event-reference.md)
 
 ---
 
