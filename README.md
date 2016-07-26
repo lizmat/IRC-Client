@@ -33,12 +33,8 @@ and output post-processing.
 
 # DOCUMENTATION MAP
 
-![](.chromatin/docs-bar.png)
-
 * [Basics Tutorial](docs/01-basics.md)
 * [Event reference](docs/01-event-reference.md)
-
-![](.chromatin/docs-bar.png)
 
 ---
 
