@@ -70,7 +70,8 @@ handle it
 event handler; we handled it
 * `Promise`: when the Promise is `.kept`, use its value for the .reply, unless
 it's a `Nil`. **Note:** you cannot return `$.NEXT` here.
-* Any other value: it will be given to message object's `.reply` method if
+* Any other value: mark the event as handled and don't pass it further. The
+returned value will be given to message object's `.reply` method if
 it has one, or ignored if it doesn't. For `irc-to-me` message objects, this
 means the value will be sent back to the sender of the original message
 
