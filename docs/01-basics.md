@@ -64,13 +64,13 @@ event handlers should be tried.
 
 Here are the things your event handler can return:
 
-* Value of `$.NEXT`: pass the event to next plugin or event handler than can
+* Value of `$.NEXT`: pass the event to the next plugin or event handler than can
 handle it
 * `Nil`: do not reply to the message, but do not pass the event to any other
 event handler; we handled it
 * `Promise`: when the Promise is `.kept`, use its value for the .reply, unless
 it's a `Nil`. **Note:** you cannot return `$.NEXT` here.
-* Any other value: mark the event as handled and don't pass it further. The
+* *Any other value*: mark the event as handled and don't pass it further. The
 returned value will be given to message object's `.reply` method if
 it has one, or ignored if it doesn't. For `irc-to-me` message objects, this
 means the value will be sent back to the sender of the original message
