@@ -1,20 +1,23 @@
-use v6;
 use lib 'lib';
 use IRC::Client;
-use IRC::Client::Plugin::Debugger;
 
-class IRC::Client::Plugin::AddressedPlugin is IRC::Client::Plugin {
-    method irc-addressed ($irc, $e, $where) {
-        $irc.privmsg: $where[0], "$where[1], you addressed me";
+class MyPlug does IRC::Client::Plugin {
+    method irc-privmsg-channel ($msg where .text ~~ /^'say' \s+ $<cmd>=(.+)/ ) {
+        $msg.reply: "How about: $<cmd>.uc()";
     }
 }
 
 my $irc = IRC::Client.new(
-    :host<localhost>
-    :channels<#perl6bot #zofbot>
-    :debug
-    :plugins(
-        IRC::Client::Plugin::Debugger.new,
-        IRC::Client::Plugin::AddressedPlugin.new
-    )
+    :nick('IRCBot')
+    :debug<2>
+    :channels<#perl6 #perl7>
+    # :host<irc.freenode.net>
+    :port<6667>
+    # :servers(
+        # mine     => { :port<5667> },
+
+        # inspircd => {             },
+        # freenode => { :host<irc.freenode.net> },
+    # )
+    :plugins(MyPlug.new)
 ).run;
