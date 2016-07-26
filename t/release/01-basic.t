@@ -1,5 +1,6 @@
 use lib <lib t/release>;
 use Test;
+use Test::When <release>;
 use Test::Notice;
 use IRC::Client;
 use Test::IRC::Server;

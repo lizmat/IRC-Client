@@ -4,10 +4,8 @@ use lib 'lib';
 use Test;
 
 use-ok 'IRC::Client';
-use-ok 'IRC::Grammar';
-use-ok 'IRC::Grammar::Actions';
-use-ok 'IRC::Parser';
-use-ok 'IRC::Client::Plugin::Debugger';
-use-ok 'IRC::Client::Plugin::PingPong';
+use-ok 'IRC::Client::Message';
+use-ok 'IRC::Client::Grammar';
+use-ok 'IRC::Client::Grammar::Actions';
 
 done-testing;
