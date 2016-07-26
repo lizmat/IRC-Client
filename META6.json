@@ -7,12 +7,27 @@
     "test-depends" : [ "Test" ],
     "provides"     : {
         "IRC::Client"                   : "lib/IRC/Client.pm6",
-        "IRC::Grammar"                  : "lib/IRC/Grammar.pm6",
-        "IRC::Parser"                   : "lib/IRC/Parser.pm6",
-        "IRC::Grammar::Actions"         : "lib/IRC/Grammar/Actions.pm6",
-        "IRC::Client::Plugin"           : "lib/IRC/Client/Plugin.pm6",
-        "IRC::Client::Plugin::Debugger" : "lib/IRC/Client/Plugin/Debugger.pm6",
-        "IRC::Client::Plugin::PingPong" : "lib/IRC/Client/Plugin/PingPong.pm6"
+        "IRC::Client::Message"          : "lib/IRC/Client/Message.pm6",
+        "IRC::Client::Grammar"          : "lib/IRC/Client/Grammar.pm6",
+        "IRC::Client::Grammar::Actions" : "lib/IRC/Client/Grammar/Actions.pm6",
+
+        "IRC::Client::Plugin"                    : "lib/IRC/Client.pm6",
+        "IRC::Client::Message::Join"             : "lib/IRC/Client/Message.pm6",
+        "IRC::Client::Message::Mode"             : "lib/IRC/Client/Message.pm6",
+        "IRC::Client::Message::Mode::Channel"    : "lib/IRC/Client/Message.pm6",
+        "IRC::Client::Message::Mode::Me"         : "lib/IRC/Client/Message.pm6",
+        "IRC::Client::Message::Nick"             : "lib/IRC/Client/Message.pm6",
+        "IRC::Client::Message::Numeric"          : "lib/IRC/Client/Message.pm6",
+        "IRC::Client::Message::Part"             : "lib/IRC/Client/Message.pm6",
+        "IRC::Client::Message::Quit"             : "lib/IRC/Client/Message.pm6",
+        "IRC::Client::Message::Unknown"          : "lib/IRC/Client/Message.pm6",
+        "IRC::Client::Message::Ping"             : "lib/IRC/Client/Message.pm6",
+        "IRC::Client::Message::Privmsg"          : "lib/IRC/Client/Message.pm6",
+        "IRC::Client::Message::Privmsg::Channel" : "lib/IRC/Client/Message.pm6",
+        "IRC::Client::Message::Privmsg::Me"      : "lib/IRC/Client/Message.pm6",
+        "IRC::Client::Message::Notice"           : "lib/IRC/Client/Message.pm6",
+        "IRC::Client::Message::Notice::Channel"  : "lib/IRC/Client/Message.pm6",
+        "IRC::Client::Message::Notice::Me"       : "lib/IRC/Client/Message.pm6"
     },
     "authors"       : ["Zoffix Znet"],
     "support"       : {"source"   : "git://github.com/zoffixznet/perl6-IRC-Client.git"}
