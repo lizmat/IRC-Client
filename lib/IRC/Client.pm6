@@ -188,9 +188,9 @@ method !handle-event ($e) {
             my $res = ."$event"($e);
             next if $res ~~ IRC_FLAG_NEXT;
             if $res ~~ Promise {
-                $res.then: { $e.reply: $^r unless $^r ~~ Nil or $e.replied; }
+                $res.then: { $e.?reply: $^r unless $^r ~~ Nil or $e.?replied; }
             } else {
-                $e.reply: $res unless $res ~~ Nil or $e.replied;
+                $e.?reply: $res unless $res ~~ Nil or $e.?replied;
             }
             last EVENT;
 
