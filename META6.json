@@ -3,8 +3,13 @@
     "name"         : "IRC::Client",
     "version"      : "2.003002",
     "description"  : "Extendable Internet Relay Chat client",
-    "depends"      : [ "Data::Dump" ],
-    "test-depends" : [ "Test" ],
+    "depends"      : [
+    ],
+    "test-depends" : [
+        "Test",
+        "Test::When",
+        "Test::Notice"
+    ],
     "provides"     : {
         "IRC::Client"                   : "lib/IRC/Client.pm6",
         "IRC::Client::Message"          : "lib/IRC/Client/Message.pm6",
