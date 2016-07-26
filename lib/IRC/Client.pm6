@@ -93,17 +93,15 @@ method send (:$where!, :$text!, :$server, :$notice) {
     }
 }
 
-method send-cmd ($cmd, *@args is copy, :$server) {
+method send-cmd ($cmd, *@args is copy, :$server, :$prefix = '') {
     CATCH { default { warn $_; warn .backtrace } }
 
-    say "About to check filter stuff `{@!filters}`";
     if $cmd eq 'NOTICE'|'PRIVMSG' and @!filters
         and my @f = @!filters.grep({
                .signature.ACCEPTS: \(@args[1])
             or .signature.ACCEPTS: \(@args[1], where => @args[0])
         })
     {
-        say "Starting filtering: `@f[]`";
         start {
             CATCH { default { warn $_; warn .backtrace } }
 
@@ -114,7 +112,7 @@ method send-cmd ($cmd, *@args is copy, :$server) {
                     when 2 { ($text, $where) = $f($text, :$where) }
                 }
             }
-            self!ssay: :$server, join ' ', $cmd, $where, ":$text";
+            self!ssay: :$server, join ' ', $cmd, $where, ":$prefix$text";
         }
     }
     else {
