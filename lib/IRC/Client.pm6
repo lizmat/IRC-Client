@@ -14,7 +14,7 @@ has Str:D  $.host                        = 'localhost';
 has Int:D  $.debug                       = 0;
 has Str    $.password;
 has Int:D  $.port where 0 <= $_ <= 65535 = 6667;
-has Str:D  $.nick is rw                  = 'Perl6IRC';
+has        @.nick                        = 'P6Bot', 'P6Bot_', 'P6Bot__';
 has Str:D  $.username                    = 'Perl6IRC';
 has Str:D  $.userhost                    = 'localhost';
 has Str:D  $.userreal                    = 'Perl6 IRC Client';
@@ -24,6 +24,7 @@ has        @.plugins;
 has        %.servers;
 has Bool   $!is-connected                = False;
 has Lock   $!lock                        = Lock.new;
+has        $!current-nick                = @!nick[0];
 has Channel $!event-pipe                 = Channel.new;
 
 my &colored = try {
@@ -34,13 +35,19 @@ my &colored = try {
 
 method join (*@channels, :$server) {
     self.send-cmd: 'JOIN', $_, :$server for @channels;
+    self;
+}
 
+method nick (*@nicks, :$server) {
+    return @!nick unless @nicks;
+    @nicks = @nicks.map: * ~ '_' x $++ if @nicks == 1;
+    @!nick = @nicks;
+    self.send-cmd: 'NICK', @!nick[0], :$server;
     self;
 }
 
 method part (*@channels, :$server) {
     self.send-cmd: 'PART', $_, :$server for @channels;
-
     self;
 }
 
@@ -69,7 +76,7 @@ method run {
 
             self!ssay: "PASS $!password", :server($s-name)
                 if $!password.defined;
-            self!ssay: "NICK $!nick", :server($s-name);
+            self!ssay: "NICK @!nick[0]", :server($s-name);
             self!ssay:
                 "USER $!username $!username $!host :$!userreal",
                 :server($s-name);
@@ -154,7 +161,7 @@ method !handle-event ($e) {
     my @events = flat gather {
         given $event-name {
             when 'irc-privmsg-channel' | 'irc-notice-channel' {
-                my $nick = $!nick;
+                my $nick = $!current-nick;
                 if $e.text.subst-mutate: /^ $nick <[,:\s]> \s* /, '' {
                     take 'irc-addressed', ('irc-to-me' if $!is-connected);
                 }
