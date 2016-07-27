@@ -32,6 +32,12 @@ my &colored = try {
     = GLOBAL::Terminal::ANSIColor::EXPORT::DEFAULT::<&colored>;
 } // sub (Str $s, $) { $s };
 
+method join (*@channels, :$server) {
+    self.send-cmd: 'JOIN', $_, :$server for @channels;
+
+    self;
+}
+
 method run {
     self!prep-servers;
     .irc = self for @.plugins.grep: { .DEFINITE and .^can: 'irc' };
@@ -82,18 +88,20 @@ method run {
     await Promise.allof: %!servers.values».<promise>;
 }
 
-method emit-custom (|c) {
-    $!event-pipe.send: c;
-}
+# method emit-custom (|c) {
+#     $!event-pipe.send: c;
+# }
 
 method send (:$where!, :$text!, :$server, :$notice) {
     for $server || |%!servers.keys.sort {
         self.send-cmd: $notice ?? 'NOTICE' !! 'PRIVMSG', $where, $text,
             :server($_);
     }
+
+    self;
 }
 
-method send-cmd ($cmd, *@args is copy, :$server, :$prefix = '') {
+method send-cmd ($cmd, *@args is copy, :$prefix = '', :$server) {
     if $cmd eq 'NOTICE'|'PRIVMSG' and @!filters
         and my @f = @!filters.grep({
                .signature.ACCEPTS: \(@args[1])
@@ -187,6 +195,11 @@ method !handle-event ($e) {
         for self!plugs-that-can($event, $e) {
             my $res = ."$event"($e);
             next if $res ~~ IRC_FLAG_NEXT;
+
+            # Bail out on bogus return values
+            # dd [ $res, $res ~~ IRC::Client, $res ~~ IRC::Client | Supply | Channel];
+            last EVENT if $res ~~ IRC::Client | Supply | Channel;
+
             if $res ~~ Promise {
                 $res.then: { $e.?reply: $^r unless $^r ~~ Nil or $e.?replied; }
             } else {
@@ -208,7 +221,8 @@ method !plugs-that-can ($method, $e) {
     }
 }
 
-method !ssay (Str:D $msg, :$server = '*') {
+method !ssay (Str:D $msg, :$server is copy) {
+    $server //= '*';
     $!debug and debug-print $msg, :out, :$server;
     %!servers{ $server }<sock>.print("$msg\n");
     self;

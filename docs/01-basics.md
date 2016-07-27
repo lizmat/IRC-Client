@@ -66,8 +66,9 @@ Here are the things your event handler can return:
 
 * Value of `$.NEXT`: pass the event to the next plugin or event handler than can
 handle it
-* `Nil`: do not reply to the message, but do not pass the event to any other
-event handler; we handled it
+* `Nil` (and a select few other items that don't make sense as replies, such as
+`IRC::Client` object): do not reply to the message, but do not pass the event to
+any other event handler; we handled it
 * `Promise`: when the Promise is `.kept`, use its value for the .reply, unless
 it's a `Nil`. **Note:** you cannot return `$.NEXT` here.
 * *Any other value*: mark the event as handled and don't pass it further. The
@@ -95,4 +96,37 @@ the original message, prefixed with `You said `.
 ## Generating Messages
 
 If your plugin needs to generate messages instead of merely responding to
-commands, you can use the Client Object's `.send` method.
+commands, you can use the Client Object's `.send` method. Your plugin needs
+to do the `IRC::Client::Plugin` role to get access to the Client Object via
+the `$.irc` attribute:
+
+```perl6
+use IRC::Client;
+
+class AlarmBot does IRC::Client::Plugin {
+    method irc-connected ($) {
+        react {
+            whenever Supply.interval(3) {
+                $.irc.send: :where<#perl6> :text<Three seconds passed!>;
+            }
+        }
+    }
+}
+
+.run with IRC::Client.new:
+    :nick<MahBot>
+    :host<irc.freenode.net>
+    :channels<#perl6>
+    :debug
+    :plugins(AlarmBot.new)
+```
+
+Here, we subscribe to `irc-connected` event (using an anonymous parameter
+for its message object, since we don't need it). It fires whenever we
+successfully connect to a server. In the event handler we setup a
+`react`/`whenever` loop, with a `Supply` generating an event every three
+seconds. In the `whenever` block, we use the `$.irc` attribute provided
+by the `IRC::Client::Plugin` role to call method `.send` on the Client Object.
+In the `:where` parameter, we specify we want to send the message to
+channel `#perl6` and the `:text` parameter contains the text we want to send.
+The bot will send that text every 3 seconds.
