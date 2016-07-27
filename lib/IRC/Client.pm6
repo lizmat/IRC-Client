@@ -88,10 +88,6 @@ method run {
     await Promise.allof: %!servers.values».<promise>;
 }
 
-# method emit-custom (|c) {
-#     $!event-pipe.send: c;
-# }
-
 method send (:$where!, :$text!, :$server, :$notice) {
     for $server || |%!servers.keys.sort {
         self.send-cmd: $notice ?? 'NOTICE' !! 'PRIVMSG', $where, $text,
@@ -126,16 +122,12 @@ method send-cmd ($cmd, *@args is copy, :$prefix = '', :$server) {
     }
 }
 
-method !prep-servers {
-    %!servers = '*' => {} unless %!servers;
-
-    for %!servers.values -> $s {
-        $s{$_} //= self."$_"()
-            for <host password port nick username userhost userreal>;
-        $s<channels> = @.channels;
-        $s<socket> = Nil;
-    }
-}
+###############################################################################
+###############################################################################
+###############################################################################
+###############################################################################
+###############################################################################
+###############################################################################
 
 method !handle-event ($e) {
     given $e.command {
@@ -196,8 +188,7 @@ method !handle-event ($e) {
             my $res = ."$event"($e);
             next if $res ~~ IRC_FLAG_NEXT;
 
-            # Bail out on bogus return values
-            # dd [ $res, $res ~~ IRC::Client, $res ~~ IRC::Client | Supply | Channel];
+            # Do not .reply with bogus return values
             last EVENT if $res ~~ IRC::Client | Supply | Channel;
 
             if $res ~~ Promise {
@@ -212,12 +203,30 @@ method !handle-event ($e) {
     }
 }
 
+method !parse (Str:D $str, :$server) {
+    return |IRC::Client::Grammar.parse(
+        $str,
+        :actions( IRC::Client::Grammar::Actions.new: :irc(self), :$server )
+    ).made;
+}
+
 method !plugs-that-can ($method, $e) {
     gather {
         for @!plugins -> $plug {
             take $plug if .cando: \($plug, $e)
                 for $plug.^can: $method;
         }
+    }
+}
+
+method !prep-servers {
+    %!servers = '*' => {} unless %!servers;
+
+    for %!servers.values -> $s {
+        $s{$_} //= self."$_"()
+            for <host password port nick username userhost userreal>;
+        $s<channels> = @.channels;
+        $s<socket> = Nil;
     }
 }
 
@@ -228,12 +237,12 @@ method !ssay (Str:D $msg, :$server is copy) {
     self;
 }
 
-method !parse (Str:D $str, :$server) {
-    return |IRC::Client::Grammar.parse(
-        $str,
-        :actions( IRC::Client::Grammar::Actions.new: :irc(self), :$server )
-    ).made;
-}
+###############################################################################
+###############################################################################
+###############################################################################
+###############################################################################
+###############################################################################
+###############################################################################
 
 sub debug-print (Str(Any) $str, :$in, :$out, :$sys, :$server) {
     my $server-str = $server
