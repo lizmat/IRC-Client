@@ -38,6 +38,12 @@ method join (*@channels, :$server) {
     self;
 }
 
+method part (*@channels, :$server) {
+    self.send-cmd: 'PART', $_, :$server for @channels;
+
+    self;
+}
+
 method run {
     self!prep-servers;
     .irc = self for @.plugins.grep: { .DEFINITE and .^can: 'irc' };
