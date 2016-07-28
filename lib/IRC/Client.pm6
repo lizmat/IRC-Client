@@ -108,7 +108,7 @@ method run {
     for %!servers.values -> $server {
         $server.promise
         = IO::Socket::Async.connect($server.host, $server.port).then: {
-            $!lock.protect: { $server.socket = .result; };
+            $server.socket = .result;
 
             self!ssay: "PASS $server.password()", :$server
                 if $server.password.defined;
