@@ -7,7 +7,7 @@ role IRC::Client::Message {
     has Str:D $.host     is required;
     has Str:D $.usermask is required;
     has Str:D $.command  is required;
-    has Str:D $.server   is required;
+    has       $.server   is required;
     has       $.args     is required;
 
     method Str { ":$!usermask $!command $!args[]" }
@@ -34,7 +34,7 @@ role Ping does M {
 role Privmsg does M {
     has      $.text    is rw;
     has Bool $.replied is rw = False;
-    method Str { $.text }
+    method ACCEPTS ($what) { $.text ~~ $what }
 }
 role Privmsg::Channel does Privmsg {
     has $.channel;
