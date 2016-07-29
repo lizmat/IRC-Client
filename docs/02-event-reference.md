@@ -30,28 +30,27 @@ that the returned value from the event handler should be discarded.
 
 ## Event Map
 
-All event chains end with `irc-all`, which is not shown in the table below,
-for brevity. `irc-XXX` stands for numeric events where `XXX` is a
+In the chart below, `irc-XXX` stands for numeric events where `XXX` is a
 three-digit number. See [this numerics
 table](https://www.alien.net.au/irc/irc2numerics.html) for meaning of codes,
 depending on the server used.
 
 ```
-irc-addressed  ▶  irc-to-me      ▶  irc-privmsg-channel  ▶  irc-privmsg
-                  irc-mentioned  ▶  irc-privmsg-channel  ▶  irc-privmsg
-                                    irc-privmsg-channel  ▶  irc-privmsg
-                  irc-to-me      ▶  irc-privmsg-me       ▶  irc-privmsg
+irc-addressed  ▶  irc-to-me      ▶  irc-privmsg-channel  ▶  irc-privmsg  ▶  irc-all
+                  irc-mentioned  ▶  irc-privmsg-channel  ▶  irc-privmsg  ▶  irc-all
+                                    irc-privmsg-channel  ▶  irc-privmsg  ▶  irc-all
+                  irc-to-me      ▶  irc-privmsg-me       ▶  irc-privmsg  ▶  irc-all
 
-irc-addressed  ▶  irc-to-me      ▶  irc-notice-channel   ▶  irc-notice
-                  irc-mentioned  ▶  irc-notice-channel   ▶  irc-notice
-                                    irc-notice-channel   ▶  irc-notice
-                  irc-to-me      ▶  irc-notice-me        ▶  irc-notice
+irc-addressed  ▶  irc-to-me      ▶  irc-notice-channel   ▶  irc-notice  ▶  irc-all
+                  irc-mentioned  ▶  irc-notice-channel   ▶  irc-notice  ▶  irc-all
+                                    irc-notice-channel   ▶  irc-notice  ▶  irc-all
+                  irc-to-me      ▶  irc-notice-me        ▶  irc-notice  ▶  irc-all
 
-                                    irc-mode-channel     ▶  irc-mode
-                                    irc-mode-me          ▶  irc-mode
+                                    irc-mode-channel     ▶  irc-mode    ▶  irc-all
+                                    irc-mode-me          ▶  irc-mode    ▶  irc-all
 
-                  irc-connected  ▶  irc-numeric          ▶  irc-XXX
-                                    irc-numeric          ▶  irc-XXX
+                  irc-connected  ▶  irc-numeric          ▶  irc-XXX     ▶  irc-all
+                                    irc-numeric          ▶  irc-XXX     ▶  irc-all
 ```
 
 ## Up Next
