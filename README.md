@@ -33,26 +33,29 @@ and output post-processing.
 
 # DOCUMENTATION MAP
 
+* [Blog Post](#not-published)
 * [Basics Tutorial](docs/01-basics.md)
-* [Event reference](docs/02-event-reference.md)
+* [Event Reference](docs/02-event-reference.md)
+* [Method Reference](docs/03-method-reference.md)
+* [Big-Picture Behaviour](docs/04-big-picture-behaviour.md)
 
 ---
 
-# REPOSITORY
+#### REPOSITORY
 
 Fork this module on GitHub:
 https://github.com/zoffixznet/perl6-IRC-Client
 
-# BUGS
+#### BUGS
 
 To report bugs or request features, please use
 https://github.com/zoffixznet/perl6-IRC-Client/issues
 
-# AUTHOR
+#### AUTHOR
 
 Zoffix Znet (http://zoffix.com/)
 
-# LICENSE
+#### LICENSE
 
 You can use and distribute this module under the terms of the
 The Artistic License 2.0. See the `LICENSE` file included in this

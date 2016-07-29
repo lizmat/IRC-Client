@@ -1,4 +1,4 @@
-[[back to main docs]](../README.md#documentation-map)
+[[back to doc map]](README.md)
 
 # Basics Tutorial
 
