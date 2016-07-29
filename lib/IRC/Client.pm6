@@ -85,8 +85,7 @@ method part (*@channels, :$server) {
 method quit (:$server = '*') {
     if $server eq '*' { .has-quit = True for %!servers.values;    }
     else              { self!get-server($server).has-quit = True; }
-    dd ['quit', $server];
-    self.send-cmd: 'QUIT', 'Leaving', :$server;
+    self.send-cmd: 'QUIT', :$server;
     self;
 }
 
@@ -136,7 +135,6 @@ method send (:$where!, :$text!, :$server, :$notice) {
 }
 
 method send-cmd ($cmd, *@args is copy, :$prefix = '', :$server) {
-    dd ['send-cmd', $server];
     if $cmd eq 'NOTICE'|'PRIVMSG' {
         my ($where, $text) = @args;
         if @!filters
@@ -161,7 +159,6 @@ method send-cmd ($cmd, *@args is copy, :$prefix = '', :$server) {
         }
     }
     else {
-        dd ['send-later', $server];
         @args[*-1] = ':' ~ @args[*-1] if @args;
         self!ssay: :$server, join ' ', $cmd, @args;
     }
@@ -310,9 +307,7 @@ method !plugs-that-can ($method, |c) {
 
 method !get-server ($server is copy) {
     $server //= '_'; # stupid Perl 6 and its sig defaults
-    dd ['get-server', $server];
     return $server if $server ~~ IRC::Client::Server;
-    dd ['get-server later', $server];
     return %!servers{$server};
 }
 
@@ -327,10 +322,9 @@ method !set-server-attr ($server, $method, $what) {
 
 method !ssay (Str:D $msg, :$server is copy) {
     $server //= '*';
-    dd ['ssay', $server, ~$server];
     $!debug and debug-print $msg, :out, :$server;
     %!servers{$_}.socket.print: "$msg\n"
-        for |($server eq '*' ?? %!servers.keys.sort !! $server);
+        for |($server eq '*' ?? %!servers.keys.sort !! ~$server);
     self;
 }
 
