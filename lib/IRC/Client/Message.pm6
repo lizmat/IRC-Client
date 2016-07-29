@@ -28,7 +28,7 @@ role Unknown          does M       {
 }
 
 role Ping does M {
-    method reply { $.irc.send-cmd: 'PONG', $.args, :$.server; }
+    method reply { $.irc!IRC::Client::send-cmd: 'PONG', $.args, :$.server; }
 }
 
 role Privmsg does M {
@@ -39,13 +39,14 @@ role Privmsg does M {
 role Privmsg::Channel does Privmsg {
     has $.channel;
     method reply ($text, :$where) {
-        $.irc.send-cmd: 'PRIVMSG', $where // $.channel, $text,
+        $.irc!IRC::Client::send-cmd: 'PRIVMSG', $where // $.channel, $text,
             :$.server, :prefix("$.nick, ");
     }
 }
 role Privmsg::Me does Privmsg {
     method reply ($text, :$where) {
-        $.irc.send-cmd: 'PRIVMSG', $where // $.nick, $text, :$.server;
+        $.irc!IRC::Client::send-cmd: 'PRIVMSG', $where // $.nick, $text,
+            :$.server;
     }
 }
 
@@ -57,14 +58,15 @@ role Notice does M {
 role Notice::Channel does Notice {
     has $.channel;
     method reply ($text, :$where) {
-        $.irc.send-cmd: 'NOTICE', $where // $.channel, $text,
+        $.irc!IRC::Client::send-cmd: 'NOTICE', $where // $.channel, $text,
             :$.server, :prefix("$.nick, ");
         $.replied = True;
     }
 }
 role Notice::Me does Notice {
     method reply ($text, :$where) {
-        $.irc.send-cmd: 'NOTICE', $where // $.nick, $text, :$.server;
+        $.irc!IRC::Client::send-cmd: 'NOTICE', $where // $.nick, $text,
+            :$.server;
         $.replied = True;
     }
 }

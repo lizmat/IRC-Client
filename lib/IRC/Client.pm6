@@ -1,8 +1,15 @@
 unit class IRC::Client;
 
+use IRC::Client::Message;
 use IRC::Client::Grammar;
 use IRC::Client::Server;
 use IRC::Client::Grammar::Actions;
+
+trusts IRC::Client::Message::Ping;
+trusts IRC::Client::Message::Privmsg::Channel;
+trusts IRC::Client::Message::Privmsg::Me;
+trusts IRC::Client::Message::Notice::Channel;
+trusts IRC::Client::Message::Notice::Me;
 
 my class IRC_FLAG_NEXT {};
 
@@ -65,7 +72,7 @@ submethod BUILD (
 }
 
 method join (*@channels, :$server) {
-    self.send-cmd: 'JOIN', $_, :$server for @channels;
+    self!send-cmd: 'JOIN', $_, :$server for @channels;
     self;
 }
 
@@ -73,19 +80,19 @@ method nick (*@nicks, :$server = '*') {
     @nicks = @nicks.map: { $_ ~ '_' x $++ } if @nicks == 1;
     self!set-server-attr($server, 'nick', @nicks);
     self!set-server-attr($server, 'current-nick', @nicks[0]);
-    self.send-cmd: 'NICK', @nicks[0], :$server;
+    self!send-cmd: 'NICK', @nicks[0], :$server;
     self;
 }
 
 method part (*@channels, :$server) {
-    self.send-cmd: 'PART', $_, :$server for @channels;
+    self!send-cmd: 'PART', $_, :$server for @channels;
     self;
 }
 
 method quit (:$server = '*') {
     if $server eq '*' { .has-quit = True for %!servers.values;    }
     else              { self!get-server($server).has-quit = True; }
-    self.send-cmd: 'QUIT', :$server;
+    self!send-cmd: 'QUIT', :$server;
     self;
 }
 
@@ -121,7 +128,7 @@ method run {
 method send (:$where!, :$text!, :$server, :$notice) {
     for $server || |%!servers.keys.sort {
         if self!get-server($server).is-connected {
-            self.send-cmd: $notice ?? 'NOTICE' !! 'PRIVMSG', $where, $text,
+            self!send-cmd: $notice ?? 'NOTICE' !! 'PRIVMSG', $where, $text,
                 :server($_);
         }
         else {
@@ -134,42 +141,31 @@ method send (:$where!, :$text!, :$server, :$notice) {
     self;
 }
 
-method send-cmd ($cmd, *@args is copy, :$prefix = '', :$server) {
-    if $cmd eq 'NOTICE'|'PRIVMSG' {
-        my ($where, $text) = @args;
-        if @!filters
-            and my @f = @!filters.grep({
-                   .signature.ACCEPTS: \($text)
-                or .signature.ACCEPTS: \($text, :$where)
-            })
-        {
-            start {
-                CATCH { default { warn $_; warn .backtrace } }
-                for @f -> $f {
-                    given $f.signature.params.elems {
-                        when 1 { $text = $f($text); }
-                        when 2 { ($text, $where) = $f($text, :$where) }
-                    }
-                }
-                self!ssay: :$server, join ' ', $cmd, $where, ":$prefix$text";
-            }
-        }
-        else {
-            self!ssay: :$server, join ' ', $cmd, $where, ":$prefix$text";
+###############################################################################
+###############################################################################
+###############################################################################
+###############################################################################
+###############################################################################
+###############################################################################
+
+method !change-nick ($server) {
+    my $idx = 0;
+    for $server.nick.kv -> $i, $n {
+        next unless $n eq $server.current-nick;
+        $idx = $i + 1;
+        $idx = 0 if $idx == $server.nick.elems;
+    };
+    if $idx == 0 {
+        Promise.in(10).then: {
+            $server.current-nick = $server.nick[$idx];
+            self!send-cmd: "NICK $server.current-nick()", :$server;
         }
     }
     else {
-        @args[*-1] = ':' ~ @args[*-1] if @args;
-        self!ssay: :$server, join ' ', $cmd, @args;
+        $server.current-nick = $server.nick[$idx];
+        self!send-cmd: "NICK $server.current-nick()", :$server;
     }
 }
-
-###############################################################################
-###############################################################################
-###############################################################################
-###############################################################################
-###############################################################################
-###############################################################################
 
 method !connect-socket ($server) {
     $!debug and debug-print 'Attempting to connect to server', :out, :$server;
@@ -223,7 +219,8 @@ method !handle-event ($e) {
             $s.current-nick = $e.args[0];
             self!ssay: "JOIN $_", :server($s) for |$s.channels;
         }
-        when 'PING' { return $e.reply; }
+        when 'PING'      { return $e.reply;      }
+        when '433'|'432' { self!change-nick($s); }
     }
 
     my $event-name = 'irc-' ~ $e.^name.subst('IRC::Client::Message::', '')
@@ -308,6 +305,36 @@ method !get-server ($server is copy) {
     $server //= '_'; # stupid Perl 6 and its sig defaults
     return $server if $server ~~ IRC::Client::Server;
     return %!servers{$server};
+}
+
+method !send-cmd ($cmd, *@args is copy, :$prefix = '', :$server) {
+    if $cmd eq 'NOTICE'|'PRIVMSG' {
+        my ($where, $text) = @args;
+        if @!filters
+            and my @f = @!filters.grep({
+                   .signature.ACCEPTS: \($text)
+                or .signature.ACCEPTS: \($text, :$where)
+            })
+        {
+            start {
+                CATCH { default { warn $_; warn .backtrace } }
+                for @f -> $f {
+                    given $f.signature.params.elems {
+                        when 1 { $text = $f($text); }
+                        when 2 { ($text, $where) = $f($text, :$where) }
+                    }
+                }
+                self!ssay: :$server, join ' ', $cmd, $where, ":$prefix$text";
+            }
+        }
+        else {
+            self!ssay: :$server, join ' ', $cmd, $where, ":$prefix$text";
+        }
+    }
+    else {
+        @args[*-1] = ':' ~ @args[*-1] if @args;
+        self!ssay: :$server, join ' ', $cmd, @args;
+    }
 }
 
 method !set-server-attr ($server, $method, $what) {

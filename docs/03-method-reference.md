@@ -5,7 +5,7 @@
 This document describes events available on various objects in use when working
 with `IRC::Client`.
 
-## Message Objects
+## Message Objects (`IRC::Client::Message` and subclasses)
 
 All event handlers (except for special `irc-started`) receive one positional
 argument that does `IRC::Client::Message` role and is refered to as
@@ -65,6 +65,9 @@ with a safe-method-call operator (`.?`):
 ---
 
 #### `IRC::Client::Message`
+
+Object is never sent to event handlers and merely provides commonality to
+its subclasses.
 
 ##### `.irc`
 
@@ -379,32 +382,37 @@ The "real name" of our client.
 Affects stringification of the object and makes it stringify to the value
 of `.label` attribute.
 
-#### `.current-nick`
+#### Writable Non-Writable Attributes
+
+The following attributes are writable, however, they are written to by
+the internals and the behaviour when writing to them directly is undefined.
+
+##### `.current-nick`
 
 Writable attribute. Our currently-used nick. Will be one of the nicks returned
-by `.nicks`. **Warning: this attribute is not meant to be used directly.**
+by `.nicks`.
 
-#### `.is-connected`
+##### `.is-connected`
 
 Writable `Bool` attribute. Indicates whether we're currently in a state
 where the server considers us connected. This defaults to `False`, then is set
 to `True` when the server sends us `001` IRC command and set back to `False`
 when the socket connection breaks.
-**Warning: this attribute is not meant to be used directly.**
 
-#### `.has-quit`
+##### `.has-quit`
 
 Writable `Bool` attribute. Set to `True` when `.quit` method is called
 on the Client Object and is used by the socket herder to determine whether
 or not the socket connection was cut intentionally.
-**Warning: this attribute is not meant to be used directly.**
 
-#### `.has-quit`
+##### `.has-quit`
 
 Writable `IO::Socket::Async` attribute. Contains an object representing
 the socket connected to the server, although it may already be closed.
-**Warning: this attribute is not meant to be used directly.**
 
+---
+
+## Client Object (`IRC::Client`)
 ## Up Next
 
 Read [the method reference](03-method-reference.md) next.
