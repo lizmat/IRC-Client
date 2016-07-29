@@ -17,6 +17,17 @@ be triggered via notice and private message, so it's wider;
 and `irc-privmsg` also includes private messages to our bot. The chain ends
 by the widest event of them all: `irc-all`.
 
+## Responding to Events
+
+See [section in Basic Tutorial](01-basics.md#responding-to-events) for
+responding by returning a value from the event handler.
+
+The Message Objects received by the event handlers for the `irc-privmsg` and
+`irc-notice` event chains also provide a `.reply` method using which you
+can reply to the event. When this method is called `.is-replied` attribute
+of the Message Object is set to `True`, which signals to the Client Object
+that the returned value from the event handler should be discarded.
+
 ## Event Map
 
 All event chains end with `irc-all`, which is not shown in the table below,
