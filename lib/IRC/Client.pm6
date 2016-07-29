@@ -26,11 +26,10 @@ my &colored = try {
 } // sub (Str $s, $) { $s };
 
 submethod BUILD (
-            :@!filters,
-            :@!plugins,
     Int:D   :$!debug = 0,
-
-            :%servers   is copy,
+            :$filters = (),
+            :$plugins = (),
+            :$servers = {},
     Int:D   :$port      where 0 <= $_ <= 65535   = 6667,
     Str     :$password,
     Str:D   :$host      = 'localhost',
@@ -40,6 +39,10 @@ submethod BUILD (
     Str:D   :$userreal  = 'Perl6 IRC Client',
     Str:D   :$channels  = ['#perl6'],
 ) {
+    @!filters = @$filters;
+    @!plugins = @$plugins;
+    my %servers = %$servers;
+
     my %all-conf = :$port,     :$password, :$host,     :$nick,
                    :$username, :$userhost, :$userreal, :$channels;
 
