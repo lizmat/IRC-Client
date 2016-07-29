@@ -538,6 +538,11 @@ server-specific configuration. Valid keys in the configuration are
 of the `IRC::Client.new` method and if any key is omitted, the value
 of the `.new`'s argument will be used.
 
+If `:servers` is not specified, then a server will be created with the
+label `_` (underscore).
+
+**By default** not specified.
+
 ##### `:username`
 
 The IRC username to use. **Defaults to:** `Perl6IRC`
