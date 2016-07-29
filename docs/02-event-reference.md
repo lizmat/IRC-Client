@@ -52,6 +52,7 @@ irc-addressed  ▶  irc-to-me      ▶  irc-notice-channel   ▶  irc-notice   �
                   irc-connected  ▶  irc-XXX              ▶  irc-numeric  ▶  irc-all
                                     irc-XXX              ▶  irc-numeric  ▶  irc-all
                                                             irc-join     ▶  irc-all
+                                                            irc-nick     ▶  irc-all
                                                             irc-part     ▶  irc-all
                                                             irc-quit     ▶  irc-all
                                                             irc-unknown  ▶  irc-all
@@ -175,6 +176,17 @@ irc-mode-me  ▶  irc-mode  ▶  irc-all
 
 Triggered when `MODE` commands are performed on the client.
 Receives `IRC::Client::Message::Mode::Me` message object.
+
+### `irc-nick`
+
+```
+irc-nick  ▶  irc-all
+```
+
+Triggered when someone in a channel we are in changes nick.
+*Note:* typically the server will generate this event when *we* change
+a nick too.
+Receives `IRC::Client::Message::Nick` message object.
 
 ### `irc-notice`
 
