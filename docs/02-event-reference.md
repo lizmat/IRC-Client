@@ -83,8 +83,9 @@ in regex terms, matches `/^ $nick <[,:\s]> \s* /`. This prefix portion will be
 **stripped** from the actual message.
 
 Possible message objects received by event handler:
-`IRC::Client::Message::Privmsg::Channel` or
-`IRC::Client::Message::Notice::Channel`
+
+* `IRC::Client::Message::Privmsg::Channel`
+* `IRC::Client::Message::Notice::Channel`
 
 ### `irc-mentioned`
 
@@ -94,8 +95,8 @@ irc-mentioned  ▶  irc-notice-channel   ▶  irc-notice   ▶  irc-all
 ```
 
 Possible message objects received by event handler:
-`IRC::Client::Message::Privmsg::Channel` or
-`IRC::Client::Message::Notice::Channel`
+* `IRC::Client::Message::Privmsg::Channel`
+* `IRC::Client::Message::Notice::Channel`
 
 ## Up Next
 
