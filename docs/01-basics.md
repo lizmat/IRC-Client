@@ -130,3 +130,7 @@ by the `IRC::Client::Plugin` role to call method `.send` on the Client Object.
 In the `:where` parameter, we specify we want to send the message to
 channel `#perl6` and the `:text` parameter contains the text we want to send.
 The bot will send that text every 3 seconds.
+
+## Up Next
+
+Read [the event reference](02-event-reference.md) next.

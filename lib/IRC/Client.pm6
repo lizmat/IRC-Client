@@ -158,6 +158,7 @@ method !connect-socket ($server) {
     $!debug and debug-print 'Attempting to connect to server', :out, :$server;
     IO::Socket::Async.connect($server.host, $server.port).then: sub ($prom) {
         if $prom.status ~~ Broken {
+            $server.is-connected = False;
             $!debug and debug-print 'Could not connect', :out, :$server;
             sleep 5;
             $!socket-pipe.send: $server;
@@ -188,6 +189,7 @@ method !connect-socket ($server) {
         }
 
         unless $server.has-quit {
+            $server.is-connected = False;
             $!debug and debug-print "Connection closed", :in, :$server;
             sleep 5;
         }
