@@ -624,4 +624,4 @@ before attempting the `.send`
 
 ## Up Next
 
-Read [Big Picture behaviour](04-big-picture-behaviour) next.
+Read [Big Picture behaviour](04-big-picture-behaviour.md) next.
