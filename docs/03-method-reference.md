@@ -62,6 +62,8 @@ with a safe-method-call operator (`.?`):
     }
 ```
 
+---
+
 #### `IRC::Client::Message`
 
 ##### `.irc`
@@ -104,11 +106,15 @@ the event.
 constructed from `":$!usermask $!command $!args[]"`, but is overriden to
 a different value by some message objects.
 
+---
+
 #### `IRC::Client::Message::Join`
 
 ##### `.channel`
 
 Contains the channel name of the channel that was joined
+
+---
 
 #### `IRC::Client::Message::Nick`
 
@@ -116,10 +122,14 @@ Contains the channel name of the channel that was joined
 
 Contains the new nick switched to (`.nick` attribute contains the old one).
 
+---
+
 #### `IRC::Client::Message::Numeric`
 
 Does not offer any object-specific methods. Use the `.command` attribute
 to find out the actual 3-digit IRC command that triggered the event.
+
+---
 
 #### `IRC::Client::Message::Part`
 
@@ -127,6 +137,8 @@ to find out the actual 3-digit IRC command that triggered the event.
 
 Contains the channel name of the channel that was parted. Use `.args`
 attribute to get any potential parting messages.
+
+---
 
 #### `IRC::Client::Message::Ping`
 
@@ -137,10 +149,14 @@ to any event handlers and `irc-ping` is not a valid event.
 
 Takes no arguments. Replies to the server with appropriate `PONG` IRC command.
 
+---
+
 #### `IRC::Client::Message::Quit`
 
 Does not offer any object-specific methods. Use `.args`
 attribute to get any potential quit messages.
+
+---
 
 #### `IRC::Client::Message::Unknown`
 
@@ -148,6 +164,8 @@ attribute to get any potential quit messages.
 
 Overrides the default stringification string to
 `"❚⚠❚ :$.usermask $.command $.args[]"`
+
+---
 
 #### `IRC::Client::Message::Mode`
 
@@ -162,15 +180,21 @@ is the sign of the mode (`+` or `-`) and the value if the mode letter itself.
 When modes are set on the client, contains just a list of modes as strings,
 without any signs.
 
+---
+
 #### `IRC::Client::Message::Mode::Channel`
 
 ##### `.channel`
 
 Contains the channel on which the modes were set.
 
+---
+
 #### `IRC::Client::Message::Mode::Me`
 
 Does not offer any object-specific methods.
+
+---
 
 #### `IRC::Client::Message::Notice`
 
@@ -192,6 +216,8 @@ the event handler's value must not be used as a reply to the message.
 Overrides stringification of the message object to be the value of the
 `.text` attribute.
 
+---
+
 #### `IRC::Client::Message::Notice::Channel`
 
 ##### `.channel`
@@ -211,6 +237,8 @@ optional `:where` argument specifies a channel or nick
 where to send the message and defaults to the channel in which the message
 originated.
 
+---
+
 #### `IRC::Client::Message::Notice::Me`
 
 ##### `.reply`
@@ -225,6 +253,8 @@ Replies to the sender of the message using the `NOTICE` IRC command. The
 optional `:where` argument specifies a nick or channel
 where to send the message and defaults to the nick from which the message
 originated.
+
+---
 
 #### `IRC::Client::Message::Privmsg`
 
@@ -246,6 +276,8 @@ the event handler's value must not be used as a reply to the message.
 Overrides stringification of the message object to be the value of the
 `.text` attribute.
 
+---
+
 #### `IRC::Client::Message::Privmsg::Channel`
 
 ##### `.channel`
@@ -265,6 +297,8 @@ optional `:where` argument specifies a channel or nick
 where to send the message and defaults to the channel in which the message
 originated.
 
+---
+
 #### `IRC::Client::Message::Privmsg::Me`
 
 ##### `.reply`
@@ -279,6 +313,8 @@ Replies to the sender of the message using the `PRIVMSG` IRC command. The
 optional `:where` argument specifies a nick or channel
 where to send the message and defaults to the nick from which the message
 originated.
+
+---
 
 ## Up Next
 
