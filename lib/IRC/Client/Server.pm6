@@ -10,8 +10,8 @@ has Str     $.username;
 has Str     $.userhost;
 has Str     $.userreal;
 has Str     $.current-nick     is rw;
-has Promise $.promise          is rw;
 has Bool    $.is-connected     is rw;
+has Bool    $.has-quit         is rw;
 has IO::Socket::Async $.socket is rw;
 
 method Str { $!label }

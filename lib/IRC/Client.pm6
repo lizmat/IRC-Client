@@ -15,8 +15,9 @@ has @.filters where .all ~~ Callable;
 has %.servers where .values.all ~~ IRC::Client::Server;
 has @.plugins;
 has $.debug;
-has Lock    $!lock       = Lock.new;
-has Channel $!event-pipe = Channel.new;
+has Lock    $!lock        = Lock.new;
+has Channel $!event-pipe  = Channel.new;
+has Channel $!socket-pipe = Channel.new;
 
 my &colored = try {
     require Terminal::ANSIColor;
@@ -105,35 +106,15 @@ method run {
         CATCH { default { warn $_; warn .backtrace } }
     }
 
-    for %!servers.values -> $server {
-        $server.promise
-        = IO::Socket::Async.connect($server.host, $server.port).then: {
-            $server.socket = .result;
-
-            self!ssay: "PASS $server.password()", :$server
-                if $server.password.defined;
-            self!ssay: "NICK {$server.nick[0]}", :$server;
-
-            self!ssay: :$server, join ' ', 'USER', $server.username,
-                $server.username, $server.host, ':' ~ $server.userreal;
-
-            my $left-overs = '';
-            react {
-                whenever $server.socket.Supply :bin -> $buf is copy {
-                    my $str = try $buf.decode: 'utf8';
-                    $str or $str = $buf.decode: 'latin-1';
-                    $str = ($left-overs//'') ~ $str;
-
-                    (my $events, $left-overs) = self!parse: $str, :$server;
-                    $!event-pipe.send: $_ for $events.grep: *.defined;
-                }
-                CATCH { default { warn $_; warn .backtrace } }
-            }
-            $server.socket.close;
-            CATCH { default { warn $_; warn .backtrace } }
-        };
+    self!connect-socket: $_ for %!servers.values;
+    loop {
+        my $s = $!socket-pipe.receive;
+        self!connect-socket: $s unless $s.has-quit;
+        unless %!servers.values.grep({!.has-quit}) {
+            $!debug and debug-print 'All servers quit by user. Exiting', :sys;
+            last;
+        }
     }
-    await Promise.allof: %!servers.values».promise;
 }
 
 method send (:$where!, :$text!, :$server, :$notice) {
@@ -181,6 +162,49 @@ method send-cmd ($cmd, *@args is copy, :$prefix = '', :$server) {
 ###############################################################################
 ###############################################################################
 ###############################################################################
+
+method !connect-socket ($server) {
+    $!debug and debug-print 'Attempting to connect to server', :sys, :$server;
+    IO::Socket::Async.connect($server.host, $server.port).then: sub ($prom) {
+        if $prom.status ~~ Broken {
+            $!debug and debug-print 'Could not connect', :sys, :$server;
+            sleep 5;
+            $!socket-pipe.send: $server;
+            return;
+        }
+
+        $server.socket = $prom.result;
+
+        self!ssay: "PASS $server.password()", :$server
+            if $server.password.defined;
+        self!ssay: "NICK {$server.nick[0]}", :$server;
+
+        self!ssay: :$server, join ' ', 'USER', $server.username,
+            $server.username, $server.host, ':' ~ $server.userreal;
+
+        my $left-overs = '';
+        react {
+            whenever $server.socket.Supply :bin -> $buf is copy {
+                my $str = try $buf.decode: 'utf8';
+                $str or $str = $buf.decode: 'latin-1';
+                $str = ($left-overs//'') ~ $str;
+
+                (my $events, $left-overs) = self!parse: $str, :$server;
+                $!event-pipe.send: $_ for $events.grep: *.defined;
+
+                CATCH { default { warn $_; warn .backtrace } }
+            }
+        }
+
+        unless $server.has-quit {
+            $!debug and debug-print "Connection closed", :sys, :$server;
+            sleep 5;
+        }
+
+        $!socket-pipe.send: $server;
+        CATCH { default { warn $_; warn .backtrace; } }
+    }
+}
 
 method !handle-event ($e) {
     my $s = %!servers{ $e.server };
