@@ -41,16 +41,16 @@ irc-addressed  ▶  irc-to-me      ▶  irc-privmsg-channel  ▶  irc-privmsg  �
                                     irc-privmsg-channel  ▶  irc-privmsg  ▶  irc-all
                   irc-to-me      ▶  irc-privmsg-me       ▶  irc-privmsg  ▶  irc-all
 
-irc-addressed  ▶  irc-to-me      ▶  irc-notice-channel   ▶  irc-notice  ▶  irc-all
-                  irc-mentioned  ▶  irc-notice-channel   ▶  irc-notice  ▶  irc-all
-                                    irc-notice-channel   ▶  irc-notice  ▶  irc-all
-                  irc-to-me      ▶  irc-notice-me        ▶  irc-notice  ▶  irc-all
+irc-addressed  ▶  irc-to-me      ▶  irc-notice-channel   ▶  irc-notice   ▶  irc-all
+                  irc-mentioned  ▶  irc-notice-channel   ▶  irc-notice   ▶  irc-all
+                                    irc-notice-channel   ▶  irc-notice   ▶  irc-all
+                  irc-to-me      ▶  irc-notice-me        ▶  irc-notice   ▶  irc-all
 
-                                    irc-mode-channel     ▶  irc-mode    ▶  irc-all
-                                    irc-mode-me          ▶  irc-mode    ▶  irc-all
+                                    irc-mode-channel     ▶  irc-mode     ▶  irc-all
+                                    irc-mode-me          ▶  irc-mode     ▶  irc-all
 
-                  irc-connected  ▶  irc-numeric          ▶  irc-XXX     ▶  irc-all
-                                    irc-numeric          ▶  irc-XXX     ▶  irc-all
+                  irc-connected  ▶  irc-numeric          ▶  irc-XXX      ▶  irc-all
+                                    irc-numeric          ▶  irc-XXX      ▶  irc-all
 ```
 
 ## Up Next
