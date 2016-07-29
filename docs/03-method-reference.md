@@ -316,6 +316,95 @@ originated.
 
 ---
 
+## Server Object (`IRC::Client::Server`)
+
+The Server Object represents one of the IRC servers the client is connected
+to. It's returned by the `.server` attribute of the Message Object and
+can be passed to various Client Object methods to indicate to which server
+a command should be sent to.
+
+Client Object's `%.servers` attribute contains all of the `IRC::Client::Server`
+objects with their keys as labels and values as objects themselves.
+
+### Labels
+
+Each `IRC::Client::Server` object has a label that was given to it during
+the creation of `IRC::Client` object. `IRC::Client::Server` objects stringify
+to the value of their labels and methods that can take an
+`IRC::Client::Server` object can also take a `Str` with the label of that server
+instead.
+
+### Methods and Attributes
+
+#### `.label`
+
+The label of this server.
+
+#### `.channels`
+
+A list of strings containing all the channels the client is in on this
+server.
+
+#### `.nick`
+
+A list of nicks the client uses on this server. If one nick is
+taken, next one in the list will be attempted to be used.
+
+#### `.host`
+
+The host of the server.
+
+#### `.port`
+
+The port of the server.
+
+#### `.password`
+
+The password of the server.
+
+#### `.username`
+
+Our username on this server.
+
+#### `.userhost`
+
+Our hostname on this server.
+
+#### `.userreal`
+
+The "real name" of our client.
+
+#### `.Str`
+
+Affects stringification of the object and makes it stringify to the value
+of `.label` attribute.
+
+#### `.current-nick`
+
+Writable attribute. Our currently-used nick. Will be one of the nicks returned
+by `.nicks`. **Warning: this attribute is not meant to be used directly.**
+
+#### `.is-connected`
+
+Writable `Bool` attribute. Indicates whether we're currently in a state
+where the server considers us connected. This defaults to `False`, then is set
+to `True` when the server sends us `001` IRC command and set back to `False`
+when the socket connection breaks.
+**Warning: this attribute is not meant to be used directly.**
+
+#### `.has-quit`
+
+Writable `Bool` attribute. Set to `True` when `.quit` method is called
+on the Client Object and is used by the socket herder to determine whether
+or not the socket connection was cut intentionally.
+**Warning: this attribute is not meant to be used directly.**
+
+#### `.has-quit`
+
+Writable `IO::Socket::Async` attribute. Contains an object representing
+the socket connected to the server, although it may already be closed.
+**Warning: this attribute is not meant to be used directly.**
+
 ## Up Next
 
 Read [the method reference](03-method-reference.md) next.
