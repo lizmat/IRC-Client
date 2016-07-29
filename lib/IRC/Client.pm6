@@ -272,7 +272,10 @@ method !handle-event ($e) {
             last EVENT if $res ~~ IRC::Client | Supply | Channel;
 
             if $res ~~ Promise {
-                $res.then: { $e.?reply: $^r unless $^r ~~ Nil or $e.?replied; }
+                $res.then: {
+                    $e.?reply: $^r.result
+                        unless $^r.result ~~ Nil or $e.?replied;
+                }
             } else {
                 $e.?reply: $res unless $res ~~ Nil or $e.?replied;
             }
@@ -318,8 +321,8 @@ method send-cmd ($cmd, *@args is copy, :$prefix = '', :$server) {
                 CATCH { default { warn $_; warn .backtrace } }
                 for @f -> $f {
                     given $f.signature.params.elems {
-                        when 1 { $text = $f($text); }
-                        when 2 { ($text, $where) = $f($text, :$where) }
+                        when 1 {           $text = $f($text);          }
+                        when 2 { ($text, $where) = $f($text, :$where); }
                     }
                 }
                 self!ssay: :$server, join ' ', $cmd, $where, ":$prefix$text";
