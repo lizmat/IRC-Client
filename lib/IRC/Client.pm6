@@ -81,6 +81,7 @@ method part (*@channels, :$server) {
 
 method run {
     .irc = self for @.plugins.grep: { .DEFINITE and .^can: 'irc' };
+    .irc-started for self!plugs-that-can('irc-started', $e);
 
     start {
         my $closed = $!event-pipe.closed;

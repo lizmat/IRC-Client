@@ -36,6 +36,8 @@ table](https://www.alien.net.au/irc/irc2numerics.html) for meaning of codes,
 depending on the server used.
 
 ```
+                                                                            irc-started
+
 irc-addressed  ▶  irc-to-me      ▶  irc-privmsg-channel  ▶  irc-privmsg  ▶  irc-all
                   irc-mentioned  ▶  irc-privmsg-channel  ▶  irc-privmsg  ▶  irc-all
                                     irc-privmsg-channel  ▶  irc-privmsg  ▶  irc-all
