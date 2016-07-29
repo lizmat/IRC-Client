@@ -97,7 +97,7 @@ method run {
     }
 
     self!connect-socket: $_ for %!servers.values;
-    .irc-started for self!plugs-that-can('irc-started', $e);
+    .irc-started for self!plugs-that-can('irc-started');
     loop {
         my $s = $!socket-pipe.receive;
         self!connect-socket: $s unless $s.has-quit;
@@ -110,8 +110,15 @@ method run {
 
 method send (:$where!, :$text!, :$server, :$notice) {
     for $server || |%!servers.keys.sort {
-        self.send-cmd: $notice ?? 'NOTICE' !! 'PRIVMSG', $where, $text,
-            :server($_);
+        if self!get-server($server).is-connected {
+            self.send-cmd: $notice ?? 'NOTICE' !! 'PRIVMSG', $where, $text,
+                :server($_);
+        }
+        else {
+            $!debug and debug-print( :out, :$server,
+                '.send() called for an unconnected server. Skipping...'
+            );
+        }
     }
 
     self;
@@ -160,7 +167,7 @@ method !connect-socket ($server) {
         if $prom.status ~~ Broken {
             $server.is-connected = False;
             $!debug and debug-print 'Could not connect', :out, :$server;
-            sleep 5;
+            sleep 10;
             $!socket-pipe.send: $server;
             return;
         }
@@ -191,7 +198,7 @@ method !connect-socket ($server) {
         unless $server.has-quit {
             $server.is-connected = False;
             $!debug and debug-print "Connection closed", :in, :$server;
-            sleep 5;
+            sleep 10;
         }
 
         $!socket-pipe.send: $server;
@@ -279,13 +286,19 @@ method !parse (Str:D $str, :$server) {
     ).made;
 }
 
-method !plugs-that-can ($method, $e) {
+method !plugs-that-can ($method, |c) {
     gather {
         for @!plugins -> $plug {
-            take $plug if .cando: \($plug, $e)
+            take $plug if .cando: \($plug, |c)
                 for $plug.^can: $method;
         }
     }
+}
+
+method !get-server ($server is copy) {
+    $server //= '_'; # stupid Perl 6 and its sig defaults
+    return $server if $server ~~ IRC::Client::Server;
+    return %!servers{$server};
 }
 
 method !set-server-attr ($server, $method, $what) {

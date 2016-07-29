@@ -88,9 +88,9 @@ the original message, prefixed with `You said `.
         :host<irc.freenode.net>
         :channels<#perl6bot #zofbot>
         :debug
-        :plugins(
+        :plugins[
             class { method irc-to-me ($e) { "You said $e.text()"} }
-        )
+        ]
 ```
 
 ## Generating Messages
@@ -104,7 +104,7 @@ the `$.irc` attribute:
 use IRC::Client;
 
 class AlarmBot does IRC::Client::Plugin {
-    method irc-started {
+    method irc-connected ($) {
         react {
             whenever Supply.interval(3) {
                 $.irc.send: :where<#perl6> :text<Three seconds passed!>;
@@ -118,7 +118,7 @@ class AlarmBot does IRC::Client::Plugin {
     :host<irc.freenode.net>
     :channels<#perl6>
     :debug
-    :plugins(AlarmBot.new)
+    :plugins[AlarmBot.new]
 ```
 
 Here, we subscribe to `irc-connected` event (using an anonymous parameter
