@@ -79,15 +79,6 @@ method part (*@channels, :$server) {
     self;
 }
 
-method !set-server-attr ($server, $method, $what) {
-    if $server ne '*' {
-        %!servers{$server}."$method"() = $what;
-        return;
-    }
-
-    ."$method"() = $what for %!servers.values;
-}
-
 method run {
     .irc = self for @.plugins.grep: { .DEFINITE and .^can: 'irc' };
 
@@ -164,10 +155,10 @@ method send-cmd ($cmd, *@args is copy, :$prefix = '', :$server) {
 ###############################################################################
 
 method !connect-socket ($server) {
-    $!debug and debug-print 'Attempting to connect to server', :sys, :$server;
+    $!debug and debug-print 'Attempting to connect to server', :out, :$server;
     IO::Socket::Async.connect($server.host, $server.port).then: sub ($prom) {
         if $prom.status ~~ Broken {
-            $!debug and debug-print 'Could not connect', :sys, :$server;
+            $!debug and debug-print 'Could not connect', :out, :$server;
             sleep 5;
             $!socket-pipe.send: $server;
             return;
@@ -197,7 +188,7 @@ method !connect-socket ($server) {
         }
 
         unless $server.has-quit {
-            $!debug and debug-print "Connection closed", :sys, :$server;
+            $!debug and debug-print "Connection closed", :in, :$server;
             sleep 5;
         }
 
@@ -293,6 +284,15 @@ method !plugs-that-can ($method, $e) {
                 for $plug.^can: $method;
         }
     }
+}
+
+method !set-server-attr ($server, $method, $what) {
+    if $server ne '*' {
+        %!servers{$server}."$method"() = $what;
+        return;
+    }
+
+    ."$method"() = $what for %!servers.values;
 }
 
 method !ssay (Str:D $msg, :$server is copy) {
