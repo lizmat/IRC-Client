@@ -14,15 +14,15 @@ IRC::Client - Extendable Internet Relay Chat client
         :host<irc.freenode.net>
         :channels<#perl6bot #zofbot>
         :debug
-        :plugins(
+        :plugins[
             class { method irc-to-me ($ where /hello/) { 'Hello to you too!'} }
-        )
-        :filters(
+        ]
+        :filters[
             -> $text where .chars > 200 {
                 'The output is too large to show here. See: '
                 ~ Pastebin::Shadowcat.new.paste: $text;
             }
-        );
+        ];
 ```
 
 # DESCRIPTION
