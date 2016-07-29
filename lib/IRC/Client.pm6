@@ -5,12 +5,6 @@ use IRC::Client::Grammar;
 use IRC::Client::Server;
 use IRC::Client::Grammar::Actions;
 
-trusts IRC::Client::Message::Ping;
-trusts IRC::Client::Message::Privmsg::Channel;
-trusts IRC::Client::Message::Privmsg::Me;
-trusts IRC::Client::Message::Notice::Channel;
-trusts IRC::Client::Message::Notice::Me;
-
 my class IRC_FLAG_NEXT {};
 
 role IRC::Client::Plugin is export {
@@ -60,39 +54,42 @@ submethod BUILD (
             :socket(Nil),
             :$label,
             :channels[ |($conf<channels> // %all-conf<channels>) ],
+            :nick[ |($conf<nick> // %all-conf<nick>) ],
             |%(
-                <host password port nick username userhost userreal>
+                <host password port username userhost userreal>
                     .map: { $_ => $conf{$_} // %all-conf{$_} }
             ),
         );
-        $s.nick = $s.nick[0].map: { $_ ~ '_' x $++ } if $s.nick.elems == 1;
+        # Automatically add nick__ variants if given just one nick
+        $s.nick[1..3] = "$s.nick()[0]_", "$s.nick()[0]__", "$s.nick()[0]___"
+            if $s.nick.elems == 1;
         $s.current-nick = $s.nick[0];
         %!servers{$label} = $s;
     }
 }
 
 method join (*@channels, :$server) {
-    self!send-cmd: 'JOIN', $_, :$server for @channels;
+    self.send-cmd: 'JOIN', $_, :$server for @channels;
     self;
 }
 
 method nick (*@nicks, :$server = '*') {
-    @nicks = @nicks.map: { $_ ~ '_' x $++ } if @nicks == 1;
+    @nicks[1..3] = "@nicks[0]_", "@nicks[0]__", "@nicks[0]___" if @nicks == 1;
     self!set-server-attr($server, 'nick', @nicks);
     self!set-server-attr($server, 'current-nick', @nicks[0]);
-    self!send-cmd: 'NICK', @nicks[0], :$server;
+    self.send-cmd: 'NICK', @nicks[0], :$server;
     self;
 }
 
 method part (*@channels, :$server) {
-    self!send-cmd: 'PART', $_, :$server for @channels;
+    self.send-cmd: 'PART', $_, :$server for @channels;
     self;
 }
 
 method quit (:$server = '*') {
     if $server eq '*' { .has-quit = True for %!servers.values;    }
     else              { self!get-server($server).has-quit = True; }
-    self!send-cmd: 'QUIT', :$server;
+    self.send-cmd: 'QUIT', :$server;
     self;
 }
 
@@ -128,7 +125,7 @@ method run {
 method send (:$where!, :$text!, :$server, :$notice) {
     for $server || |%!servers.keys.sort {
         if self!get-server($server).is-connected {
-            self!send-cmd: $notice ?? 'NOTICE' !! 'PRIVMSG', $where, $text,
+            self.send-cmd: $notice ?? 'NOTICE' !! 'PRIVMSG', $where, $text,
                 :server($_);
         }
         else {
@@ -154,16 +151,17 @@ method !change-nick ($server) {
         next unless $n eq $server.current-nick;
         $idx = $i + 1;
         $idx = 0 if $idx == $server.nick.elems;
+        last;
     };
     if $idx == 0 {
         Promise.in(10).then: {
             $server.current-nick = $server.nick[$idx];
-            self!send-cmd: "NICK $server.current-nick()", :$server;
+            self.send-cmd: "NICK $server.current-nick()", :$server;
         }
     }
     else {
         $server.current-nick = $server.nick[$idx];
-        self!send-cmd: "NICK $server.current-nick()", :$server;
+        self.send-cmd: "NICK $server.current-nick()", :$server;
     }
 }
 
@@ -220,7 +218,7 @@ method !handle-event ($e) {
             self!ssay: "JOIN $_", :server($s) for |$s.channels;
         }
         when 'PING'      { return $e.reply;      }
-        when '433'|'432' { self!change-nick($s); }
+        when '433'|'432' { self!change-nick: $s; }
     }
 
     my $event-name = 'irc-' ~ $e.^name.subst('IRC::Client::Message::', '')
@@ -307,7 +305,7 @@ method !get-server ($server is copy) {
     return %!servers{$server};
 }
 
-method !send-cmd ($cmd, *@args is copy, :$prefix = '', :$server) {
+method send-cmd ($cmd, *@args is copy, :$prefix = '', :$server) {
     if $cmd eq 'NOTICE'|'PRIVMSG' {
         my ($where, $text) = @args;
         if @!filters
@@ -339,11 +337,13 @@ method !send-cmd ($cmd, *@args is copy, :$prefix = '', :$server) {
 
 method !set-server-attr ($server, $method, $what) {
     if $server ne '*' {
-        %!servers{$server}."$method"() = $what;
+        %!servers{$server}."$method"() = $what ~~ List ?? @$what !! $what;
         return;
     }
 
-    ."$method"() = $what for %!servers.values;
+    for %!servers.values {
+        ."$method"() = $what ~~ List ?? @$what !! $what ;
+    }
 }
 
 method !ssay (Str:D $msg, :$server is copy) {
