@@ -67,6 +67,41 @@ been fully established yet or channels joined yet.
 the plugins
 * This event does not trigger `irc-all` event
 
+## Event Triggers
+
+### `irc-addressed`
+
+```
+irc-addressed  ▶  irc-to-me      ▶  irc-privmsg-channel  ▶  irc-privmsg  ▶  irc-all
+irc-addressed  ▶  irc-to-me      ▶  irc-notice-channel   ▶  irc-notice   ▶  irc-all
+```
+
+This event chain is triggered when the client is addressed in channel either
+via a `PRIVMSG` or `NOTICE` IRC message. 'Addressed' means the message line
+starts with the current nickname of the client, followed by single whitespace character, `;`, or `,` characters, followed by any number of whitespace; or
+in regex terms, matches `/^ $nick <[,:\s]> \s* /`. This prefix portion will be
+**stripped** from the actual message.
+
+Possible message objects received by event handler:
+
+```
+IRC::Client::Message::Privmsg::Channel
+IRC::Client::Message::Notice::Channel
+```
+
+### `irc-mentioned`
+
+```
+irc-mentioned  ▶  irc-privmsg-channel  ▶  irc-privmsg  ▶  irc-all
+irc-mentioned  ▶  irc-notice-channel   ▶  irc-notice   ▶  irc-all
+```
+
+Possible message objects received by event handler:
+```
+IRC::Client::Message::Privmsg::Channel
+IRC::Client::Message::Notice::Channel
+```
+
 ## Up Next
 
 Read [the method reference](03-method-reference.md) next.
