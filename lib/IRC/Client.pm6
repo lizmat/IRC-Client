@@ -81,8 +81,6 @@ method part (*@channels, :$server) {
 
 method run {
     .irc = self for @.plugins.grep: { .DEFINITE and .^can: 'irc' };
-    .irc-started for self!plugs-that-can('irc-started', $e);
-
     start {
         my $closed = $!event-pipe.closed;
         loop {
@@ -99,6 +97,7 @@ method run {
     }
 
     self!connect-socket: $_ for %!servers.values;
+    .irc-started for self!plugs-that-can('irc-started', $e);
     loop {
         my $s = $!socket-pipe.receive;
         self!connect-socket: $s unless $s.has-quit;

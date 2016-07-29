@@ -55,6 +55,18 @@ irc-addressed  ▶  irc-to-me      ▶  irc-notice-channel   ▶  irc-notice   �
                                                                             irc-started
 ```
 
+**Note:** `irc-started` is a special event that's exempt from the rules
+applicable to all other events and their event handlers:
+
+* It's called just once per call of `IRC::Client`'s `.run` method, regardless
+of how many times the client reconnects
+* When it's called, there's no guarantee the connections to servers have
+been fully established yet or channels joined yet.
+* Unless all other event handlers, this one does not take any arguments
+* Return values from handlers are ignored and the event is propagated to all of
+the plugins
+* This event does not trigger `irc-all` event
+
 ## Up Next
 
 Read [the method reference](03-method-reference.md) next.

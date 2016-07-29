@@ -104,7 +104,7 @@ the `$.irc` attribute:
 use IRC::Client;
 
 class AlarmBot does IRC::Client::Plugin {
-    method irc-connected ($) {
+    method irc-started {
         react {
             whenever Supply.interval(3) {
                 $.irc.send: :where<#perl6> :text<Three seconds passed!>;
