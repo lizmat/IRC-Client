@@ -224,8 +224,6 @@ method !handle-event ($e) {
             self!ssay: "JOIN $_", :server($s) for |$s.channels;
         }
         when 'PING' { return $e.reply; }
-        when 'JOIN' {
-        }
     }
 
     my $event-name = 'irc-' ~ $e.^name.subst('IRC::Client::Message::', '')
@@ -262,6 +260,7 @@ method !handle-event ($e) {
                 }
                 take 'irc-' ~ $e.command, $event-name;
             }
+            default { take $event-name }
         }
         take 'irc-all';
     }
