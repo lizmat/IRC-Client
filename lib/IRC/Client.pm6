@@ -34,7 +34,7 @@ submethod BUILD (
     Int:D   :$port      where 0 <= $_ <= 65535   = 6667,
     Str     :$password,
     Str:D   :$host      = 'localhost',
-            :$nick      = ['P6Bot', 'P6Bot_', 'P6Bot__'],
+            :$nick      = ['P6Bot'],
     Str:D   :$username  = 'Perl6IRC',
     Str:D   :$userhost  = 'localhost',
     Str:D   :$userreal  = 'Perl6 IRC Client',
