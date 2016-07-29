@@ -14,7 +14,8 @@
         "IRC::Client"                   : "lib/IRC/Client.pm6",
         "IRC::Client::Message"          : "lib/IRC/Client/Message.pm6",
         "IRC::Client::Grammar"          : "lib/IRC/Client/Grammar.pm6",
-        "IRC::Client::Grammar::Actions" : "lib/IRC/Client/Grammar/Actions.pm6"
+        "IRC::Client::Grammar::Actions" : "lib/IRC/Client/Grammar/Actions.pm6",
+        "IRC::Client::Server"           : "lib/IRC/Client/Server.pm6"
     },
     "authors"       : ["Zoffix Znet"],
     "support"       : {"source"   : "git://github.com/zoffixznet/perl6-IRC-Client.git"}
