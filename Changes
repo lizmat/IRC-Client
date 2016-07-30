@@ -1,0 +1,7 @@
+Revision history for IRC::Client
+ 
+3.003004  2016-07-30
+    - Fix precompilation bug for Terminal::ANSIColor loading (MasterDuke)
+
+3.003003  2016-07-29
+    - Completed "rewrite" API redesign
