@@ -5,15 +5,17 @@ use Pastebin::Shadowcat;
 use Mojo::UserAgent:from<Perl5>;
 
 class Bash {
-    has      @!quotes;
-    has      $!ua      = Mojo::UserAgent.new;
     constant $BASH_URL = 'http://bash.org/?random1';
+    constant $cache    = Channel.new;
+    has        $!ua    = Mojo::UserAgent.new;
 
-    method irc-to-me ($ where /bash/) {
-        start self!fetch-quotes and @!quotes.shift;
+    multi method irc-to-me ($ where /bash/) {
+        start $cache.poll or do { self!fetch-quotes; $cache.poll };
     }
+
     method !fetch-quotes {
-        @!quotes ||= $!ua.get($BASH_URL).res.dom.find('.qt').each».all_text;
+        $cache.send: $_
+            for $!ua.get($BASH_URL).res.dom.find('.qt').each».all_text;
     }
 }
 
