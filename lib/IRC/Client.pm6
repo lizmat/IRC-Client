@@ -44,7 +44,7 @@ submethod BUILD (
     Str:D   :$username  = 'Perl6IRC',
     Str:D   :$userhost  = 'localhost',
     Str:D   :$userreal  = 'Perl6 IRC Client',
-    Str:D   :$channels  = ['#perl6'],
+            :$channels  = ('#perl6',),
 ) {
     @!filters = @$filters;
     @!plugins = @$plugins;
@@ -59,7 +59,7 @@ submethod BUILD (
         my $s = IRC::Client::Server.new(
             :socket(Nil),
             :$label,
-            :channels[ |($conf<channels> // %all-conf<channels>) ],
+            :channels( @($conf<channels> // %all-conf<channels>) ),
             :nick[ |($conf<nick> // %all-conf<nick>) ],
             |%(
                 <host password port username userhost userreal>
