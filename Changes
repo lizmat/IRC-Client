@@ -1,5 +1,9 @@
 Revision history for IRC::Client
- 
+
+3.003005  2016-07-30
+    - Fix Privmsg message object match in signature regex
+    - Fix warnings in output
+
 3.003004  2016-07-30
     - Fix precompilation bug for Terminal::ANSIColor loading (MasterDuke)
 

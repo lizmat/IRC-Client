@@ -382,9 +382,9 @@ sub debug-print (Str() $str, :$in, :$out, :$sys, :$server) {
             $pref++; $cmd++;
         }
         @bits[$pref] = colored @bits[$pref], 'bold magenta';
-        @bits[$cmd] = @bits[$cmd] ~~ /^ <[0..9]>**3 $/
-            ?? colored(@bits[$cmd], 'bold red')
-            !! colored(@bits[$cmd], 'bold yellow');
+        @bits[$cmd] = (@bits[$cmd]//'') ~~ /^ <[0..9]>**3 $/
+            ?? colored(@bits[$cmd]//'', 'bold red')
+            !! colored(@bits[$cmd]//'', 'bold yellow');
         put colored('▬▬▶ ', 'bold blue' ) ~ $server-str ~ @bits.join: ' ';
     }
     elsif $out {

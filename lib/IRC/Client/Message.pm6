@@ -34,7 +34,7 @@ role Ping does M {
 role Privmsg does M {
     has      $.text    is rw;
     has Bool $.replied is rw = False;
-    method ACCEPTS ($what) { $.text ~~ $what }
+    method Str { $.text }
 }
 role Privmsg::Channel does Privmsg {
     has $.channel;
