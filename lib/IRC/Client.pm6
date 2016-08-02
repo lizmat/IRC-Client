@@ -221,7 +221,7 @@ method !handle-event ($e) {
     given $e.command {
         when '001'  {
             $s.current-nick = $e.args[0];
-            self!ssay: "JOIN $_", :server($s) for |$s.channels;
+            self.join: $s.channels, :server($s);
         }
         when 'PING'      { return $e.reply;      }
         when '433'|'432' { self!change-nick: $s; }
