@@ -20,7 +20,7 @@ class Bash {
 
 .run with IRC::Client.new:
     :nick<MahBot>
-    :host<irc.freenode.net>
+    :host(%*ENV<IRC_CLIENT_HOST> // 'irc.freenode.net')
     :channels<#zofbot>
     :debug
     :plugins(Bash.new);

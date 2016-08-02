@@ -32,7 +32,7 @@ class GitHub::Notifications does IRC::Client::Plugin {
 
 .run with IRC::Client.new:
     :nick<MahBot>
-    :host<irc.freenode.net>
+    :host(%*ENV<IRC_CLIENT_HOST> // 'irc.freenode.net')
     :channels<#zofbot>
     :debug
     :plugins(GitHub::Notifications.new)
