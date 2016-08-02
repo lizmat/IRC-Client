@@ -1,19 +1,19 @@
 Revision history for IRC::Client
 
-unreleased
+3.004003 2016-08-02
     - Make nick grammar looser to match real-world use rather than RFC (#19)
     - Fix missing user/channel info in debug output for PRIVMSG/NOTICE messages
     - Add support for channel passwords (#18)
 
-3.0003006  2016-07-31
+3.003006  2016-07-31
     - Fix issue with giving multiple values to channels
 
-3.0003005  2016-07-30
+3.003005  2016-07-30
     - Fix Privmsg message object match in signature regex
     - Fix warnings in output
 
-3.0003004  2016-07-30
+3.003004  2016-07-30
     - Fix precompilation bug for Terminal::ANSIColor loading (MasterDuke)
 
-3.0003003  2016-07-29
+3.003003  2016-07-29
     - Completed "rewrite" API redesign
