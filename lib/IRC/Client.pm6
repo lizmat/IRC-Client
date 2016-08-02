@@ -370,11 +370,16 @@ method !ssay (Str:D $msg, :$server is copy) {
 ###############################################################################
 ###############################################################################
 
-sub debug-print (Str() $str, :$in, :$out, :$sys, :$server) {
+sub debug-print ($str, :$in, :$out, :$sys, :$server) {
     my $server-str = $server
         ?? colored(~$server, 'bold white on_cyan') ~ ' ' !! '';
 
-    my @bits = $str.split: ' ';
+    my @bits = (
+        $str ~~ IRC::Client::Message::Privmsg|IRC::Client::Message::Notice
+        ?? ":$str.usermask() $str.command() $str.args()[]"
+        !! $str.Str
+    ).split: ' ';
+
     if $in {
         my ($pref, $cmd) = 0, 1;
         if @bits[0] eq '❚⚠❚' {
