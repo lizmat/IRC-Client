@@ -345,8 +345,9 @@ The label of this server.
 
 #### `.channels`
 
-A list of strings containing all the channels the client is in on this
-server.
+A list of `Str` or `Pair` containing all the channels the client is in on this
+server. Pairs represent channels with channel passwords, where the key is
+the channel and the value is its password.
 
 #### `.nick`
 
@@ -463,7 +464,14 @@ Instantiates a new `IRC::Client` object. Takes the following named arguments:
 
 ##### `:channels`
 
-A list of IRC channels to join. **Defaults to:** `#perl6`
+```perl6
+    :channels('#perl6bot', '#zofbot', '#myown' => 's3cret')
+```
+
+A list of `Str` or `Pair` containing the channels to join.
+Pairs represent channels with channel passwords, where the key is
+the channel and the value is its password.
+**Defaults to:** `#perl6`
 
 ##### `:debug`
 

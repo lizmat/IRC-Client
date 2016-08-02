@@ -75,7 +75,8 @@ submethod BUILD (
 }
 
 method join (*@channels, :$server) {
-    self.send-cmd: 'JOIN', $_, :$server for @channels;
+    self.send-cmd: 'JOIN', ($_ ~~ Pair ?? .kv !! .Str), :$server
+        for @channels;
     self;
 }
 

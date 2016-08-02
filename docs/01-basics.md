@@ -86,7 +86,7 @@ the original message, prefixed with `You said `.
 
     .run with IRC::Client.new:
         :host<irc.freenode.net>
-        :channels<#perl6bot #zofbot>
+        :channels('#perl6bot', '#zofbot', '#myown' => 's3cret')
         :debug
         :plugins(
             class { method irc-to-me ($e) { "You said $e.text()"} }

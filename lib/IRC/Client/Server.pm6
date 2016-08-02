@@ -1,6 +1,6 @@
 unit class IRC::Client::Server;
 
-has         @.channels where .all ~~ Str;
+has         @.channels where .all ~~ Str|Pair;
 has         @.nick     where .all ~~ Str;
 has Int     $.port     where 0 <= $_ <= 65535;
 has Str     $.label;
