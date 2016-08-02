@@ -2,6 +2,7 @@ Revision history for IRC::Client
 
 unreleased
     - Make nick grammar looser to match real-world use rather than RFC (#19)
+    - Fix missing user/channel info in debug output for PRIVMSG/NOTICE messages
 
 3.0003006  2016-07-31
     - Fix issue with giving multiple values to channels
