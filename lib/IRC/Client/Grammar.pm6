@@ -8,7 +8,12 @@ token message { [':' <prefix> <SPACE> ]? <command> <params> \n }
         <before <SPACE>>
     }
         token servername { <host> }
-        token nick { <letter> [ <letter> | <number> | <special> ]* }
+        token nick {
+            # the RFC grammar states nicks have to start with a letter,
+            # however, modern server support and nick use disagrees with that
+            # and nicks can start with special chars too
+            [<letter> | <special>] [ <letter> | <number> | <special> ]*
+        }
         token user { <-[\ \x[0]\r\n]>+?  <before [<SPACE> | '@']>}
         token host { <-[\s!@]>+ }
     token command { <letter>+ | <number>**3 }
