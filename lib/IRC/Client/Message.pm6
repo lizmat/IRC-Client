@@ -34,7 +34,8 @@ role Ping does M {
 role Privmsg does M {
     has      $.text    is rw;
     has Bool $.replied is rw = False;
-    method Str { $.text }
+    method Str   { $.text }
+    method match ($v) { $.text ~~ $v }
 }
 role Privmsg::Channel does Privmsg {
     has $.channel;
@@ -54,6 +55,7 @@ role Notice does M {
     has      $.text    is rw;
     has Bool $.replied is rw = False;
     method Str { $.text }
+    method match ($v) { $.text ~~ $v }
 }
 role Notice::Channel does Notice {
     has $.channel;
