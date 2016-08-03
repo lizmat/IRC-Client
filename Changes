@@ -1,5 +1,8 @@
 Revision history for IRC::Client
 
+3.004004 2016-08-03
+    - Implement .match method on Privmsg/Notice message objects
+
 3.004003 2016-08-02
     - Make nick grammar looser to match real-world use rather than RFC (#19)
     - Fix missing user/channel info in debug output for PRIVMSG/NOTICE messages
