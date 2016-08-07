@@ -83,8 +83,9 @@ irc-addressed  ▶  irc-to-me  ▶  irc-notice-channel   ▶  irc-notice   ▶  
 
 This event chain is triggered when the client is addressed in a channel either
 via a `PRIVMSG` or `NOTICE` IRC message. 'Addressed' means the message line
-starts with the current nickname of the client, followed by single whitespace character, `;`, or `,` characters, followed by any number of whitespace; or
-in regex terms, matches `/^ $nick <[,:\s]> \s* /`. This prefix portion will be
+starts with the current nickname of the client, followed by `;` or `,`
+characters, followed by any number of whitespace; or
+in regex terms, matches `/^ $nick <[,:]> \s* /`. This prefix portion will be
 **stripped** from the actual message.
 
 Possible message objects received by event handler:

@@ -235,7 +235,7 @@ method !handle-event ($e) {
         given $event-name {
             when 'irc-privmsg-channel' | 'irc-notice-channel' {
                 my $nick = $s.current-nick;
-                if $e.text.subst-mutate: /^ $nick <[,:\s]> \s* /, '' {
+                if $e.text.subst-mutate: /^ $nick <[,:]> \s* /, '' {
                     take 'irc-addressed', ('irc-to-me' if $s.is-connected);
                 }
                 elsif $e.text ~~ / << $nick >> / and $s.is-connected {

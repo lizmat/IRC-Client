@@ -1,5 +1,8 @@
 Revision history for IRC::Client
 
+3.005001 2016-08-07
+    - Make addressed regex more restrictive (#21)
+
 3.004004 2016-08-03
     - Implement .match method on Privmsg/Notice message objects
 
