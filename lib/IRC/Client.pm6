@@ -119,8 +119,8 @@ method run {
         CATCH { default { warn $_; warn .backtrace } }
     }
 
-    self!connect-socket: $_ for %!servers.values;
     .irc-started for self!plugs-that-can('irc-started');
+    self!connect-socket: $_ for %!servers.values;
     loop {
         my $s = $!socket-pipe.receive;
         self!connect-socket: $s unless $s.has-quit;

@@ -1,5 +1,8 @@
 Revision history for IRC::Client
 
+3.006002 2016-08-08
+    - Emit irc-started before any connection is made
+
 3.006001 2016-08-07
     - Add `:alias` feature (#22)
 
