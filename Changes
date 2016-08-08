@@ -1,5 +1,8 @@
 Revision history for IRC::Client
 
+3.006001 2016-08-07
+    - Add `:alias` feature (#22)
+
 3.005001 2016-08-07
     - Make addressed regex more restrictive (#21)
 

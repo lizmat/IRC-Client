@@ -83,9 +83,11 @@ irc-addressed  ▶  irc-to-me  ▶  irc-notice-channel   ▶  irc-notice   ▶  
 
 This event chain is triggered when the client is addressed in a channel either
 via a `PRIVMSG` or `NOTICE` IRC message. 'Addressed' means the message line
-starts with the current nickname of the client, followed by `;` or `,`
+starts with the current nickname of the client or one of its aliases,
+followed by `;` or `,`
 characters, followed by any number of whitespace; or
-in regex terms, matches `/^ $nick <[,:]> \s* /`. This prefix portion will be
+in regex terms, matches `/^ [$nick | @aliases] <[,:]> \s* /`.
+This prefix portion will be
 **stripped** from the actual message.
 
 Possible message objects received by event handler:
@@ -140,8 +142,8 @@ irc-mentioned  ▶  irc-notice-channel   ▶  irc-notice   ▶  irc-all
 
 This event chain is triggered when the client is mentioned in a channel either
 via a `PRIVMSG` or `NOTICE` IRC message. Being mentioned means the message
-contains our nick delimited by word boundaries on both sides; or in regex
-terms, matches `/ << $nick >> /`.
+contains our nick or one of the aliases delimited by word boundaries on both
+sides; or in regex terms, matches `/ << [$nick | @aliases] >> /`.
 
 Possible message objects received by event handler:
 * `IRC::Client::Message::Privmsg::Channel`
@@ -306,8 +308,8 @@ irc-addressed  ▶  irc-to-me  ▶  irc-notice-channel   ▶  irc-notice   ▶  
 This event chain is triggered when the client is addressed in a channel via
 a `PRIVMSG` or `NOTICE` IRC message or receives a private or notice
 message directly. In cases where the trigger happened due to being addressed
-in channel, the prefix used for addressing (nick + `,` or `.` + whitespace)
-will be stripped from the message.
+in channel, the prefix used for addressing (nick|aliases + `,` or `.` +
+whitespace) will be stripped from the message.
 
 Possible message objects received by event handler:
 * `IRC::Client::Message::Privmsg::Channel`

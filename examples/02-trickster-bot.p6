@@ -13,6 +13,7 @@ class BFF { method irc-to-me ($ where /'♥'/) { 'I ♥ YOU!' } }
 
 .run with IRC::Client.new:
     :nick<MahBot>
+    :alias('foo', /b.r/)
     :host(%*ENV<IRC_CLIENT_HOST> // 'irc.freenode.net')
     :channels<#zofbot>
     :debug

@@ -2,6 +2,7 @@ unit class IRC::Client::Server;
 
 has         @.channels where .all ~~ Str|Pair;
 has         @.nick     where .all ~~ Str;
+has         @.alias    where .all ~~ Str|Regex;
 has Int     $.port     where 0 <= $_ <= 65535;
 has Str     $.label;
 has Str     $.host;

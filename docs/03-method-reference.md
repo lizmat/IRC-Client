@@ -354,6 +354,10 @@ the channel and the value is its password.
 A list of nicks the client uses on this server. If one nick is
 taken, next one in the list will be attempted to be used.
 
+#### `.alias`
+
+A list of aliases on this server.
+
 #### `.host`
 
 The host of the server.
@@ -445,6 +449,7 @@ my $irc = IRC::Client.new:
     :password<s3cret>
     :channels<#perl #perl6 #rust-lang>
     :nick<MahBot>
+    :alias('foo', /b.r/)
     :username<MahBot>
     :userhost<localhost>
     :userreal('Mah awesome bot!')
@@ -515,7 +520,21 @@ generate three additional nicknames that have underscores appended
 If one of the given nicks is in use, the client will attempt to use the
 next one in the list.
 
+##### `:alias`
+
 **Defaults to:** `P6Bot`
+
+```perl6
+    :alias('foo', /b.r/)
+```
+
+A list of `Str` or `Regex` objects that in the context of
+`irc-addressed`, `irc-to-me`, and `irc-mentioned` events will be used
+as alternative nicks. In other words, specifying `'bot'` as alias will allow
+you to address the bot using `bot` nick, regardless of the actual nick the
+bot is currently using.
+
+**Defaults to:** empty list
 
 ##### `:password`
 

@@ -41,6 +41,7 @@ submethod BUILD (
     Str     :$password,
     Str:D   :$host      = 'localhost',
             :$nick      = ['P6Bot'],
+            :$alias     = [],
     Str:D   :$username  = 'Perl6IRC',
     Str:D   :$userhost  = 'localhost',
     Str:D   :$userreal  = 'Perl6 IRC Client',
@@ -50,7 +51,7 @@ submethod BUILD (
     @!plugins = @$plugins;
     my %servers = %$servers;
 
-    my %all-conf = :$port,     :$password, :$host,     :$nick,
+    my %all-conf = :$port,     :$password, :$host,     :$nick,     :$alias,
                    :$username, :$userhost, :$userreal, :$channels;
 
     %servers = '_' => {} unless %servers;
@@ -61,6 +62,7 @@ submethod BUILD (
             :$label,
             :channels( @($conf<channels> // %all-conf<channels>) ),
             :nick[ |($conf<nick> // %all-conf<nick>) ],
+            :alias[ |($conf<alias> // %all-conf<alias>) ],
             |%(
                 <host password port username userhost userreal>
                     .map: { $_ => $conf{$_} // %all-conf{$_} }
@@ -234,11 +236,16 @@ method !handle-event ($e) {
     my @events = flat gather {
         given $event-name {
             when 'irc-privmsg-channel' | 'irc-notice-channel' {
-                my $nick = $s.current-nick;
-                if $e.text.subst-mutate: /^ $nick <[,:]> \s* /, '' {
+                my $nick    = $s.current-nick;
+                my @aliases = $s.alias;
+                if $e.text.subst-mutate:
+                    /^ [ $nick | @aliases ] <[,:]> \s* /, ''
+                {
                     take 'irc-addressed', ('irc-to-me' if $s.is-connected);
                 }
-                elsif $e.text ~~ / << $nick >> / and $s.is-connected {
+                elsif $e.text ~~ / << [ $nick | @aliases ] >> /
+                    and $s.is-connected
+                {
                     take 'irc-mentioned';
                 }
                 take $event-name, $event-name eq 'irc-privmsg-channel'
