@@ -1,7 +1,9 @@
 [[back to doc map]](README.md)
 
-# TABLE OF CONTENTS
-- [Event Reference](#event-reference)
+# Event Reference
+
+## Table of Contents
+
 - [Responding to Events](#responding-to-events)
 - [Event Map](#event-map)
 - [Event Triggers](#event-triggers)
@@ -29,7 +31,7 @@
     - [`irc-XXX`](#irc-xxx)
 - [Up Next](#up-next)
 
-# Event Reference
+---
 
 The module offers named, numeric, and convenience events. The named and
 numeric events correspond to IRC protocol events, while convenience events

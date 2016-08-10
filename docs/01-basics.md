@@ -1,7 +1,9 @@
 [[back to doc map]](README.md)
 
-# TABLE OF CONTENTS
-- [Basics Tutorial](#basics-tutorial)
+# Basics Tutorial
+
+## Table of Contents
+
 - [Blog Tutorial](#blog-tutorial)
 - [Subscribing to Events](#subscribing-to-events)
     - [Event Handler Input](#event-handler-input)
@@ -10,7 +12,7 @@
 - [Generating Messages](#generating-messages)
 - [Up Next](#up-next)
 
-# Basics Tutorial
+----
 
 This tutorial covers basic usage of `IRC::Client`, without going into
 [all of the supported events](02-event-reference.md) or describing

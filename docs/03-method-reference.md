@@ -1,7 +1,12 @@
 [[back to doc map]](README.md)
 
-# TABLE OF CONTENTS
-- [Method Reference](#method-reference)
+# Method Reference
+
+This document describes events available on various objects in use when working
+with `IRC::Client`.
+
+## Table of Contents
+
 - [Message Objects (`IRC::Client::Message` and subclasses)](#message-objects-ircclientmessage-and-subclasses)
     - [Message Object Hierarchy](#message-object-hierarchy)
     - [Methods and Attributes](#methods-and-attributes)
@@ -93,10 +98,7 @@
         - [`.send`](#send)
 - [Up Next](#up-next)
 
-# Method Reference
-
-This document describes events available on various objects in use when working
-with `IRC::Client`.
+---
 
 ## Message Objects (`IRC::Client::Message` and subclasses)
 
