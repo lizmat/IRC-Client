@@ -1,5 +1,10 @@
 [[back to doc map]](README.md)
 
+# TABLE OF CONTENTS
+- [Big-Picture Behaviour](#big-picture-behaviour)
+    - [Connection Maintenance](#connection-maintenance)
+    - [Nickname Maintenance](#nickname-maintenance)
+
 # Big-Picture Behaviour
 
 This document describes the general behaviour of the `IRC::Client` clients.

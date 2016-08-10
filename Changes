@@ -1,5 +1,8 @@
 Revision history for IRC::Client
 
+unreleased
+    - Improve docs by adding tables of contents
+
 3.006002 2016-08-08
     - Emit irc-started before any connection is made
 
