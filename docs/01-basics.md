@@ -2,13 +2,13 @@
 
 # TABLE OF CONTENTS
 - [Basics Tutorial](#basics-tutorial)
-    - [Blog Tutorial](#blog-tutorial)
-    - [Subscribing to Events](#subscribing-to-events)
-        - [Event Handler Input](#event-handler-input)
-    - [Responding to Events](#responding-to-events)
-        - [Example: Echo Bot](#example-echo-bot)
-    - [Generating Messages](#generating-messages)
-    - [Up Next](#up-next)
+- [Blog Tutorial](#blog-tutorial)
+- [Subscribing to Events](#subscribing-to-events)
+    - [Event Handler Input](#event-handler-input)
+- [Responding to Events](#responding-to-events)
+    - [Example: Echo Bot](#example-echo-bot)
+- [Generating Messages](#generating-messages)
+- [Up Next](#up-next)
 
 # Basics Tutorial
 

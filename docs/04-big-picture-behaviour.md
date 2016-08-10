@@ -2,8 +2,8 @@
 
 # TABLE OF CONTENTS
 - [Big-Picture Behaviour](#big-picture-behaviour)
-    - [Connection Maintenance](#connection-maintenance)
-    - [Nickname Maintenance](#nickname-maintenance)
+- [Connection Maintenance](#connection-maintenance)
+- [Nickname Maintenance](#nickname-maintenance)
 
 # Big-Picture Behaviour
 
