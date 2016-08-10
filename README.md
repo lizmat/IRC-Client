@@ -56,6 +56,10 @@ https://github.com/zoffixznet/perl6-IRC-Client/issues
 
 Zoffix Znet (http://zoffix.com/)
 
+#### CONTRIBUTORS
+
+[MasterDuke17](https://github.com/MasterDuke17)
+
 #### LICENSE
 
 You can use and distribute this module under the terms of the
