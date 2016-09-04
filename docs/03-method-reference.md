@@ -301,7 +301,9 @@ its subclasses.
 
 ##### `.text`
 
-Writable attribute. Contains the text of the message.
+Writable attribute. Contains the text of the message.  For addressed commands,
+the nick will be stripped. Use `.args` method to get full, original text,
+which will be the second value in the list.
 
 ##### `.replied`
 
@@ -361,7 +363,9 @@ its subclasses.
 
 ##### `.text`
 
-Writable attribute. Contains the text of the message.
+Writable attribute. Contains the text of the message. For addressed commands,
+the nick will be stripped. Use `.args` method to get full, original text,
+which will be the second value in the list.
 
 ##### `.replied`
 
