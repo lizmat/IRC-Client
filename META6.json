@@ -1,7 +1,7 @@
 {
     "perl"         : "6.c",
     "name"         : "IRC::Client",
-    "version"      : "3.006002",
+    "version"      : "3.006003",
     "description"  : "Extendable Internet Relay Chat client",
     "depends"      : [
     ],

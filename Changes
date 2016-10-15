@@ -1,7 +1,9 @@
 Revision history for IRC::Client
 
-unreleased
+3.006003
     - Improve docs by adding tables of contents
+    - Fixed inability to subscribe to numerics due to irc-\d+ not being a valid
+        Perl 6 identifier
 
 3.006002 2016-08-08
     - Emit irc-started before any connection is made
