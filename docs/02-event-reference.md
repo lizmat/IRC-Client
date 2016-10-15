@@ -28,7 +28,7 @@
     - [`irc-started`](#irc-started)
     - [`irc-to-me`](#irc-to-me)
     - [`irc-unknown`](#irc-unknown)
-    - [`irc-XXX`](#irc-xxx)
+    - [`irc-nXXX`](#irc-nXXX)
 - [Up Next](#up-next)
 
 ---
@@ -61,7 +61,7 @@ that the returned value from the event handler should be discarded.
 
 ## Event Map
 
-In the chart below, `irc-XXX` stands for numeric events where `XXX` is a
+In the chart below, `irc-nXXX` stands for numeric events where `XXX` is a
 three-digit number. See [this numerics
 table](https://www.alien.net.au/irc/irc2numerics.html) for meaning of codes,
 depending on the server used.
@@ -80,8 +80,8 @@ irc-addressed  ▶  irc-to-me      ▶  irc-notice-channel   ▶  irc-notice   �
                                     irc-mode-channel     ▶  irc-mode     ▶  irc-all
                                     irc-mode-me          ▶  irc-mode     ▶  irc-all
 
-                  irc-connected  ▶  irc-XXX              ▶  irc-numeric  ▶  irc-all
-                                    irc-XXX              ▶  irc-numeric  ▶  irc-all
+                  irc-connected  ▶  irc-nXXX              ▶  irc-numeric  ▶  irc-all
+                                    irc-nXXX              ▶  irc-numeric  ▶  irc-all
                                                             irc-join     ▶  irc-all
                                                             irc-nick     ▶  irc-all
                                                             irc-part     ▶  irc-all
@@ -141,7 +141,7 @@ Possible message objects received by event handler:
 ### `irc-connected`
 
 ```
-irc-connected  ▶  irc-001  ▶  irc-numeric  ▶  irc-all
+irc-connected  ▶  irc-n001  ▶  irc-numeric  ▶  irc-all
 ```
 
 Triggered on `001` numeric IRC command that indicates we successfully
@@ -256,7 +256,7 @@ Receives `IRC::Client::Message::Notice::Me` message object.
 ### `irc-numeric`
 
 ```
-irc-numeric  ▶  irc-XXX  ▶  irc-all
+irc-numeric  ▶  irc-nXXX  ▶  irc-all
 ```
 
 Triggered on numeric IRC commands.
@@ -367,14 +367,14 @@ if possible.
 
 Receives `IRC::Client::Message::Unknown` message object.
 
-### `irc-XXX`
+### `irc-nXXX`
 
 **Note:*** `XXX` stands for a three-digit numeric code of the command that
-triggered the event, for example `irc-001`. See `irc-numeric` for event trigger
+triggered the event, for example `irc-n001`. See `irc-numeric` for event trigger
 that responds to all numerics.
 
 ```
-irc-XXX  ▶  irc-numeric  ▶  irc-all
+irc-nXXX  ▶  irc-numeric  ▶  irc-all
 ```
 
 Triggered on numeric IRC commands.

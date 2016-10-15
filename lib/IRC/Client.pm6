@@ -267,7 +267,10 @@ method !handle-event ($e) {
                     $s.is-connected = True;
                     take 'irc-connected';
                 }
-                take 'irc-' ~ $e.command, $event-name;
+
+                # prefix numerics with 'n' as irc-\d+ isn't a valid identifier
+                take 'irc-' ~ ('n' if $e ~~ IRC::Client::Message::Numeric)
+                            ~ $e.command, $event-name;
             }
             default { take $event-name }
         }
