@@ -1,5 +1,5 @@
 [![Build Status](https://travis-ci.org/zoffixznet/perl6-IRC-Client.svg)](https://travis-ci.org/zoffixznet/perl6-IRC-Client)
-[![Github All Releases](https://img.shields.io/github/downloads/atom/atom/total.svg)](https://github.com/zoffixznet/perl6-IRC-Client/releases)
+[![Github All Releases](https://img.shields.io/github/downloads/zoffixznet/perl6-IRC-client/total.svg?maxAge=2592000)](https://github.com/zoffixznet/perl6-IRC-Client/releases)
 # NAME
 
 IRC::Client - Extendable Internet Relay Chat client
