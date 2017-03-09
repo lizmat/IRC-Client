@@ -3,6 +3,7 @@
     "name"         : "IRC::Client",
     "version"      : "3.006003",
     "description"  : "Extendable Internet Relay Chat client",
+    "tags"         : [ "Net", "IRC" ],
     "depends"      : [
     ],
     "test-depends" : [
