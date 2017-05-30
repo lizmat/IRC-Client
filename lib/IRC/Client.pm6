@@ -20,17 +20,9 @@ has Lock    $!lock        = Lock.new;
 has Channel $!event-pipe  = Channel.new;
 has Channel $!socket-pipe = Channel.new;
 
-my &colored = get-colored;
-&colored //= sub (Str $s, $) { $s };
-
-sub get-colored {
-    my &colored;
-    try {
-        require Terminal::ANSIColor;
-        &colored = GLOBAL::Terminal::ANSIColor::EXPORT::DEFAULT::<&colored>;
-    }
-    &colored;
-}
+my &colored = (try require Terminal::ANSIColor) === Nil
+     && sub (Str $s, $) { $s } ||
+     ::('Terminal::ANSIColor::EXPORT::DEFAULT::&colored');
 
 submethod BUILD (
     Int:D   :$!debug = 0,
