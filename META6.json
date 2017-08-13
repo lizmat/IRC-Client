@@ -6,6 +6,7 @@
     "description"  : "Extendable Internet Relay Chat client",
     "tags"         : [ "Net", "IRC" ],
     "depends"      : [
+        "IO::Socket::Async::SSL"
     ],
     "test-depends" : [
         "Test",

@@ -1,5 +1,7 @@
 unit class IRC::Client;
 
+use IO::Socket::Async::SSL;
+
 use IRC::Client::Message;
 use IRC::Client::Grammar;
 use IRC::Client::Server;
@@ -34,6 +36,8 @@ submethod BUILD (
     Str:D   :$host      = 'localhost',
             :$nick      = ['P6Bot'],
             :$alias     = [],
+    Bool:D  :$ssl       = False,
+    Str     :$ca-file,
     Str:D   :$username  = 'Perl6IRC',
     Str:D   :$userhost  = 'localhost',
     Str:D   :$userreal  = 'Perl6 IRC Client',
@@ -56,7 +60,7 @@ submethod BUILD (
             :nick[ |($conf<nick> // %all-conf<nick>) ],
             :alias[ |($conf<alias> // %all-conf<alias>) ],
             |%(
-                <host password port username userhost userreal>
+                <host password port username userhost userreal ssl ca-file>
                     .map: { $_ => $conf{$_} // %all-conf{$_} }
             ),
         );
@@ -168,7 +172,16 @@ method !change-nick ($server) {
 
 method !connect-socket ($server) {
     $!debug and debug-print 'Attempting to connect to server', :out, :$server;
-    IO::Socket::Async.connect($server.host, $server.port).then: sub ($prom) {
+
+    my $socket;
+
+    if ($server.ssl) {
+      $socket = IO::Socket::Async::SSL.connect($server.host, $server.port, ca-file => $server.ca-file);
+    } else {
+      $socket = IO::Socket::Async.connect($server.host, $server.port);
+    }
+
+    $socket.then: sub ($prom) {
         if $prom.status ~~ Broken {
             $server.is-connected = False;
             $!debug and debug-print 'Could not connect', :out, :$server;
