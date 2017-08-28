@@ -48,7 +48,7 @@ submethod BUILD (
     my %servers = %$servers;
 
     my %all-conf = :$port,     :$password, :$host,     :$nick,     :$alias,
-                   :$username, :$userhost, :$userreal, :$channels, :$ssl;
+                   :$username, :$userhost, :$userreal, :$channels, :$ssl,   :$ca-file;
 
     %servers = '_' => {} unless %servers;
     for %servers.keys -> $label {
