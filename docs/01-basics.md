@@ -66,7 +66,7 @@ message objects have a `.reply` method you can call to send a reply to the
 message's sender, however it's easier to just return a value from your method
 handler, which will automatically call `.reply` on the message object for you.
 
-Returning a value from your event handler singnals to the Client Object that
+Returning a value from your event handler signals to the Client Object that
 it handled the event and no other plugins or event handlers should be tried.
 Your plugin can do the `IRC::Client::Plugin` role (automatically exported
 when you `use IRC::Client`), which provides `$.NEXT` attribute. The value
