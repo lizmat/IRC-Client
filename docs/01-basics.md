@@ -28,21 +28,21 @@ more advanced features. You can find it at [*yet to be published*](#).
 
 ## Subscribing to Events
 
-All of the functionality is implemented as "plugins," which are passed to
+All of the functionality is implemented as "plugins", which are passed to
 the `:plugins` attribute. Plugins are just regular classes, altough they can
 do the `IRC::Client::Plugin` role to obtain extra functionality.
 
-To subscribe to one of [the events](02-event-reference.md), simply
-create a method with event's name in your class. The tutorial will use the
+To subscribe to one of [the events](02-event-reference.md), simply create a
+method with the event's name in your class. The tutorial will use the
 `irc-to-me` event, which is a convenience event fired when the bot is addressed
 in-channel or someone sends it a notice or a private message.
 
 ### Event Handler Input
 
-The event handlers receive one positional argument, which is an object
-that does `IRC::Client::Message` role. The actual object received depends
-on the event that triggered the handler. For example, the `irc-to-me` can
-receive these message objects:
+The event handlers receive one positional argument, which is an object that
+does the `IRC::Client::Message` role. The actual object received depends on the
+event that triggered the handler. For example, the `irc-to-me` can receive
+these message objects:
 
 ```perl6
     IRC::Client::Message::Privmsg::Me
@@ -63,10 +63,10 @@ constraint on it without having to explicitly call it:
 
 Channel messages, private messages, and notices can be replied to. Their
 message objects have a `.reply` method you can call to send a reply to the
-message's sender, however it's easier to just return a value from your method
+message's sender. However, it's easier to just return a value from your method
 handler, which will automatically call `.reply` on the message object for you.
 
-Returning a value from your event handler singnals to the Client Object that
+Returning a value from your event handler signals to the Client Object that
 it handled the event and no other plugins or event handlers should be tried.
 Your plugin can do the `IRC::Client::Plugin` role (automatically exported
 when you `use IRC::Client`), which provides `$.NEXT` attribute. The value
@@ -133,7 +133,7 @@ class AlarmBot does IRC::Client::Plugin {
     :plugins(AlarmBot.new)
 ```
 
-Here, we subscribe to `irc-connected` event (using an anonymous parameter
+Here, we subscribe to the `irc-connected` event (using an anonymous parameter
 for its message object, since we don't need it). It fires whenever we
 successfully connect to a server. In the event handler we setup a
 `react`/`whenever` loop, with a `Supply` generating an event every three
