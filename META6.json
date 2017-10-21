@@ -2,7 +2,7 @@
     "perl"         : "6.c",
     "name"         : "IRC::Client",
     "license"      : "Artistic-2.0",
-    "version"      : "3.007003",
+    "version"      : "3.007004",
     "description"  : "Extendable Internet Relay Chat client",
     "tags"         : [ "Net", "IRC" ],
     "depends"      : [
@@ -21,5 +21,5 @@
         "IRC::Client::Server"           : "lib/IRC/Client/Server.pm6"
     },
     "authors"       : ["Zoffix Znet"],
-    "support"       : {"source"   : "git://github.com/zoffixznet/perl6-IRC-Client.git"}
+    "support"       : {"source"   : "https://github.com/zoffixznet/perl6-IRC-Client.git"}
 }

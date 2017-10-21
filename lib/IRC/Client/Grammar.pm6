@@ -3,7 +3,7 @@ token TOP { <message>+ <left-overs> }
 token left-overs { \N* }
 token SPACE { ' '+ }
 token message { [':' <prefix> <SPACE> ]? <command> <params> \n }
-    token prefix  {
+    regex prefix  {
         [ <servername> || <nick> ['!' <user>]? ['@' <host>]? ]
         <before <SPACE>>
     }
