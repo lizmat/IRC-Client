@@ -15,6 +15,6 @@ has Str     $.userreal;
 has Str     $.current-nick     is rw;
 has Bool    $.is-connected     is rw;
 has Bool    $.has-quit         is rw;
-has IO::Socket::Async $.socket is rw;
+has         $.socket is rw;
 
 method Str { $!label }
