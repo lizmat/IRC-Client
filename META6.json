@@ -2,7 +2,7 @@
     "perl"         : "6.c",
     "name"         : "IRC::Client",
     "license"      : "Artistic-2.0",
-    "version"      : "3.007005",
+    "version"      : "3.007006",
     "description"  : "Extendable Internet Relay Chat client",
     "tags"         : [ "Net", "IRC" ],
     "depends"      : [
