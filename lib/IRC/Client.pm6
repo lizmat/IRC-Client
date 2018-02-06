@@ -25,6 +25,7 @@ has Channel $!socket-pipe = Channel.new;
 my &colored = (try require Terminal::ANSIColor) === Nil
      && sub (Str $s, $) { $s } ||
      ::('Terminal::ANSIColor::EXPORT::DEFAULT::&colored');
+$! = Nil; # don't serialize any exceptions from the above
 
 submethod BUILD (
     Int:D   :$!debug = 0,
