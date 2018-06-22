@@ -130,12 +130,12 @@ method run {
 
 method send (:$where!, :$text!, :$server, :$notice) {
     for $server || |%!servers.keys.sort {
-        if self!get-server($server).is-connected {
+        if self!get-server($_).is-connected {
             self.send-cmd: $notice ?? 'NOTICE' !! 'PRIVMSG', $where, $text,
                 :server($_);
         }
         else {
-            $!debug and debug-print( :out, :$server,
+            $!debug and debug-print( :out, :server($_),
                 '.send() called for an unconnected server. Skipping...'
             );
         }
