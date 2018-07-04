@@ -2,7 +2,7 @@
     "perl"         : "6.c",
     "name"         : "IRC::Client",
     "license"      : "Artistic-2.0",
-    "version"      : "3.007007",
+    "version"      : "3.007008",
     "description"  : "Extendable Internet Relay Chat client",
     "tags"         : [ "Net", "IRC" ],
     "depends"      : [
@@ -15,6 +15,7 @@
     ],
     "provides"     : {
         "IRC::Client"                   : "lib/IRC/Client.pm6",
+        "IRC::Client::Plugin"           : "lib/IRC/Client.pm6",
         "IRC::Client::Message"          : "lib/IRC/Client/Message.pm6",
         "IRC::Client::Grammar"          : "lib/IRC/Client/Grammar.pm6",
         "IRC::Client::Grammar::Actions" : "lib/IRC/Client/Grammar/Actions.pm6",
