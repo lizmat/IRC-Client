@@ -23,4 +23,4 @@ token message { [':' <prefix> <SPACE> ]? <command> <params> \n }
 
     token letter { <[a..zA..Z]> }
     token number { <[0..9]> }
-    token special { <[-_\[\]\\`^{}]> }
+    token special { <[-_\[\]\\`^{}|]> }
