@@ -357,7 +357,11 @@ method send-cmd ($cmd, *@args is copy, :$prefix = '', :$server) {
         }
     }
     else {
-        @args[*-1] = ':' ~ @args[*-1] if @args && @args[*-1] ~~ / ^':' | ' ' | ^$ /;
+        if @args {
+            my $last := @args[*-1];
+            $last = ':' ~ $last
+                if not $last or $last.starts-with: ':' or $last.match: /\s/;
+        }
         self!ssay: :$server, join ' ', $cmd, @args;
     }
 }
