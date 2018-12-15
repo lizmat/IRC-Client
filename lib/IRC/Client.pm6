@@ -186,7 +186,7 @@ method !connect-socket ($server) {
     $socket.then: sub ($prom) {
         if $prom.status ~~ Broken {
             $server.is-connected = False;
-            $!debug and debug-print 'Could not connect', :out, :$server;
+            $!debug and debug-print "Could not connect: $prom.cause()", :out, :$server;
             sleep 10;
             $!socket-pipe.send: $server;
             return;
