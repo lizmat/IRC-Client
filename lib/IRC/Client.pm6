@@ -21,6 +21,7 @@ has $.debug;
 has Lock    $!lock        = Lock.new;
 has Channel $!event-pipe  = Channel.new;
 has Channel $!socket-pipe = Channel.new;
+has Bool    $.autoprefix  = True;
 
 my &colored = (try require Terminal::ANSIColor) === Nil
      && sub (Str $s, $) { $s } ||
@@ -44,9 +45,12 @@ submethod BUILD (
     Str:D   :$userhost  = 'localhost',
     Str:D   :$userreal  = 'Perl6 IRC Client',
             :$channels  = ('#perl6',),
+    Bool:D  :$autoprefix = True,
 ) {
     @!filters = @$filters;
     @!plugins = @$plugins;
+    $!autoprefix = $autoprefix;
+
     my %servers = %$servers;
 
     my %all-conf = :$port,     :$password, :$host,     :$nick,     :$alias,

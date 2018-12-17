@@ -40,8 +40,10 @@ role Privmsg does M {
 role Privmsg::Channel does Privmsg {
     has $.channel;
     method reply ($text, :$where) {
-        $.irc.send-cmd: 'PRIVMSG', $where // $.channel, $text,
-            :$.server, :prefix("$.nick, ");
+		$.irc.autoprefix
+			?? $.irc.send-cmd: 'PRIVMSG', $where // $.channel, $text, :$.server, :prefix("$.nick, ")
+			!! $.irc.send-cmd: 'PRIVMSG', $where // $.channel, $text, :$.server
+			;
     }
 }
 role Privmsg::Me does Privmsg {
@@ -60,8 +62,11 @@ role Notice does M {
 role Notice::Channel does Notice {
     has $.channel;
     method reply ($text, :$where) {
-        $.irc.send-cmd: 'NOTICE', $where // $.channel, $text,
-            :$.server, :prefix("$.nick, ");
+		$.irc.autoprefix
+			?? $.irc.send-cmd: 'NOTICE', $where // $.channel, $text, :$.server, :prefix("$.nick, ")
+			!! $.irc.send-cmd: 'NOTICE', $where // $.channel, $text, :$.server
+			;
+
         $.replied = True;
     }
 }
