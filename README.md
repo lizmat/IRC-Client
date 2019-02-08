@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.org/zoffixznet/perl6-IRC-Client.svg)](https://travis-ci.org/zoffixznet/perl6-IRC-Client)
+[![Build Status](https://travis-ci.org/perl6-community-modules/perl6-IRC-Client.svg)](https://travis-ci.org/perl6-community-modules/perl6-IRC-Client)
 
 # NAME
 
