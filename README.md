@@ -58,6 +58,7 @@ Zoffix Znet (http://zoffix.com/)
 
 #### CONTRIBUTORS
 
+[tyil](https://www.tyil.nl/)
 [MasterDuke17](https://github.com/zoffixznet/perl6-IRC-Client/commits?author=MasterDuke17)
 
 #### LICENSE
