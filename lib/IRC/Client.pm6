@@ -41,10 +41,10 @@ submethod BUILD (
             :$alias     = [],
     Bool:D  :$ssl       = False,
     Str     :$ca-file,
-    Str:D   :$username  = 'Perl6IRC',
+    Str:D   :$username  = 'RakuIRC',
     Str:D   :$userhost  = 'localhost',
-    Str:D   :$userreal  = 'Perl6 IRC Client',
-            :$channels  = ('#perl6',),
+    Str:D   :$userreal  = 'Raku IRC Client',
+            :$channels  = ('#raku',),
     Bool:D  :$autoprefix = True,
 ) {
     @!filters = @$filters;
@@ -329,7 +329,7 @@ method !plugs-that-can ($method, |c) {
 }
 
 method !get-server ($server is copy) {
-    $server //= '_'; # stupid Perl 6 and its sig defaults
+    $server //= '_'; # stupid Raku and its sig defaults
     return $server if $server ~~ IRC::Client::Server;
     return %!servers{$server};
 }
