@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.org/perl6-community-modules/perl6-IRC-Client.svg)](https://travis-ci.org/perl6-community-modules/perl6-IRC-Client)
+[![Build Status](https://travis-ci.org/perl6-community-modules/perl6-IRC-Client.svg)](https://travis-ci.org/raku-community-modules/IRC-Client)
 
 # NAME
 
@@ -6,13 +6,13 @@ IRC::Client - Extendable Internet Relay Chat client
 
 # SYNOPSIS
 
-```perl6
+```raku
     use IRC::Client;
     use Pastebin::Shadowcat;
 
     .run with IRC::Client.new:
         :host<irc.freenode.net>
-        :channels<#perl6bot #zofbot>
+        :channels<#rakubot #zofbot>
         :debug
         :plugins(
             class { method irc-to-me ($ where /hello/) { 'Hello to you too!'} }
@@ -45,12 +45,12 @@ and output post-processing.
 #### REPOSITORY
 
 Fork this module on GitHub:
-https://github.com/zoffixznet/perl6-IRC-Client
+https://github.com/raku-community-modules/IRC-Client
 
 #### BUGS
 
 To report bugs or request features, please use
-https://github.com/zoffixznet/perl6-IRC-Client/issues
+https://github.com/raku-community-modules/IRC-Client/issues
 
 #### AUTHOR
 
@@ -59,7 +59,7 @@ Zoffix Znet (http://zoffix.com/)
 #### CONTRIBUTORS
 
 [tyil](https://www.tyil.nl/)
-[MasterDuke17](https://github.com/zoffixznet/perl6-IRC-Client/commits?author=MasterDuke17)
+[MasterDuke17](https://github.com/raku-community-modules/IRC-Client/commits?author=MasterDuke17)
 
 #### LICENSE
 
