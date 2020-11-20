@@ -22,5 +22,5 @@
         "IRC::Client::Server"           : "lib/IRC/Client/Server.pm6"
     },
     "authors"       : ["Zoffix Znet"],
-    "support"       : {"source"   : "https://github.com/zoffixznet/perl6-IRC-Client.git"}
+    "support"       : {"source"   : "https://github.com/raku-community-modules/IRC-Client.git"}
 }
