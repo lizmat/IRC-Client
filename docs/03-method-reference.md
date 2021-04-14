@@ -146,7 +146,7 @@ hierarchy chart above). Some event handlers can receive more than one
 type of a message object. In many cases, the type can be differentiated
 with a safe-method-call operator (`.?`):
 
-```perl6
+```raku
     method irc-privmsg ($e) {
         if $e.?channel {
             say '$e is a IRC::Client::Message::Privmsg::Channel';
@@ -326,7 +326,7 @@ Contains the channel to which the message was sent.
 
 ##### `.reply`
 
-```perl6
+```raku
     $e.reply: "Hello, World!";
     $e.reply: "Hello, World!", :where<#perl6>;
     $e.reply: "Hello, World!", :where<Zoffix>;
@@ -343,7 +343,7 @@ originated.
 
 ##### `.reply`
 
-```perl6
+```raku
     $e.reply: "Hello, World!";
     $e.reply: "Hello, World!", :where<Zoffix>;
     $e.reply: "Hello, World!", :where<#perl6>;
@@ -388,7 +388,7 @@ Contains the channel to which the message was sent.
 
 ##### `.reply`
 
-```perl6
+```raku
     $e.reply: "Hello, World!";
     $e.reply: "Hello, World!", :where<#perl6>;
     $e.reply: "Hello, World!", :where<Zoffix>;
@@ -405,7 +405,7 @@ originated.
 
 ##### `.reply`
 
-```perl6
+```raku
     $e.reply: "Hello, World!";
     $e.reply: "Hello, World!", :where<Zoffix>;
     $e.reply: "Hello, World!", :where<#perl6>;
@@ -530,7 +530,7 @@ channels, changing nicks, banning users, or sending text messages.
 
 #### `.join`
 
-```perl6
+```raku
     $.irc.join: <#foo #bar #ber>, :$server;
 ```
 
@@ -540,7 +540,7 @@ otherwise operates on all connected servers.
 
 #### `.new`
 
-```perl6
+```raku
 my $irc = IRC::Client.new:
     :debug
     :host<irc.freenode.net>
@@ -568,7 +568,7 @@ Instantiates a new `IRC::Client` object. Takes the following named arguments:
 
 ##### `:channels`
 
-```perl6
+```raku
     :channels('#perl6bot', '#zofbot', '#myown' => 's3cret')
 ```
 
@@ -623,7 +623,7 @@ next one in the list.
 
 **Defaults to:** `RakuBot`
 
-```perl6
+```raku
     :alias('foo', /b.r/)
 ```
 
@@ -686,7 +686,7 @@ The "real name" of your client. **Defaults to:** `Perl6 IRC Client`
 
 #### `.nick`
 
-```perl6
+```raku
     $.irc.nick: 'MahBot', :$server;
     $.irc.nick: <MahBot MahBot2 MahBot3 MahBot4 MahBot5>, :$server;
 ```
@@ -703,7 +703,7 @@ If `:server` named argument is given, will operate only on that server;
 
 #### `.part`
 
-```perl6
+```raku
     $.irc.part: <#foo #bar #ber>, :$server;
 ```
 
@@ -713,7 +713,7 @@ otherwise operates on all connected servers.
 
 #### `.quit`
 
-```perl6
+```raku
     $.irc.quit;
     $.irc.quit: :$server;
 ```
@@ -730,7 +730,7 @@ to have been explicitly `.quit` from.
 
 #### `.send`
 
-```perl6
+```raku
     $.irc.send: :where<Zoffix> :text<Hello!>;
     $.irc.send: :where<#perl6> :text('I ♥ Perl 6!');
     $.irc.send: :where<Senpai> :text('Notice me!') :notice :$server;

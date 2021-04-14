@@ -44,7 +44,7 @@ does the `IRC::Client::Message` role. The actual object received depends on the
 event that triggered the handler. For example, the `irc-to-me` can receive
 these message objects:
 
-```perl6
+```raku
     IRC::Client::Message::Privmsg::Me
     IRC::Client::Message::Privmsg::Channel
     IRC::Client::Message::Notice::Me
@@ -55,7 +55,7 @@ While message objects differ in methods they offer, all of the above do have
 a `.text` attribute and stringify to its value. This means we can add a type
 constraint on it without having to explicitly call it:
 
-```perl6
+```raku
     method irc-to-me ($e where /'bot command'/) { 'Do things here!'; }
 ```
 
@@ -93,7 +93,7 @@ means the value will be sent back to the sender of the original message
 In this example, we subscribe to the `irc-to-me` event and respond by returning
 the original message, prefixed with `You said `.
 
-```perl6
+```raku
     use IRC::Client;
 
     .run with IRC::Client.new:
@@ -112,7 +112,7 @@ commands, you can use the Client Object's `.send` method. Your plugin needs
 to do the `IRC::Client::Plugin` role to get access to the Client Object via
 the `$.irc` attribute:
 
-```perl6
+```raku
 use IRC::Client;
 
 class AlarmBot does IRC::Client::Plugin {
