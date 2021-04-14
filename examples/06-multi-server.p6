@@ -16,8 +16,8 @@ class BFF {
             :host<irc.freenode.net>,
         ),
         local => %(
-            :nick<P6Bot>,
-            :channels<#zofbot #perl6>,
+            :nick<RakuBot>,
+            :channels<#zofbot #raku>,
             :host<localhost>,
         )
     )

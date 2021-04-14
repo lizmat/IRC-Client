@@ -37,7 +37,7 @@ submethod BUILD (
     Int:D   :$port      where 0 <= $_ <= 65535   = 6667,
     Str     :$password,
     Str:D   :$host      = 'localhost',
-            :$nick      = ['P6Bot'],
+            :$nick      = ['RakuBot'],
             :$alias     = [],
     Bool:D  :$ssl       = False,
     Str     :$ca-file,

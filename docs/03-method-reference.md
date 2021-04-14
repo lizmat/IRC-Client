@@ -614,14 +614,14 @@ The hostname of the IRC server to connect to.
 
 A list of nicknames to use. If set to just one value will automatically
 generate three additional nicknames that have underscores appended
-(e.g. `P6Bot`, `P6Bot_`, `P6Bot__`, `P6Bot___`).
+(e.g. `RakuBot`, `RakuBot_`, `RakuBot__`, `RakuBot___`).
 
 If one of the given nicks is in use, the client will attempt to use the
 next one in the list.
 
 ##### `:alias`
 
-**Defaults to:** `P6Bot`
+**Defaults to:** `RakuBot`
 
 ```perl6
     :alias('foo', /b.r/)
