@@ -1,5 +1,3 @@
-[![Build Status](https://travis-ci.org/perl6-community-modules/perl6-IRC-Client.svg)](https://travis-ci.org/raku-community-modules/IRC-Client)
-
 # NAME
 
 IRC::Client - Extendable Internet Relay Chat client
@@ -33,7 +31,7 @@ and output post-processing.
 
 # DOCUMENTATION MAP
 
-* [Blog Post](http://perl6.party/post/IRC-Client-Perl-6-Multi-Server-IRC-Module)
+* [Blog Post](https://github.com/Raku/CCR/blob/main/Remaster/Zoffix%20Znet/IRC-Client-Raku-Multi-Server-IRC-or-Awesome-Async-Interfaces-with-Raku.md)
 * [Basics Tutorial](docs/01-basics.md)
 * [Event Reference](docs/02-event-reference.md)
 * [Method Reference](docs/03-method-reference.md)
