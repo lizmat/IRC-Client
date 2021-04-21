@@ -328,7 +328,7 @@ Contains the channel to which the message was sent.
 
 ```raku
     $e.reply: "Hello, World!";
-    $e.reply: "Hello, World!", :where<#perl6>;
+    $e.reply: "Hello, World!", :where<#raku>;
     $e.reply: "Hello, World!", :where<Zoffix>;
 ```
 
@@ -346,7 +346,7 @@ originated.
 ```raku
     $e.reply: "Hello, World!";
     $e.reply: "Hello, World!", :where<Zoffix>;
-    $e.reply: "Hello, World!", :where<#perl6>;
+    $e.reply: "Hello, World!", :where<#raku>;
 ```
 
 Replies to the sender of the message using the `NOTICE` IRC command. The
@@ -390,7 +390,7 @@ Contains the channel to which the message was sent.
 
 ```raku
     $e.reply: "Hello, World!";
-    $e.reply: "Hello, World!", :where<#perl6>;
+    $e.reply: "Hello, World!", :where<#raku>;
     $e.reply: "Hello, World!", :where<Zoffix>;
 ```
 
@@ -408,7 +408,7 @@ originated.
 ```raku
     $e.reply: "Hello, World!";
     $e.reply: "Hello, World!", :where<Zoffix>;
-    $e.reply: "Hello, World!", :where<#perl6>;
+    $e.reply: "Hello, World!", :where<#raku>;
 ```
 
 Replies to the sender of the message using the `PRIVMSG` IRC command. The
@@ -546,7 +546,7 @@ my $irc = IRC::Client.new:
     :host<irc.freenode.net>
     :6667port
     :password<s3cret>
-    :channels<#perl #perl6 #rust-lang>
+    :channels<#perl #raku #rust-lang>
     :nick<MahBot>
     :alias('foo', /b.r/)
     :username<MahBot>
@@ -569,19 +569,19 @@ Instantiates a new `IRC::Client` object. Takes the following named arguments:
 ##### `:channels`
 
 ```raku
-    :channels('#perl6bot', '#zofbot', '#myown' => 's3cret')
+    :channels('#rakubot', '#zofbot', '#myown' => 's3cret')
 ```
 
 A list of `Str` or `Pair` containing the channels to join.
 Pairs represent channels with channel passwords, where the key is
 the channel and the value is its password.
-**Defaults to:** `#perl6`
+**Defaults to:** `#raku`
 
 ##### `:debug`
 
 Takes an `Int`. When set to a positive number, causes debug output to be
 generated. Install optional
-[Terminal::ANSIColor]https://modules.perl6.org/repo/Terminal::ANSIColor] to
+[Terminal::ANSIColor]https://modules.raku.org/repo/Terminal::ANSIColor] to
 make output colourful. Debug levels:
 
 * `0`—no debug output
@@ -671,7 +671,7 @@ label `_` (underscore).
 
 ##### `:username`
 
-The IRC username to use. **Defaults to:** `Perl6IRC`
+The IRC username to use. **Defaults to:** `RakuIRC`
 
 ##### `:userhost`
 
@@ -680,7 +680,7 @@ be left as is, unless you're having issues connecting.
 
 ##### `:userreal`
 
-The "real name" of your client. **Defaults to:** `Perl6 IRC Client`
+The "real name" of your client. **Defaults to:** `Raku IRC Client`
 
 ----
 
@@ -732,7 +732,7 @@ to have been explicitly `.quit` from.
 
 ```raku
     $.irc.send: :where<Zoffix> :text<Hello!>;
-    $.irc.send: :where<#perl6> :text('I ♥ Perl 6!');
+    $.irc.send: :where<#raku> :text('I ♥ Raku!');
     $.irc.send: :where<Senpai> :text('Notice me!') :notice :$server;
 ```
 

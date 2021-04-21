@@ -361,7 +361,7 @@ irc-unknown  ▶  irc-all
 Triggered when an unknown event is generated. You're not supposed to receive
 any of these and receiving one likely indicates a problem with `IRC::Client`.
 Please report this [on the Issue
-tracker](https://github.com/zoffixznet/perl6-IRC-Client/issues/new),
+tracker](https://github.com/raku-community-modules/IRC-Client/issues/new),
 indicating what server generated such a message and include your code too,
 if possible.
 

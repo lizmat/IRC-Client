@@ -98,7 +98,7 @@ the original message, prefixed with `You said `.
 
     .run with IRC::Client.new:
         :host<irc.freenode.net>
-        :channels('#perl6bot', '#zofbot', '#myown' => 's3cret')
+        :channels('#rakubot', '#zofbot', '#myown' => 's3cret')
         :debug
         :plugins(
             class { method irc-to-me ($e) { "You said $e.text()"} }
@@ -119,7 +119,7 @@ class AlarmBot does IRC::Client::Plugin {
     method irc-connected ($) {
         react {
             whenever Supply.interval(3) {
-                $.irc.send: :where<#perl6> :text<Three seconds passed!>;
+                $.irc.send: :where<#raku> :text<Three seconds passed!>;
             }
         }
     }
@@ -128,7 +128,7 @@ class AlarmBot does IRC::Client::Plugin {
 .run with IRC::Client.new:
     :nick<MahBot>
     :host<irc.freenode.net>
-    :channels<#perl6>
+    :channels<#raku>
     :debug
     :plugins(AlarmBot.new)
 ```
@@ -140,7 +140,7 @@ successfully connect to a server. In the event handler we setup a
 seconds. In the `whenever` block, we use the `$.irc` attribute provided
 by the `IRC::Client::Plugin` role to call method `.send` on the Client Object.
 In the `:where` parameter, we specify we want to send the message to
-channel `#perl6` and the `:text` parameter contains the text we want to send.
+channel `#raku` and the `:text` parameter contains the text we want to send.
 The bot will send that text every 3 seconds.
 
 ## Up Next
