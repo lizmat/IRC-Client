@@ -16,8 +16,8 @@ role IRC::Client::Message {
 constant M = IRC::Client::Message;
 
 role Join             does M       { has $.channel;                          }
-role Mode             does M       { has @.modes;                            }
-role Mode::Channel    does Mode    { has $.channel;                          }
+role Mode             does M       { has $.mode;                             }
+role Mode::Channel    does Mode    { has $.channel; has $.nicks;             }
 role Mode::Me         does Mode    {                                         }
 role Nick             does M       { has $.new-nick;                         }
 role Numeric          does M       {                                         }

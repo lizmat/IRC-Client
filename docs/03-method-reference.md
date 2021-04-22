@@ -33,9 +33,10 @@ with `IRC::Client`.
         - [`IRC::Client::Message::Unknown`](#ircclientmessageunknown)
             - [`.Str`](#str-1)
         - [`IRC::Client::Message::Mode`](#ircclientmessagemode)
-            - [`.modes`](#modes)
+            - [`.mode`](#mode)
         - [`IRC::Client::Message::Mode::Channel`](#ircclientmessagemodechannel)
             - [`.channel`](#channel-2)
+            - [`.nicks`](#nicks)
         - [`IRC::Client::Message::Mode::Me`](#ircclientmessagemodeme)
         - [`IRC::Client::Message::Notice`](#ircclientmessagenotice)
             - [`.text`](#text)
@@ -270,13 +271,11 @@ Overrides the default stringification string to
 Object is never sent to event handlers and merely provides commonality to
 its subclasses.
 
-##### `.modes`
+##### `.mode`
 
 Contains the modes set by the IRC command that triggered the event. When
-modes are set on the channel, contains a list of `Pair`s where the key
-is the sign of the mode (`+` or `-`) and the value if the mode letter itself.
-When modes are set on the client, contains just a list of modes as strings,
-without any signs.
+modes are set on the channel, contains a string with the sign of the mode
+(`+` or `-`) and the value if the mode letter(s) itself.
 
 ---
 
@@ -285,6 +284,10 @@ without any signs.
 ##### `.channel`
 
 Contains the channel on which the modes were set.
+
+##### `.nicks`
+
+Contains an array with the nicks on which the mode was set.
 
 ---
 

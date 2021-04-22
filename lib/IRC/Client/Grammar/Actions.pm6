@@ -99,21 +99,18 @@ sub msg-notice (%args, %msg-args) {
 }
 
 sub msg-mode (%args, %msg-args) {
-    if %args<params>[0] ~~ /^<[#&]>/ {
-        my @modes;
-        for %args<params>[1..*-1].join.comb: /\S/ {
-            state $sign;
-            /<[+-]>/ and $sign = $_ and next;
-            @modes.push: $sign => $_;
-        };
+    my @params := %args<params>;
+    if @params[0] ~~ /^<[#&]>/ {
         return IRC::Client::Message::Mode::Channel.new:
-            :channel( %args<params>[0] ),
-            :modes( @modes ),
+            :channel( @params[0] ),
+            :mode( @params[1] ),
+            :nicks( @params.skip(2) ),
             |%msg-args;
     }
     else {
         return IRC::Client::Message::Mode::Me.new:
-            :modes( %args<params>[1..*-1].join.comb: /<[a..zA..Z]>/ ),
+            :mode( @params[1] ),
+            :nicks( @params.skip(2) ),
             |%msg-args;
     }
 }
