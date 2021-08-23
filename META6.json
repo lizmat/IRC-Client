@@ -1,5 +1,6 @@
 {
-    "perl"         : "6.c",
+    "auth"         : "cpan:ELIZABETH",
+    "perl"         : "6.d",
     "name"         : "IRC::Client",
     "license"      : "Artistic-2.0",
     "version"      : "3.007011",
@@ -14,13 +15,13 @@
         "Test::Notice"
     ],
     "provides"     : {
-        "IRC::Client"                   : "lib/IRC/Client.pm6",
-        "IRC::Client::Plugin"           : "lib/IRC/Client.pm6",
-        "IRC::Client::Message"          : "lib/IRC/Client/Message.pm6",
-        "IRC::Client::Grammar"          : "lib/IRC/Client/Grammar.pm6",
-        "IRC::Client::Grammar::Actions" : "lib/IRC/Client/Grammar/Actions.pm6",
-        "IRC::Client::Server"           : "lib/IRC/Client/Server.pm6"
+        "IRC::Client"                   : "lib/IRC/Client.rakumod",
+        "IRC::Client::Plugin"           : "lib/IRC/Client.rakumod",
+        "IRC::Client::Message"          : "lib/IRC/Client/Message.rakumod",
+        "IRC::Client::Grammar"          : "lib/IRC/Client/Grammar.rakumod",
+        "IRC::Client::Grammar::Actions" : "lib/IRC/Client/Grammar/Actions.rakumod",
+        "IRC::Client::Server"           : "lib/IRC/Client/Server.rakumod"
     },
-    "authors"       : ["Zoffix Znet"],
-    "support"       : {"source"   : "https://github.com/raku-community-modules/IRC-Client.git"}
+    "authors"       : ["Elizabeth Mattijsen", "Zoffix Znet"],
+    "support"       : {"source"   : "https://github.com/lizmat/IRC-Client.git"}
 }
