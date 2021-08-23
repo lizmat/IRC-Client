@@ -1,5 +1,3 @@
-use lib <lib>;
-
 use IRC::Client;
 
 class Messenger does IRC::Client::Plugin {
@@ -24,14 +22,14 @@ class Messenger does IRC::Client::Plugin {
     :debug
     :plugins[Messenger.new]
     :nick<MahBot>
-    :channels<#zofbot>
+    :channels<#raku>
     :servers{
         freenode => %(
-            :host<irc.freenode.net>,
+            :host<irc.libera.chat>,
         ),
         local => %(
             :nick<RakuBot>,
-            :channels<#zofbot #raku>,
+            :channels<#lizbot #raku>,
             :host<localhost>,
         )
     }

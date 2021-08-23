@@ -1,5 +1,3 @@
-use lib <lib>;
-
 use IRC::Client;
 
 class BFF {
@@ -10,14 +8,14 @@ class BFF {
     :debug
     :plugins(BFF)
     :nick<MahBot>
-    :channels<#zofbot>
+    :channels<#raku>
     :servers(
-        freenode => %(
-            :host<irc.freenode.net>,
+        libera => %(
+            :host<irc.libera.chat>,
         ),
         local => %(
             :nick<RakuBot>,
-            :channels<#zofbot #raku>,
+            :channels<#lizbot #raku>,
             :host<localhost>,
         )
     )

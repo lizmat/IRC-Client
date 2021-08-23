@@ -1,5 +1,3 @@
-use lib <lib>;
-
 use IRC::Client;
 use HTTP::Tinyish;
 use JSON::Fast;
@@ -32,7 +30,7 @@ class GitHub::Notifications does IRC::Client::Plugin {
 
 .run with IRC::Client.new:
     :nick<MahBot>
-    :host(%*ENV<IRC_CLIENT_HOST> // 'irc.freenode.net')
-    :channels<#zofbot>
+    :host(%*ENV<IRC_CLIENT_HOST> // 'irc.libera.chat')
+    :channels<#raku>
     :debug
     :plugins(GitHub::Notifications.new)

@@ -1,5 +1,3 @@
-use lib <lib>;
-
 use IRC::Client;
 class Trickster {
     multi method irc-to-me ($ where /time/) { DateTime.now }
@@ -14,7 +12,7 @@ class BFF { method irc-to-me ($ where /'♥'/) { 'I ♥ YOU!' } }
 .run with IRC::Client.new:
     :nick<MahBot>
     :alias('foo', /b.r/)
-    :host(%*ENV<IRC_CLIENT_HOST> // 'irc.freenode.net')
-    :channels<#zofbot>
+    :host(%*ENV<IRC_CLIENT_HOST> // 'irc.libera.chat')
+    :channels<#raku>
     :debug
     :plugins(Trickster, BFF)
