@@ -1,4 +1,4 @@
-unit class IRC::Client::Grammar::Actions;
+unit class IRC::Client::Grammar::Actions:ver<3.009990>;
 
 use IRC::Client::Message;
 

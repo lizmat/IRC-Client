@@ -1,4 +1,4 @@
-unit grammar IRC::Client::Grammar;
+unit grammar IRC::Client::Grammar:ver<3.009990>;
 token TOP { <message>+ <left-overs> }
 token left-overs { \N* }
 token SPACE { ' '+ }

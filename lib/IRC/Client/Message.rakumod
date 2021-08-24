@@ -1,4 +1,4 @@
-unit package IRC::Client::Message;
+unit package IRC::Client::Message:ver<3.009990>;
 
 role IRC::Client::Message {
     has       $.irc      is required;
