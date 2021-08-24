@@ -22,7 +22,7 @@ class Messenger does IRC::Client::Plugin {
     :debug
     :plugins[Messenger.new]
     :nick<MahBot>
-    :channels<#raku>
+    :channels<#bottest>
     :servers{
         freenode => %(
             :host<irc.libera.chat>,

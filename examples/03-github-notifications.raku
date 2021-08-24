@@ -31,6 +31,6 @@ class GitHub::Notifications does IRC::Client::Plugin {
 .run with IRC::Client.new:
     :nick<MahBot>
     :host(%*ENV<IRC_CLIENT_HOST> // 'irc.libera.chat')
-    :channels<#raku>
+    :channels<#bottest>
     :debug
     :plugins(GitHub::Notifications.new)

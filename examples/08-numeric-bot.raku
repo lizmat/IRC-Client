@@ -3,7 +3,7 @@ use IRC::Client;
 .run with IRC::Client.new:
     :nick<MahBot>
     :host(%*ENV<IRC_CLIENT_HOST> // 'irc.libera.chat')
-    :channels<#raku>
+    :channels<#bottest>
     :2debug
     :plugins(class :: does IRC::Client::Plugin {
         my class NameLookup { has $.channel; has @.users; has $.e; }

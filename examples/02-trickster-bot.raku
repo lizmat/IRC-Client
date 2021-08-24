@@ -13,6 +13,6 @@ class BFF { method irc-to-me ($ where /'♥'/) { 'I ♥ YOU!' } }
     :nick<MahBot>
     :alias('foo', /b.r/)
     :host(%*ENV<IRC_CLIENT_HOST> // 'irc.libera.chat')
-    :channels<#raku>
+    :channels<#bottest>
     :debug
     :plugins(Trickster, BFF)

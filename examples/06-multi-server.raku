@@ -8,7 +8,7 @@ class BFF {
     :debug
     :plugins(BFF)
     :nick<MahBot>
-    :channels<#raku>
+    :channels<#bottest>
     :servers(
         libera => %(
             :host<irc.libera.chat>,
