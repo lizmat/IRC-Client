@@ -1,4 +1,4 @@
-unit class IRC::Client::Server:ver<3.009990>;
+unit class IRC::Client::Server:ver<3.009990>:auth<cpan:ELIZABETH>;
 
 has         @.channels where .all ~~ Str|Pair;
 has         @.nick     where .all ~~ Str;

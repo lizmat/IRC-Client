@@ -1,8 +1,10 @@
-unit grammar IRC::Client::Grammar:ver<3.009990>;
+unit grammar IRC::Client::Grammar:ver<3.009990>:auth<cpan:ELIZABETH>;
+
 token TOP { <message>+ <left-overs> }
 token left-overs { \N* }
 token SPACE { ' '+ }
 token message { [':' <prefix> <SPACE> ]? <command> <params> \n }
+
     regex prefix  {
         [ <servername> || <nick> ['!' <user>]? ['@' <host>]? ]
         <before <SPACE>>
@@ -16,7 +18,9 @@ token message { [':' <prefix> <SPACE> ]? <command> <params> \n }
         }
         token user { <-[\ \x[0]\r\n]>+?  <before [<SPACE> | '@']>}
         token host { <-[\s!@]>+ }
+
     token command { <letter>+ | <number>**3 }
+
     token params { <SPACE>* [ ':' <trailing> | <middle> <params> ]? }
         token middle { <-[:\ \x[0]\r\n]> <-[\ \x[0]\r\n]>* }
         token trailing { <-[\x[0]\r\n]>* }

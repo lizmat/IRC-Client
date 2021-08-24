@@ -1,4 +1,4 @@
-unit class IRC::Client::Grammar::Actions:ver<3.009990>;
+unit class IRC::Client::Grammar::Actions:ver<3.009990>:auth<cpan:ELIZABETH>;
 
 use IRC::Client::Message;
 

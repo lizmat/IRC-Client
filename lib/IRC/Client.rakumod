@@ -1,10 +1,10 @@
 
 use IO::Socket::Async::SSL;
 
-use IRC::Client::Message:ver<3.009990>;
-use IRC::Client::Grammar:ver<3.009990>;
-use IRC::Client::Server:ver<3.009990>;
-use IRC::Client::Grammar::Actions:ver<3.009990>;
+use IRC::Client::Message:ver<3.009990>:auth<cpan:ELIZABETH>;
+use IRC::Client::Grammar:ver<3.009990>:auth<cpan:ELIZABETH>;
+use IRC::Client::Server:ver<3.009990>:auth<cpan:ELIZABETH>;
+use IRC::Client::Grammar::Actions:ver<3.009990>:auth<cpan:ELIZABETH>;
 
 my &colored;  # debug message coloring logic
 
@@ -16,7 +16,7 @@ role IRC::Client::Plugin {
     has $.irc is rw;
 }
 
-class IRC::Client:ver<3.009990> {
+class IRC::Client:ver<3.009990>:auth<cpan:ELIZABETH> {
     has Callable            @.filters;
     has                     @.plugins;
     has IRC::Client::Server %.servers is built(False);
@@ -25,6 +25,12 @@ class IRC::Client:ver<3.009990> {
     has Channel $!event-pipe  is built(:bind) = Channel.new;
     has Channel $!socket-pipe is built(:bind) = Channel.new;
     has Bool    $.autoprefix  is built(:bind) = True;
+
+    # Automatically add nick__ variants if given just one nick
+    sub default-expansion-nicks(\nicks) {
+        my $nick = nicks.head;
+        nicks.push: ($nick ~= '_') for ^3;
+    }
 
     submethod TWEAK(
              :%servers is copy,
@@ -60,9 +66,7 @@ class IRC::Client:ver<3.009990> {
             );
 
             # Automatically add nick__ variants if given just one nick
-            if @nick == 1 && @nick[0] -> $nick is copy {
-                $s.nick.push: ($nick ~= '_') for ^3;
-            }
+            default-expansion-nicks($s.nick) if @nick == 1;
             $s.current-nick = @nick[0];
             %!servers{$label} := $s;
         }
@@ -82,7 +86,7 @@ class IRC::Client:ver<3.009990> {
     }
 
     method nick(*@nicks, :$server = '*' --> IRC::Client:D) {
-        @nicks[1..3] = "@nicks[0]_", "@nicks[0]__", "@nicks[0]___" if @nicks == 1;
+        default-expansion-nicks(@nicks) if @nicks == 1;
         self!set-server-attr($server, 'nick', @nicks);
         self!set-server-attr($server, 'current-nick', @nicks[0]);
         self.send-cmd: 'NICK', @nicks[0], :$server;
@@ -129,9 +133,9 @@ class IRC::Client:ver<3.009990> {
         self!connect-socket: $_ for %!servers.values;
 
         loop {
-            my $s = $!socket-pipe.receive;
+            my $s := $!socket-pipe.receive;
             self!connect-socket: $s unless $s.has-quit;
-            unless %!servers.values.grep({!.has-quit}) {
+            unless %!servers.grep(!*.value.has-quit) {
                 $!debug and debug-print 'All servers quit by user. Exiting', :sys;
                 last;
             }
@@ -178,13 +182,13 @@ class IRC::Client:ver<3.009990> {
     method !connect-socket($server --> Nil) {
         $!debug and debug-print 'Attempting to connect to server', :out, :$server;
 
-        my $socket;
-
-        if ($server.ssl) {
-          $socket = IO::Socket::Async::SSL.connect($server.host, $server.port, ca-file => $server.ca-file);
-        } else {
-          $socket = IO::Socket::Async.connect($server.host, $server.port);
-        }
+        my $socket := $server.ssl
+          ?? IO::Socket::Async::SSL.connect(
+               $server.host,
+               $server.port,
+               ca-file => $server.ca-file
+             )
+          !! IO::Socket::Async.connect($server.host, $server.port);
 
         $socket.then: sub ($prom) {
             if $prom.status ~~ Broken {
@@ -230,7 +234,7 @@ class IRC::Client:ver<3.009990> {
     }
 
     method !handle-event($e) {
-        my $s = %!servers{ $e.server };
+        my $s := %!servers{$e.server};
         given $e.command {
             when '001'  {
                 $s.current-nick = $e.args[0];
@@ -285,7 +289,8 @@ class IRC::Client:ver<3.009990> {
             take 'irc-all';
         }
 
-        EVENT: for @events -> $event {
+        EVENT:
+        for @events -> $event {
             debug-print "emitting `$event`", :sys
                 if $!debug >= 3 or ($!debug == 2 and not $event eq 'irc-all');
 
@@ -371,14 +376,14 @@ class IRC::Client:ver<3.009990> {
         }
     }
 
-    method !set-server-attr($server, $method, $what) {
-        if $server ne '*' {
-            %!servers{$server}."$method"() = $what ~~ List ?? @$what !! $what;
-            return;
+    method !set-server-attr($server, $method, $what --> Nil) {
+        if $server eq '*' {
+            for %!servers.values {
+                ."$method"() = $what ~~ List ?? @$what !! $what ;
+            }
         }
-
-        for %!servers.values {
-            ."$method"() = $what ~~ List ?? @$what !! $what ;
+        else {
+            %!servers{$server}."$method"() = $what ~~ List ?? @$what !! $what;
         }
     }
 
@@ -387,7 +392,7 @@ class IRC::Client:ver<3.009990> {
         $!debug and debug-print $msg, :out, :$server;
         %!servers{$_}.socket.print: "$msg\n"
             for |($server eq '*' ?? %!servers.keys.sort !! ~$server);
-        self;
+        self
     }
 
 ###############################################################################
