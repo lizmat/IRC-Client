@@ -244,50 +244,58 @@ class IRC::Client:ver<3.009990>:auth<cpan:ELIZABETH> {
             when '433'|'432' { self!change-nick: $s; }
         }
 
-        my $event-name = 'irc-' ~ $e.^name.subst('IRC::Client::Message::', '')
-            .lc.subst: '::', '-', :g;
+        my $event-name = 'irc-'
+          ~ $e.^name.subst('IRC::Client::Message::', '').lc.subst: '::','-',:g;
 
-        my @events = flat gather {
-            given $event-name {
-                when 'irc-privmsg-channel' | 'irc-notice-channel' {
-                    my $nick    = $s.current-nick;
-                    my @aliases = $s.alias;
-                    if $e.text ~~ s/^ [ $nick | @aliases ] <[,:]> \s*// {
-                        take 'irc-addressed', ('irc-to-me' if $s.is-connected);
-                    }
-                    elsif $e.text ~~ / << [ $nick | @aliases ] >> /
-                        and $s.is-connected
-                    {
-                        take 'irc-mentioned';
-                    }
-                    take $event-name, $event-name eq 'irc-privmsg-channel'
-                            ?? 'irc-privmsg' !! 'irc-notice';
-                }
-                when 'irc-privmsg-me' {
-                    take $event-name, ('irc-to-me' if $s.is-connected),
-                        'irc-privmsg';
-                }
-                when 'irc-notice-me' {
-                    take $event-name, ('irc-to-me' if $s.is-connected),
-                        'irc-notice';
-                }
-                when 'irc-mode-channel' | 'irc-mode-me' {
-                    take $event-name, 'irc-mode';
-                }
-                when 'irc-numeric' {
-                    if $e.command eq '001' {
-                        $s.is-connected = True;
-                        take 'irc-connected';
-                    }
+        my str @events;
+        sub add(*@names) { @events.append: @names }
 
-                    # prefix numerics with 'n' as irc-\d+ isn't a valid identifier
-                    take 'irc-' ~ ('n' if $e ~~ IRC::Client::Message::Numeric)
-                                ~ $e.command, $event-name;
+        given $event-name {
+            when 'irc-privmsg-channel' | 'irc-notice-channel' {
+                my $nick    = $s.current-nick;
+                my @aliases = $s.alias;
+                if $e.text ~~ s/^ [ $nick | @aliases ] <[,:]> \s*// {
+                    add 'irc-addressed',
+                        ('irc-to-me' if $s.is-connected);
                 }
-                default { take $event-name }
+                elsif $e.text ~~ / << [ $nick | @aliases ] >> /
+                    and $s.is-connected
+                {
+                    add 'irc-mentioned';
+                }
+                add $event-name,
+                    $event-name eq 'irc-privmsg-channel'
+                      ?? 'irc-privmsg'
+                      !! 'irc-notice';
             }
-            take 'irc-all';
+            when 'irc-privmsg-me' {
+                add $event-name,
+                    ('irc-to-me' if $s.is-connected),
+                    'irc-privmsg';
+            }
+            when 'irc-notice-me' {
+                add $event-name,
+                    ('irc-to-me' if $s.is-connected),
+                    'irc-notice';
+            }
+            when 'irc-mode-channel' | 'irc-mode-me' {
+                add $event-name, 'irc-mode';
+            }
+            when 'irc-numeric' {
+                if $e.command eq '001' {
+                    $s.is-connected = True;
+                    add 'irc-connected';
+                }
+
+                # prefix numerics with 'n' as irc-\d+ isn't a valid identifier
+                add 'irc-'
+                  ~ ('n' if $e ~~ IRC::Client::Message::Numeric)
+                  ~ $e.command,
+                  $event-name;
+            }
+            default { add $event-name }
         }
+        add 'irc-all';
 
         EVENT:
         for @events -> $event {
@@ -306,7 +314,8 @@ class IRC::Client:ver<3.009990>:auth<cpan:ELIZABETH> {
                         $e.?reply: $^r.result
                             unless $^r.result ~~ Nil or $e.?replied;
                     }
-                } else {
+                }
+                else {
                     $e.?reply: $res unless $res ~~ Nil or $e.?replied;
                 }
                 last EVENT;
@@ -399,7 +408,8 @@ class IRC::Client:ver<3.009990>:auth<cpan:ELIZABETH> {
 
     sub debug-print($str, :$in, :$out, :$sys, :$server --> Nil) {
         my $server-str = $server
-            ?? colored(~$server, 'bold white on_cyan') ~ ' ' !! '';
+          ?? colored(~$server, 'bold white on_cyan') ~ ' '
+          !! '';
 
         my @bits = (
             $str ~~ IRC::Client::Message::Privmsg|IRC::Client::Message::Notice
@@ -415,8 +425,8 @@ class IRC::Client:ver<3.009990>:auth<cpan:ELIZABETH> {
             }
             @bits[$pref] = colored @bits[$pref], 'bold magenta';
             @bits[$cmd] = (@bits[$cmd]//'') ~~ /^ <[0..9]>**3 $/
-                ?? colored(@bits[$cmd]//'', 'bold red')
-                !! colored(@bits[$cmd]//'', 'bold yellow');
+              ?? colored(@bits[$cmd]//'', 'bold red')
+              !! colored(@bits[$cmd]//'', 'bold yellow');
             put colored('▬▬▶ ', 'bold blue' ) ~ $server-str ~ @bits.join: ' ';
         }
         elsif $out {
@@ -424,9 +434,10 @@ class IRC::Client:ver<3.009990>:auth<cpan:ELIZABETH> {
             put colored('◀▬▬ ', 'bold green') ~ $server-str ~ @bits.join: ' ';
         }
         elsif $sys {
-            put colored(' ' x 4 ~ '↳', 'bold white') ~ ' '
-                ~ @bits.join(' ')
-                    .subst: /(\`<-[`]>+\`)/, { colored(~$0, 'bold cyan') };
+            put colored(' ' x 4 ~ '↳', 'bold white')
+              ~ ' '
+              ~ @bits.join(' ')
+                  .subst: /(\`<-[`]>+\`)/, { colored(~$0, 'bold cyan') };
         }
         else {
             die "Unknown debug print mode";

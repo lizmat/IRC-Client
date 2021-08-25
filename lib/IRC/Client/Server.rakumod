@@ -18,3 +18,5 @@ has Bool    $.has-quit         is rw;
 has         $.socket is rw;
 
 method Str { $!label }
+
+# vim: expandtab shiftwidth=4

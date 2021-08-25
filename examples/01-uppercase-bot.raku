@@ -4,4 +4,4 @@ use IRC::Client;
     :host(%*ENV<IRC_CLIENT_HOST> // 'irc.libera.chat')
     :channels<#bottest>
     :debug
-    :plugins(class { method irc-to-me ($_) { .text.uc } })
+    :plugins(class { method irc-to-me($_) { .text.uc } })
