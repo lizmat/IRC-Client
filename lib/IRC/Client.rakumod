@@ -412,9 +412,12 @@ class IRC::Client:ver<3.009990>:auth<cpan:ELIZABETH> {
           !! '';
 
         my @bits = (
-            $str ~~ IRC::Client::Message::Privmsg|IRC::Client::Message::Notice
-            ?? ":$str.usermask() $str.command() $str.args()[]"
-            !! $str.Str
+            $str ~~
+              IRC::Client::Message::Privmsg
+              | IRC::Client::Message::Notice
+              | IRC::Client::Message::Topic
+              ?? ":$str.usermask() $str.command() $str.args()[]"
+              !! $str.Str
         ).split: ' ';
 
         if $in {
