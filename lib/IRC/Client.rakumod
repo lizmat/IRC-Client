@@ -43,7 +43,7 @@ class IRC::Client:ver<3.009990>:auth<cpan:ELIZABETH> {
       Bool:D :$ssl       = False,
       Str:D  :$username  = 'RakuIRC',
       Str:D  :$userhost  = 'localhost',
-      Str:D  :$userreal  = "Raku IRC Client v{$?CLASS.^ver}",
+      Str:D  :$userreal  = "Raku {self.^name} v{self.^ver}",
              :$channels  = ('#raku',),
     --> Nil) {
         my %all-conf =
