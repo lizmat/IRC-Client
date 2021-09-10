@@ -1,4 +1,4 @@
-unit grammar IRC::Client::Grammar:ver<3.009990>:auth<cpan:ELIZABETH>;
+unit grammar IRC::Client::Grammar:ver<4.0.0>:auth<zef:lizmat>;
 
 token TOP { <message>+ <left-overs> }
 token left-overs { \N* }

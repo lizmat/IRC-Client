@@ -1,4 +1,4 @@
-unit package IRC::Client::Message:ver<3.009990>:auth<cpan:ELIZABETH>;
+unit package IRC::Client::Message:ver<4.0.0>:auth<zef:lizmat>;
 
 role IRC::Client::Message {
     has       $.irc      is required;
@@ -59,7 +59,7 @@ role Notice does M {
 }
 role Notice::Channel does Notice {
     has $.channel;
-    method reply ($text, :$where) {
+    method reply($text, :$where) {
         $.irc.autoprefix
           ?? $.irc.send-cmd: 'NOTICE', $where // $.channel, $text, :$.server, :prefix("$.nick, ")
           !! $.irc.send-cmd: 'NOTICE', $where // $.channel, $text, :$.server ;

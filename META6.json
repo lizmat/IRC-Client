@@ -1,5 +1,5 @@
 {
-  "auth": "cpan:ELIZABETH",
+  "auth": "zef:lizmat",
   "authors": [
     "Elizabeth Mattijsen",
     "Zoffix Znet"
@@ -35,5 +35,5 @@
     "Test::When",
     "Test::Notice"
   ],
-  "version": "3.009990"
+  "version": "4.0.0"
 }

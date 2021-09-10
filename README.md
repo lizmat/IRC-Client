@@ -1,3 +1,5 @@
+[![Actions Status](https://github.com/lizmat/IRC-Client/workflows/test/badge.svg)](https://github.com/lizmat/IRC-Client/actions)
+
 NAME
 ====
 
@@ -40,7 +42,7 @@ AUTHORS
 
   * Zoffix Znet (2015-2018)
 
-  * Elizabeth Mattijsen (2021-) <liz@wenzperl.nl>
+  * Elizabeth Mattijsen (2021-) <liz@raku.rocks>
 
 Source can be located at: https://github.com/lizmat/IRC-Client . Comments and Pull Requests are welcome.
 
@@ -54,7 +56,7 @@ CONTRIBUTORS
 COPYRIGHT AND LICENSE
 =====================
 
-Copyright 2015-2021 Zoffix Znet, Copyright 2021 Elizabeth Mattijsen
+Copyright 2015-2021 Zoffix Znet Copyright 2021 Elizabeth Mattijsen
 
 This library is free software; you can redistribute it and/or modify it under the Artistic License 2.0.
 

@@ -1,10 +1,10 @@
 
 use IO::Socket::Async::SSL;
 
-use IRC::Client::Message:ver<3.009990>:auth<cpan:ELIZABETH>;
-use IRC::Client::Grammar:ver<3.009990>:auth<cpan:ELIZABETH>;
-use IRC::Client::Server:ver<3.009990>:auth<cpan:ELIZABETH>;
-use IRC::Client::Grammar::Actions:ver<3.009990>:auth<cpan:ELIZABETH>;
+use IRC::Client::Message:ver<4.0.0>:auth<zef:lizmat>;
+use IRC::Client::Grammar:ver<4.0.0>:auth<zef:lizmat>;
+use IRC::Client::Server:ver<4.0.0>:auth<zef:lizmat>;
+use IRC::Client::Grammar::Actions:ver<4.0.0>:auth<zef:lizmat>;
 
 my &colored;  # debug message coloring logic
 
@@ -16,7 +16,7 @@ role IRC::Client::Plugin {
     has $.irc is rw;
 }
 
-class IRC::Client:ver<3.009990>:auth<cpan:ELIZABETH> {
+class IRC::Client:ver<4.0.0>:auth<zef:lizmat> {
     has Callable            @.filters;
     has                     @.plugins;
     has IRC::Client::Server %.servers is built(False);
@@ -430,7 +430,11 @@ class IRC::Client:ver<3.009990>:auth<cpan:ELIZABETH> {
             @bits[$cmd] = (@bits[$cmd]//'') ~~ /^ <[0..9]>**3 $/
               ?? colored(@bits[$cmd]//'', 'bold red')
               !! colored(@bits[$cmd]//'', 'bold yellow');
-            put colored('▬▬▶ ', 'bold blue' ) ~ $server-str ~ @bits.join: ' ';
+            put colored('▬▬▶ ', 'bold blue' )
+              ~ (DateTime.now.Str.substr(11,8) ~ ' '
+                  if $str ~~ IRC::Client::Message::Ping)
+              ~ $server-str
+              ~ @bits.join: ' ';
         }
         elsif $out {
             @bits[0] = colored @bits[0], 'bold magenta';
@@ -495,7 +499,7 @@ and output post-processing.
 =head1 AUTHORS
 
 =item Zoffix Znet (2015-2018)
-=item Elizabeth Mattijsen (2021-) <liz@wenzperl.nl>
+=item Elizabeth Mattijsen (2021-) <liz@raku.rocks>
 
 Source can be located at: https://github.com/lizmat/IRC-Client . Comments and
 Pull Requests are welcome.
@@ -507,7 +511,8 @@ Pull Requests are welcome.
 
 =head1 COPYRIGHT AND LICENSE
 
-Copyright 2015-2021 Zoffix Znet, Copyright 2021 Elizabeth Mattijsen
+Copyright 2015-2021 Zoffix Znet
+Copyright 2021 Elizabeth Mattijsen
 
 This library is free software; you can redistribute it and/or modify it under the Artistic License 2.0.
 
