@@ -1,452 +1,707 @@
 use IO::Socket::Async::SSL:ver<0.7.9>;
-use IRC::Client::Message:ver<4.0.1>:auth<zef:lizmat>;
-use IRC::Client::Grammar:ver<4.0.1>:auth<zef:lizmat>;
-use IRC::Client::Server:ver<4.0.1>:auth<zef:lizmat>;
-use IRC::Client::Grammar::Actions:ver<4.0.1>:auth<zef:lizmat>;
+unit class IRC::Client:ver<4.0.1>:auth<zef:lizmat>;
 
-my &colored;  # debug message coloring logic
+#--------------------------------------------------------------------------------
+# IRC::Client::Message
+
+role Message { ... }
+
+role Message::Join    does Message { has $.channel  }
+role Message::Mode    does Message { has $.mode     }
+role Message::Nick    does Message { has $.new-nick }
+role Message::Numeric does Message {                }
+role Message::Part    does Message { has $.channel  }
+role Message::Quit    does Message {                }
+
+role Message::Ping does Message {
+    method reply() { $.irc.send-cmd: 'PONG', $.args, :$.server; }
+}
+
+role Message::Mode::Channel does Message::Mode {
+    has $.channel;
+    has $.nicks;
+}
+role Message::Mode::Me does Message::Mode {
+}
+
+role Message::Privmsg does Message {
+    has      $.text    is rw;
+    has Bool $.replied is rw = False;
+    method Str() { $.text }
+}
+
+role Message::Privmsg::Channel does Message::Privmsg {
+    has $.channel;
+    method reply($text, :$where) {
+        $.irc.autoprefix
+          ?? $.irc.send-cmd: 'PRIVMSG', $where // $.channel, $text, :$.server, :prefix("$.nick, ")
+          !! $.irc.send-cmd: 'PRIVMSG', $where // $.channel, $text, :$.server
+    }
+}
+
+role Message::Privmsg::Me does Message::Privmsg {
+    method reply($text, :$where) {
+        $.irc.send-cmd: 'PRIVMSG', $where // $.nick, $text,
+            :$.server;
+    }
+}
+
+role Message::Notice does Message {
+    has      $.text    is rw;
+    has Bool $.replied is rw = False;
+    method Str() { $.text }
+    method match($v) { $.text ~~ $v }
+}
+
+role Message::Notice::Channel does Message::Notice {
+    has $.channel;
+    method reply($text, :$where) {
+        $.irc.autoprefix
+          ?? $.irc.send-cmd: 'NOTICE', $where // $.channel, $text, :$.server, :prefix("$.nick, ")
+          !! $.irc.send-cmd: 'NOTICE', $where // $.channel, $text, :$.server ;
+
+        $.replied = True;
+    }
+}
+
+role Message::Notice::Me does Message::Notice {
+    method reply($text, :$where) {
+        $.irc.send-cmd: 'NOTICE', $where // $.nick, $text,
+            :$.server;
+        $.replied = True;
+    }
+}
+
+role Message::Topic does Message {
+    has $.text is rw;
+    has $.channel;
+    method Str() { $.text }
+    method match($v) { $.text ~~ $v }
+}
+
+role Message::Unknown does Message {
+    method Str { "❚⚠❚ :$.usermask $.command $.args[]" }
+}
+
+role Message {
+    has       $.irc      is required;
+    has Str:D $.nick     is required;
+    has Str:D $.username is required;
+    has Str:D $.host     is required;
+    has Str:D $.usermask is required;
+    has Str:D $.command  is required;
+    has       $.server   is required;
+    has       $.args     is required;
+
+    method Str { ":$!usermask $!command $!args[]" }
+}
+
+#--------------------------------------------------------------------------------
+# IRC::Client::Grammar
+
+grammar Grammar {
+
+    token TOP { <message>+ <left-overs> }
+    token left-overs { \N* }
+    token SPACE { ' '+ }
+    token message { [':' <prefix> <SPACE> ]? <command> <params> \n }
+
+    regex prefix  {
+        [ <servername> || <nick> ['!' <user>]? ['@' <host>]? ]
+        <before <SPACE>>
+    }
+        token servername { <host> }
+        token nick {
+            # the RFC grammar states nicks have to start with a letter,
+            # however, modern server support and nick use disagrees with that
+            # and nicks can start with special chars too
+            [<letter> | <special>] [ <letter> | <number> | <special> ]*
+        }
+        token user { <-[\ \x[0]\r\n]>+?  <before [<SPACE> | '@']>}
+        token host { <-[\s!@]>+ }
+
+    token command { <letter>+ | <number>**3 }
+
+    token params { <SPACE>* [ ':' <trailing> | <middle> <params> ]? }
+        token middle { <-[:\ \x[0]\r\n]> <-[\ \x[0]\r\n]>* }
+        token trailing { <-[\x[0]\r\n]>* }
+
+    token letter { <[a..zA..Z]> }
+    token number { <[0..9]> }
+    token special { <[-_\[\]\\`^{}|]> }
+}
+
+#--------------------------------------------------------------------------------
+# IRC::Client::Actions
+
+class Actions {
+    has $.irc;
+    has $.server;
+
+    method TOP($/) {
+        $/.make: (
+            $<message>».made,
+            ~( $<left-overs> // '' ),
+        );
+    }
+
+    method message($match) {
+        my %args;
+
+        my $pref := $match<prefix>;
+        %args<who>{$_} = ~$pref{$_}
+          for qw/nick user host/.grep: { $pref{$_}.defined }
+        %args<who><host> = ~$pref<servername> if $pref<servername>.defined;
+
+        my $p := $match<params>;
+        loop {
+            %args<params>.append: ~$p<middle> if $p<middle>.defined;
+
+            with $p<trailing> {
+                %args<params>.append: ~$_;
+                last;
+            }
+            last unless $p<params>.defined;
+            $p := $p<params>;
+        }
+
+        my %msg-args =
+            command  => $match<command>.uc,
+            args     => %args<params>,
+            host     => %args<who><host>//'',
+            irc      => $!irc,
+            nick     => %args<who><nick>//'',
+            server   => $!server,
+            usermask => ~($match<prefix>//''),
+            username => %args<who><user>//'';
+
+        my $msg;
+        my @params := %args<params>;
+        given %msg-args<command> {
+            when 'PRIVMSG' {
+                my $channel := @params[0];
+                $msg := $channel.starts-with('#') || $channel.starts-with('&')
+                  ?? IRC::Client::Message::Privmsg::Channel.new(
+                       :$channel, :text(@params[1]), |%msg-args)
+                  !! IRC::Client::Message::Privmsg::Me.new(
+                       :text(@params[1]), |%msg-args);
+            }
+            when 'PING' {
+                $msg := IRC::Client::Message::Ping.new(|%msg-args);
+            }
+            when 'JOIN' {
+                $msg := IRC::Client::Message::Join.new(
+                  :channel(@params[0]), |%msg-args);
+            }
+            when 'PART' {
+                $msg := IRC::Client::Message::Part.new(
+                  :channel(@params[0] ), |%msg-args);
+            }
+            when 'NICK' {
+                $msg := IRC::Client::Message::Nick.new(
+                  :new-nick(@params[0]), |%msg-args);
+            }
+            when 'NOTICE' {
+                my $channel := @params[0];
+                $msg := $channel.starts-with('#') || $channel.starts-with('&')
+                  ?? IRC::Client::Message::Notice::Channel.new(
+                       :$channel, :text(@params[1]), |%msg-args)
+                  !! IRC::Client::Message::Notice::Me.new(
+                       :text(@params[1]), |%msg-args);
+            }
+            when 'MODE' { 
+                my $channel := @params[0];
+                my $mode    := @params[1];
+                $msg := $channel.starts-with('#') || $channel.starts-with('&')
+                  ?? IRC::Client::Message::Mode::Channel.new(
+                       :$channel, :$mode, :nicks(@params.skip(2)), |%msg-args)
+                  !! IRC::Client::Message::Mode::Me.new(
+                       :$mode, :nicks(@params.skip(2)), |%msg-args);
+            }
+            when 'TOPIC' {
+                $msg := IRC::Client::Message::Topic.new(
+                  :channel(@params[0]), :text(@params[1]), |%msg-args);
+            }
+            when 'QUIT' {
+                $msg := IRC::Client::Message::Quit.new(|%msg-args);
+            }
+            default {
+                $msg := .chars == 3 && try 0 <= .Int <= 999
+                  ?? IRC::Client::Message::Numeric.new(|%msg-args)
+                  !! IRC::Client::Message::Unknown.new(|%msg-args);
+            }
+        }
+
+        $match.make($msg)
+    }
+}
+
+#--------------------------------------------------------------------------------
+# IRC::Client::Server
 
 subset Port of Int where 0 <= $_ <= 65535;
 
+class Server {
+    has      @.channels where .all ~~ Str|Pair;
+    has      @.nick     where .all ~~ Str;
+    has      @.alias    where .all ~~ Str|Regex;
+    has Port $.port;
+    has Bool $.ssl = False;
+    has Str  $.ca-file;
+    has Str  $.label;
+    has Str  $.host;
+    has Str  $.password;
+    has Str  $.username;
+    has Str  $.userhost;
+    has Str  $.userreal;
+    has Str  $.current-nick is rw;
+    has Bool $.is-connected is rw;
+    has Bool $.has-quit     is rw;
+    has      $.socket       is rw;
+
+    method Str { $!label }
+}
+
+#--------------------------------------------------------------------------------
+# IRC::Client
+
+my &colored;  # debug message coloring logic
+
 my class IRC_FLAG_NEXT {};
-role IRC::Client::Plugin {
+my role Plugin {
     my IRC_FLAG_NEXT $.NEXT;
     has $.irc is rw;
 }
 
-class IRC::Client:ver<4.0.1>:auth<zef:lizmat> {
-    has Callable            @.filters;
-    has                     @.plugins;
-    has IRC::Client::Server %.servers is built(False);
-    has Int     $.debug       is built(:bind) = 0;
-    has Lock    $!lock        is built(:bind) = Lock.new;
-    has Channel $!event-pipe  is built(:bind) = Channel.new;
-    has Channel $!socket-pipe is built(:bind) = Channel.new;
-    has Bool    $.autoprefix  is built(:bind) = True;
+has Callable @.filters;
+has          @.plugins;
+has Server   %.servers is built(False);
+has Int      $.debug       is built(:bind) = 0;
+has Lock     $!lock        is built(:bind) = Lock.new;
+has Channel  $!event-pipe  is built(:bind) = Channel.new;
+has Channel  $!socket-pipe is built(:bind) = Channel.new;
+has Bool     $.autoprefix  is built(:bind) = True;
 
-    # Automatically add nick__ variants if given just one nick
-    sub default-expansion-nicks(\nicks) {
-        my $nick = nicks.head;
-        nicks.push: ($nick ~= '_') for ^3;
+# Automatically add nick__ variants if given just one nick
+sub default-expansion-nicks(\nicks) {
+    my $nick = nicks.head;
+    nicks.push: ($nick ~= '_') for ^3;
+}
+
+submethod TWEAK(
+         :%servers is copy,
+         :@alias,
+  Str    :$password,
+  Str    :$ca-file,
+  Port   :$port      = 6667,
+  Str:D  :$host      = 'localhost',
+         :$nick      = ['RakuBot'],
+  Bool:D :$ssl       = False,
+  Str:D  :$username  = 'RakuIRC',
+  Str:D  :$userhost  = 'localhost',
+  Str:D  :$userreal  = "Raku {self.^name} v{self.^ver}",
+         :$channels  = ('#raku',),
+--> Nil) {
+    my %all-conf =
+      :$port,     :$password, :$host,     :$nick,     :@alias,
+      :$username, :$userhost, :$userreal, :$channels, :$ssl,   :$ca-file;
+
+    %servers = '_' => {} unless %servers;
+    for %servers.kv -> $label, %conf {
+        my @nick = |(%conf<nick> // %all-conf<nick>);
+        my $s := Server.new(
+          :socket(Nil),
+          :$label,
+          :channels( @(%conf<channels> // %all-conf<channels>) ),
+          :@nick,
+          :alias[ |(%conf<alias> // %all-conf<alias>) ],
+          |%(
+            <host password port username userhost userreal ssl ca-file>
+            .map: { $_ => %conf{$_} // %all-conf{$_} }
+          ),
+        );
+
+        # Automatically add nick__ variants if given just one nick
+        default-expansion-nicks($s.nick) if @nick == 1;
+        $s.current-nick = @nick[0];
+        %!servers{$label} := $s;
     }
 
-    submethod TWEAK(
-             :%servers is copy,
-             :@alias,
-      Str    :$password,
-      Str    :$ca-file,
-      Port   :$port      = 6667,
-      Str:D  :$host      = 'localhost',
-             :$nick      = ['RakuBot'],
-      Bool:D :$ssl       = False,
-      Str:D  :$username  = 'RakuIRC',
-      Str:D  :$userhost  = 'localhost',
-      Str:D  :$userreal  = "Raku {self.^name} v{self.^ver}",
-             :$channels  = ('#raku',),
-    --> Nil) {
-        my %all-conf =
-          :$port,     :$password, :$host,     :$nick,     :@alias,
-          :$username, :$userhost, :$userreal, :$channels, :$ssl,   :$ca-file;
-
-        %servers = '_' => {} unless %servers;
-        for %servers.kv -> $label, %conf {
-            my @nick = |(%conf<nick> // %all-conf<nick>);
-            my $s := IRC::Client::Server.new(
-                :socket(Nil),
-                :$label,
-                :channels( @(%conf<channels> // %all-conf<channels>) ),
-                :@nick,
-                :alias[ |(%conf<alias> // %all-conf<alias>) ],
-                |%(
-                    <host password port username userhost userreal ssl ca-file>
-                        .map: { $_ => %conf{$_} // %all-conf{$_} }
-                ),
-            );
-
-            # Automatically add nick__ variants if given just one nick
-            default-expansion-nicks($s.nick) if @nick == 1;
-            $s.current-nick = @nick[0];
-            %!servers{$label} := $s;
-        }
-
-        # Coloring only needed when running in debug mode
-        if $!debug {
-            &colored = (try require Terminal::ANSIColor) === Nil
-              ?? -> Str $s, $ { $s }
-              !! ::('Terminal::ANSIColor::EXPORT::DEFAULT::&colored');
-        }
+    # Coloring only needed when running in debug mode
+    if $!debug {
+        &colored = (try require Terminal::ANSIColor) === Nil
+          ?? -> Str $s, $ { $s }
+          !! ::('Terminal::ANSIColor::EXPORT::DEFAULT::&colored');
     }
+}
 
-    method join(*@channels, :$server --> IRC::Client:D) {
-        self.send-cmd: 'JOIN', ($_ ~~ Pair ?? .kv !! .Str), :$server
-          for @channels;
-        self
+method join(*@channels, :$server --> IRC::Client:D) {
+    self.send-cmd: 'JOIN', ($_ ~~ Pair ?? .kv !! .Str), :$server
+      for @channels;
+    self
+}
+
+method nick(*@nicks, :$server = '*' --> IRC::Client:D) {
+    default-expansion-nicks(@nicks) if @nicks == 1;
+    self!set-server-attr($server, 'nick', @nicks);
+    self!set-server-attr($server, 'current-nick', @nicks[0]);
+    self.send-cmd: 'NICK', @nicks[0], :$server;
+    self
+}
+
+method part(*@channels, :$server --> IRC::Client:D) {
+    self.send-cmd: 'PART', $_, :$server for @channels;
+    self
+}
+
+method quit(:$server = '*' --> IRC::Client:D) {
+    if $server eq '*' {
+        .has-quit = True for %!servers.values;
     }
-
-    method nick(*@nicks, :$server = '*' --> IRC::Client:D) {
-        default-expansion-nicks(@nicks) if @nicks == 1;
-        self!set-server-attr($server, 'nick', @nicks);
-        self!set-server-attr($server, 'current-nick', @nicks[0]);
-        self.send-cmd: 'NICK', @nicks[0], :$server;
-        self
+    else {
+        self!get-server($server).has-quit = True;
     }
+    self.send-cmd: 'QUIT', :$server;
+    self
+}
 
-    method part(*@channels, :$server --> IRC::Client:D) {
-        self.send-cmd: 'PART', $_, :$server for @channels;
-        self
-    }
+method run(--> Nil) {
+    .irc = self for @.plugins.grep: { .DEFINITE and .^can: 'irc' };
 
-    method quit(:$server = '*' --> IRC::Client:D) {
-        if $server eq '*' {
-            .has-quit = True for %!servers.values;
-        }
-        else {
-            self!get-server($server).has-quit = True;
-        }
-        self.send-cmd: 'QUIT', :$server;
-        self
-    }
-
-    method run(--> Nil) {
-        .irc = self for @.plugins.grep: { .DEFINITE and .^can: 'irc' };
-
-        start {
-            my $closed = $!event-pipe.closed;
-            loop {
-                if $!event-pipe.receive -> $e {
-                    $!debug and debug-print $e, :in, :server($e.server);
-                    $!lock.protect: {
-                        self!handle-event: $e;
-                        CATCH { default { warn $_; warn .backtrace } }
-                    };
-                }
-                elsif $closed {
-                    last;
-                }
-            }
-            CATCH { default { warn $_; warn .backtrace } }
-        }
-
-        .irc-started for self!plugins-that-can('irc-started');
-        self!connect-socket: $_ for %!servers.values;
-
+    start {
+        my $closed = $!event-pipe.closed;
         loop {
-            my $s := $!socket-pipe.receive;
-            self!connect-socket: $s unless $s.has-quit;
-            unless %!servers.grep(!*.value.has-quit) {
-                $!debug and debug-print 'All servers quit by user. Exiting', :sys;
-                last;
-            }
-        }
-    }
-
-    method send(:$where!, :$text!, :$server, :$notice --> IRC::Client:D) {
-        for $server || |%!servers.keys.sort {
-            if self!get-server($_).is-connected {
-                self.send-cmd: $notice ?? 'NOTICE' !! 'PRIVMSG', $where, $text,
-                    :server($_);
-            }
-            else {
-                $!debug and debug-print( :out, :server($_),
-                    '.send() called for an unconnected server. Skipping...'
-                );
-            }
-        }
-
-        self
-    }
-
-###############################################################################
-
-    method !change-nick($server --> Nil) {
-        my int $idx = 0;
-        for $server.nick.kv -> int $i, $nick {
-            if $nick ne $server.current-nick {
-                $idx = $i + 1;
-                $idx = 0 if $idx == $server.nick.elems;
-                last;
-            }
-        };
-
-        sub set-nick(--> Nil) {
-            $server.current-nick = my $nick := $server.nick[$idx];
-            self.send-cmd: "NICK $nick", :$server;
-        }
-        $idx
-          ?? set-nick()
-          !! Promise.in(10).then: &set-nick;
-    }
-
-    method !connect-socket($server --> Nil) {
-        $!debug and debug-print 'Attempting to connect to server', :out, :$server;
-
-        my $socket := $server.ssl
-          ?? IO::Socket::Async::SSL.connect(
-               $server.host,
-               $server.port,
-               ca-file => $server.ca-file
-             )
-          !! IO::Socket::Async.connect($server.host, $server.port);
-
-        $socket.then: sub ($prom) {
-            if $prom.status ~~ Broken {
-                $server.is-connected = False;
-                $!debug and debug-print "Could not connect: $prom.cause()", :out, :$server;
-                sleep 10;
-                $!socket-pipe.send: $server;
-                return;
-            }
-
-            $server.socket = $prom.result;
-
-            self!ssay: "PASS $server.password()", :$server
-                if $server.password.defined;
-            self!ssay: "NICK {$server.nick[0]}", :$server;
-
-            self!ssay: :$server, join ' ', 'USER', $server.username,
-                $server.username, $server.host, ':' ~ $server.userreal;
-
-            my $left-overs = '';
-            react {
-                whenever $server.socket.Supply :bin -> $buf is copy {
-                    my $str = try $buf.decode: 'utf8';
-                    $str or $str = $buf.decode: 'latin-1';
-                    $str = ($left-overs//'') ~ $str;
-
-                    (my $events, $left-overs) = self!parse: $str, :$server;
-                    $!event-pipe.send: $_ for $events.grep: *.defined;
-
+            if $!event-pipe.receive -> $e {
+                $!debug and debug-print $e, :in, :server($e.server);
+                $!lock.protect: {
+                    self!handle-event: $e;
                     CATCH { default { warn $_; warn .backtrace } }
-                }
+                };
             }
-
-            unless $server.has-quit {
-                $server.is-connected = False;
-                $!debug and debug-print "Connection closed", :in, :$server;
-                sleep 10;
+            elsif $closed {
+                last;
             }
-
-            $!socket-pipe.send: $server;
-            CATCH { default { warn $_; warn .backtrace; } }
         }
+        CATCH { default { warn $_; warn .backtrace } }
     }
 
-    method !handle-event($e) {
-        my $s := %!servers{$e.server};
-        given $e.command {
-            when '001'  {
-                $s.current-nick = $e.args[0];
-                self.join: $s.channels, :server($s);
-            }
-            when 'PING'      { return $e.reply;      }
-            when '433'|'432' { self!change-nick: $s; }
-        }
+    .irc-started for self!plugins-that-can('irc-started');
+    self!connect-socket: $_ for %!servers.values;
 
-        my $event-name = 'irc-'
-          ~ $e.^name.subst('IRC::Client::Message::', '').lc.subst: '::','-',:g;
-
-        my str @events;
-        sub add(*@names) { @events.append: @names }
-
-        given $event-name {
-            when 'irc-privmsg-channel' | 'irc-notice-channel' {
-                my $nick    = $s.current-nick;
-                my @aliases = $s.alias;
-                if $e.text ~~ s/^ [ $nick | @aliases ] <[,:]> \s*// {
-                    add 'irc-addressed',
-                        ('irc-to-me' if $s.is-connected);
-                }
-                elsif $e.text ~~ / << [ $nick | @aliases ] >> /
-                    and $s.is-connected
-                {
-                    add 'irc-mentioned';
-                }
-                add $event-name,
-                    $event-name eq 'irc-privmsg-channel'
-                      ?? 'irc-privmsg'
-                      !! 'irc-notice';
-            }
-            when 'irc-privmsg-me' {
-                add $event-name,
-                    ('irc-to-me' if $s.is-connected),
-                    'irc-privmsg';
-            }
-            when 'irc-notice-me' {
-                add $event-name,
-                    ('irc-to-me' if $s.is-connected),
-                    'irc-notice';
-            }
-            when 'irc-mode-channel' | 'irc-mode-me' {
-                add $event-name, 'irc-mode';
-            }
-            when 'irc-numeric' {
-                if $e.command eq '001' {
-                    $s.is-connected = True;
-                    add 'irc-connected';
-                }
-
-                # prefix numerics with 'n' as irc-\d+ isn't a valid identifier
-                add 'irc-'
-                  ~ ('n' if $e ~~ IRC::Client::Message::Numeric)
-                  ~ $e.command,
-                  $event-name;
-            }
-            default { add $event-name }
-        }
-        add 'irc-all';
-
-        EVENT:
-        for @events -> $event {
-            debug-print "emitting `$event`", :sys
-                if $!debug >= 3 or ($!debug == 2 and not $event eq 'irc-all');
-
-            for self!plugins-that-can($event, $e) {
-                my $res is default(Nil) = ."$event"($e);
-                next if $res ~~ IRC_FLAG_NEXT;
-
-                # Do not .reply with bogus return values
-                last EVENT if $res ~~ IRC::Client | Supply | Channel;
-
-                if $res ~~ Promise {
-                    $res.then: {
-                        $e.?reply: $^r.result
-                            unless $^r.result ~~ Nil or $e.?replied;
-                    }
-                }
-                else {
-                    $e.?reply: $res unless $res ~~ Nil or $e.?replied;
-                }
-                last EVENT;
-
-                CATCH { default { warn $_, .backtrace; } }
-            }
+    loop {
+        my $s := $!socket-pipe.receive;
+        self!connect-socket: $s unless $s.has-quit;
+        unless %!servers.grep(!*.value.has-quit) {
+            $!debug and debug-print 'All servers quit by user. Exiting', :sys;
+            last;
         }
     }
+}
 
-    method !parse(Str:D $str, :$server) {
-        |IRC::Client::Grammar.parse(
-          $str,
-          :actions( IRC::Client::Grammar::Actions.new: :irc(self), :$server )
-        ).made
-    }
-
-    method !plugins-that-can($method, |c) {
-        my @can;
-        for @!plugins -> $plugin {
-            for $plugin.^can($method) {
-                @can.push: $plugin if .cando: \($plugin, |c)
-            }
-        }
-        @can
-    }
-
-    method !get-server($server --> IRC::Client::Server:D) {
-        with $server {
-            $_ ~~ IRC::Client::Server ?? $_ !! %!servers{$_}
+method send(:$where!, :$text!, :$server, :$notice --> IRC::Client:D) {
+    for $server || |%!servers.keys.sort {
+        if self!get-server($_).is-connected {
+            self.send-cmd: $notice ?? 'NOTICE' !! 'PRIVMSG', $where, $text,
+                :server($_);
         }
         else {
-            %!servers<_>
+            $!debug and debug-print( :out, :server($_),
+                '.send() called for an unconnected server. Skipping...'
+            );
         }
     }
 
-    method send-cmd($cmd, *@args is copy, :$prefix = '', :$server --> Nil) {
-        if $cmd eq 'NOTICE'|'PRIVMSG' {
-            my ($where, $text) = @args;
-            if @!filters
-                and my @f = @!filters.grep({
-                       .signature.ACCEPTS: \($text)
-                    or .signature.ACCEPTS: \($text, :$where)
-                })
+    self
+}
+
+#--------------------------------------------------------------------------------
+# Private Methods
+
+method !change-nick($server --> Nil) {
+    my int $idx = 0;
+    for $server.nick.kv -> int $i, $nick {
+        if $nick ne $server.current-nick {
+            $idx = $i + 1;
+            $idx = 0 if $idx == $server.nick.elems;
+            last;
+        }
+    };
+
+    sub set-nick(--> Nil) {
+        $server.current-nick = my $nick := $server.nick[$idx];
+        self.send-cmd: "NICK $nick", :$server;
+    }
+    $idx
+      ?? set-nick()
+      !! Promise.in(10).then: &set-nick;
+}
+
+method !connect-socket($server --> Nil) {
+    $!debug and debug-print 'Attempting to connect to server', :out, :$server;
+
+    my $socket := $server.ssl
+      ?? IO::Socket::Async::SSL.connect(
+           $server.host,
+           $server.port,
+           ca-file => $server.ca-file
+         )
+      !! IO::Socket::Async.connect($server.host, $server.port);
+
+    $socket.then: sub ($prom) {
+        if $prom.status ~~ Broken {
+            $server.is-connected = False;
+            $!debug and debug-print "Could not connect: $prom.cause()", :out, :$server;
+            sleep 10;
+            $!socket-pipe.send: $server;
+            return;
+        }
+
+        $server.socket = $prom.result;
+
+        self!ssay: "PASS $server.password()", :$server
+            if $server.password.defined;
+        self!ssay: "NICK {$server.nick[0]}", :$server;
+
+        self!ssay: :$server, join ' ', 'USER', $server.username,
+            $server.username, $server.host, ':' ~ $server.userreal;
+
+        my $left-overs = '';
+        react {
+            whenever $server.socket.Supply :bin -> $buf is copy {
+                my $str = try $buf.decode: 'utf8';
+                $str or $str = $buf.decode: 'latin-1';
+                $str = ($left-overs//'') ~ $str;
+
+                (my $events, $left-overs) = self!parse: $str, :$server;
+                $!event-pipe.send: $_ for $events.grep: *.defined;
+
+                CATCH { default { warn $_; warn .backtrace } }
+            }
+        }
+
+        unless $server.has-quit {
+            $server.is-connected = False;
+            $!debug and debug-print "Connection closed", :in, :$server;
+            sleep 10;
+        }
+
+        $!socket-pipe.send: $server;
+        CATCH { default { warn $_; warn .backtrace; } }
+    }
+}
+
+method !handle-event($e) {
+    my $s := %!servers{$e.server};
+    given $e.command {
+        when '001'  {
+            $s.current-nick = $e.args[0];
+            self.join: $s.channels, :server($s);
+        }
+        when 'PING'      { return $e.reply;      }
+        when '433'|'432' { self!change-nick: $s; }
+    }
+
+    my $event-name = 'irc-'
+      ~ $e.^name.subst('IRC::Client::Message::', '').lc.subst: '::','-',:g;
+
+    my str @events;
+    sub add(*@names) { @events.append: @names }
+
+    given $event-name {
+        when 'irc-privmsg-channel' | 'irc-notice-channel' {
+            my $nick    = $s.current-nick;
+            my @aliases = $s.alias;
+            if $e.text ~~ s/^ [ $nick | @aliases ] <[,:]> \s*// {
+                add 'irc-addressed',
+                    ('irc-to-me' if $s.is-connected);
+            }
+            elsif $e.text ~~ / << [ $nick | @aliases ] >> /
+                and $s.is-connected
             {
-                start {
-                    CATCH { default { warn $_; warn .backtrace } }
-                    for @f -> $f {
-                        given $f.signature.params.elems {
-                            when 1 {           $text = $f($text);          }
-                            when 2 { ($text, $where) = $f($text, :$where); }
-                        }
-                    }
-                    self!ssay: :$server, join ' ', $cmd, $where, ":$prefix$text";
+                add 'irc-mentioned';
+            }
+            add $event-name,
+                $event-name eq 'irc-privmsg-channel'
+                  ?? 'irc-privmsg'
+                  !! 'irc-notice';
+        }
+        when 'irc-privmsg-me' {
+            add $event-name,
+                ('irc-to-me' if $s.is-connected),
+                'irc-privmsg';
+        }
+        when 'irc-notice-me' {
+            add $event-name,
+                ('irc-to-me' if $s.is-connected),
+                'irc-notice';
+        }
+        when 'irc-mode-channel' | 'irc-mode-me' {
+            add $event-name, 'irc-mode';
+        }
+        when 'irc-numeric' {
+            if $e.command eq '001' {
+                $s.is-connected = True;
+                add 'irc-connected';
+            }
+
+            # prefix numerics with 'n' as irc-\d+ isn't a valid identifier
+            add 'irc-'
+              ~ ('n' if $e ~~ IRC::Client::Message::Numeric)
+              ~ $e.command,
+              $event-name;
+        }
+        default { add $event-name }
+    }
+    add 'irc-all';
+
+    EVENT:
+    for @events -> $event {
+        debug-print "emitting `$event`", :sys
+            if $!debug >= 3 or ($!debug == 2 and not $event eq 'irc-all');
+
+        for self!plugins-that-can($event, $e) {
+            my $res is default(Nil) = ."$event"($e);
+            next if $res ~~ IRC_FLAG_NEXT;
+
+            # Do not .reply with bogus return values
+            last EVENT if $res ~~ IRC::Client | Supply | Channel;
+
+            if $res ~~ Promise {
+                $res.then: {
+                    $e.?reply: $^r.result
+                        unless $^r.result ~~ Nil or $e.?replied;
                 }
             }
             else {
+                $e.?reply: $res unless $res ~~ Nil or $e.?replied;
+            }
+            last EVENT;
+
+            CATCH { default { warn $_, .backtrace; } }
+        }
+    }
+}
+
+method !parse(Str:D $str, :$server) {
+    |IRC::Client::Grammar.parse(
+      $str,
+      :actions( IRC::Client::Actions.new: :irc(self), :$server )
+    ).made
+}
+
+method !plugins-that-can($method, |c) {
+    my @can;
+    for @!plugins -> $plugin {
+        for $plugin.^can($method) {
+            @can.push: $plugin if .cando: \($plugin, |c)
+        }
+    }
+    @can
+}
+
+method !get-server($server --> IRC::Client::Server:D) {
+    with $server {
+        $_ ~~ IRC::Client::Server ?? $_ !! %!servers{$_}
+    }
+    else {
+        %!servers<_>
+    }
+}
+
+method send-cmd($cmd, *@args is copy, :$prefix = '', :$server --> Nil) {
+    if $cmd eq 'NOTICE'|'PRIVMSG' {
+        my ($where, $text) = @args;
+        if @!filters
+            and my @f = @!filters.grep({
+                   .signature.ACCEPTS: \($text)
+                or .signature.ACCEPTS: \($text, :$where)
+            })
+        {
+            start {
+                CATCH { default { warn $_; warn .backtrace } }
+                for @f -> $f {
+                    given $f.signature.params.elems {
+                        when 1 {           $text = $f($text);          }
+                        when 2 { ($text, $where) = $f($text, :$where); }
+                    }
+                }
                 self!ssay: :$server, join ' ', $cmd, $where, ":$prefix$text";
             }
         }
         else {
-            if @args {
-                my $last := @args[*-1];
-                $last = ':' ~ $last
-                    if not $last or $last.starts-with: ':' or $last.match: /\s/;
-            }
-            self!ssay: :$server, join ' ', $cmd, @args;
+            self!ssay: :$server, join ' ', $cmd, $where, ":$prefix$text";
         }
     }
+    else {
+        if @args {
+            my $last := @args[*-1];
+            $last = ':' ~ $last
+                if not $last or $last.starts-with: ':' or $last.match: /\s/;
+        }
+        self!ssay: :$server, join ' ', $cmd, @args;
+    }
+}
 
-    method !set-server-attr($server, $method, $what --> Nil) {
-        if $server eq '*' {
-            for %!servers.values {
-                ."$method"() = $what ~~ List ?? @$what !! $what ;
-            }
-        }
-        else {
-            %!servers{$server}."$method"() = $what ~~ List ?? @$what !! $what;
+method !set-server-attr($server, $method, $what --> Nil) {
+    if $server eq '*' {
+        for %!servers.values {
+            ."$method"() = $what ~~ List ?? @$what !! $what ;
         }
     }
+    else {
+        %!servers{$server}."$method"() = $what ~~ List ?? @$what !! $what;
+    }
+}
 
-    method !ssay(Str:D $msg, :$server is copy) {
-        $server //= '*';
-        $!debug and debug-print $msg, :out, :$server;
-        %!servers{$_}.socket.print: "$msg\n"
-            for |($server eq '*' ?? %!servers.keys.sort !! ~$server);
-        self
-    }
+method !ssay(Str:D $msg, :$server is copy) {
+    $server //= '*';
+    $!debug and debug-print $msg, :out, :$server;
+    %!servers{$_}.socket.print: "$msg\n"
+        for |($server eq '*' ?? %!servers.keys.sort !! ~$server);
+    self
+}
 
 ###############################################################################
 
-    sub debug-print($str, :$in, :$out, :$sys, :$server --> Nil) {
-        my $server-str = $server
-          ?? colored(~$server, 'bold white on_cyan') ~ ' '
-          !! '';
+sub debug-print($str, :$in, :$out, :$sys, :$server --> Nil) {
+    my $server-str = $server
+      ?? colored(~$server, 'bold white on_cyan') ~ ' '
+      !! '';
 
-        my @bits = (
-            $str ~~
-              IRC::Client::Message::Privmsg
-              | IRC::Client::Message::Notice
-              | IRC::Client::Message::Topic
-              ?? ":$str.usermask() $str.command() $str.args()[]"
-              !! $str.Str
-        ).split: ' ';
+    my @bits = (
+        $str ~~ Message::Privmsg | Message::Notice | Message::Topic
+          ?? ":$str.usermask() $str.command() $str.args()[]"
+          !! $str.Str
+    ).split: ' ';
 
-        if $in {
-            my ($pref, $cmd) = 0, 1;
-            if @bits[0] eq '❚⚠❚' {
-                @bits[0] = colored @bits[0], 'bold white on_red';
-                $pref++; $cmd++;
-            }
-            @bits[$pref] = colored @bits[$pref], 'bold magenta';
-            @bits[$cmd] = (@bits[$cmd]//'') ~~ /^ <[0..9]>**3 $/
-              ?? colored(@bits[$cmd]//'', 'bold red')
-              !! colored(@bits[$cmd]//'', 'bold yellow');
-            put colored('▬▬▶ ', 'bold blue' )
-              ~ (DateTime.now.Str.substr(11,8) ~ ' '
-                  if $str ~~ IRC::Client::Message::Ping)
-              ~ $server-str
-              ~ @bits.join: ' ';
+    if $in {
+        my ($pref, $cmd) = 0, 1;
+        if @bits[0] eq '❚⚠❚' {
+            @bits[0] = colored @bits[0], 'bold white on_red';
+            $pref++; $cmd++;
         }
-        elsif $out {
-            @bits[0] = colored @bits[0], 'bold magenta';
-            put colored('◀▬▬ ', 'bold green') ~ $server-str ~ @bits.join: ' ';
-        }
-        elsif $sys {
-            put colored(' ' x 4 ~ '↳', 'bold white')
-              ~ ' '
-              ~ @bits.join(' ')
-                  .subst: /(\`<-[`]>+\`)/, { colored(~$0, 'bold cyan') };
-        }
-        else {
-            die "Unknown debug print mode";
-        }
+        @bits[$pref] = colored @bits[$pref], 'bold magenta';
+        @bits[$cmd] = (@bits[$cmd]//'') ~~ /^ <[0..9]>**3 $/
+          ?? colored(@bits[$cmd]//'', 'bold red')
+          !! colored(@bits[$cmd]//'', 'bold yellow');
+        put colored('▬▬▶ ', 'bold blue' )
+          ~ (DateTime.now.Str.substr(11,8) ~ ' '
+              if $str ~~ IRC::Client::Message::Ping)
+          ~ $server-str
+          ~ @bits.join: ' ';
+    }
+    elsif $out {
+        @bits[0] = colored @bits[0], 'bold magenta';
+        put colored('◀▬▬ ', 'bold green') ~ $server-str ~ @bits.join: ' ';
+    }
+    elsif $sys {
+        put colored(' ' x 4 ~ '↳', 'bold white')
+          ~ ' '
+          ~ @bits.join(' ')
+              .subst: /(\`<-[`]>+\`)/, { colored(~$0, 'bold cyan') };
+    }
+    else {
+        die "Unknown debug print mode";
     }
 }
 

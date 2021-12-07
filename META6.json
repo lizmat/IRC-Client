@@ -14,11 +14,7 @@
   "name": "IRC::Client",
   "perl": "6.d",
   "provides": {
-    "IRC::Client": "lib/IRC/Client.rakumod",
-    "IRC::Client::Grammar": "lib/IRC/Client/Grammar.rakumod",
-    "IRC::Client::Grammar::Actions": "lib/IRC/Client/Grammar/Actions.rakumod",
-    "IRC::Client::Message": "lib/IRC/Client/Message.rakumod",
-    "IRC::Client::Server": "lib/IRC/Client/Server.rakumod"
+    "IRC::Client": "lib/IRC/Client.rakumod"
   },
   "resources": [
   ],

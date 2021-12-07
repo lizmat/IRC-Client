@@ -24,6 +24,8 @@ jobs:
       - uses: Raku/setup-raku@v1
         with:
           raku-version: ${{ matrix.raku-version }}
+      - if: matrix.os == 'macOS-latest'
+        run: brew install openssl
       - name: Install Dependencies
         run: zef -v install --/test --test-depends --deps-only .
       - name: Run Tests
