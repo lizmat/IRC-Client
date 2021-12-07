@@ -1,6 +1,6 @@
-unit class IRC::Client::Grammar::Actions:ver<4.0.0>:auth<zef:lizmat>;
+use IRC::Client::Message:ver<4.0.1>:auth<zef:lizmat>;
 
-use IRC::Client::Message;
+unit class IRC::Client::Grammar::Actions:ver<4.0.1>:auth<zef:lizmat>;
 
 has $.irc;
 has $.server;

@@ -1,6 +1,8 @@
 Revision history for IRC::Client
 
 {{$NEXT}}
+    - Bump dependency on IO::Socket::Async::SSL
+    - Fix links in documentation
 
 4.0.0  2021-09-10T13:53:41+02:00
     - Big internals refactor

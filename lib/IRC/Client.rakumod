@@ -1,10 +1,8 @@
-
-use IO::Socket::Async::SSL;
-
-use IRC::Client::Message:ver<4.0.0>:auth<zef:lizmat>;
-use IRC::Client::Grammar:ver<4.0.0>:auth<zef:lizmat>;
-use IRC::Client::Server:ver<4.0.0>:auth<zef:lizmat>;
-use IRC::Client::Grammar::Actions:ver<4.0.0>:auth<zef:lizmat>;
+use IO::Socket::Async::SSL:ver<0.7.9>;
+use IRC::Client::Message:ver<4.0.1>:auth<zef:lizmat>;
+use IRC::Client::Grammar:ver<4.0.1>:auth<zef:lizmat>;
+use IRC::Client::Server:ver<4.0.1>:auth<zef:lizmat>;
+use IRC::Client::Grammar::Actions:ver<4.0.1>:auth<zef:lizmat>;
 
 my &colored;  # debug message coloring logic
 
@@ -16,7 +14,7 @@ role IRC::Client::Plugin {
     has $.irc is rw;
 }
 
-class IRC::Client:ver<4.0.0>:auth<zef:lizmat> {
+class IRC::Client:ver<4.0.1>:auth<zef:lizmat> {
     has Callable            @.filters;
     has                     @.plugins;
     has IRC::Client::Server %.servers is built(False);
@@ -490,11 +488,11 @@ and output post-processing.
 =head1 DOCUMENTATION MAP
 
 * [Blog Post](https://github.com/Raku/CCR/blob/main/Remaster/Zoffix%20Znet/IRC-Client-Raku-Multi-Server-IRC-or-Awesome-Async-Interfaces-with-Raku.md)
-* [Basics Tutorial](docs/01-basics.md)
-* [Event Reference](docs/02-event-reference.md)
-* [Method Reference](docs/03-method-reference.md)
-* [Big-Picture Behaviour](docs/04-big-picture-behaviour.md)
-* [Examples](examples/)
+* [Basics Tutorial](https://github.com/lizmat/IRC-Client/blob/main/docs/01-basics.md)
+* [Event Reference](https://github.com/lizmat/IRC-Client/blob/main/docs/02-event-reference.md)
+* [Method Reference](https://github.com/lizmat/IRC-Client/blob/main/docs/03-method-reference.md)
+* [Big-Picture Behaviour](https://github.com/lizmat/IRC-Client/blob/main/docs/04-big-picture-behaviour.md)
+* [Examples](https://github.com/lizmat/IRC-Client/blob/main/examples/)
 
 =head1 AUTHORS
 

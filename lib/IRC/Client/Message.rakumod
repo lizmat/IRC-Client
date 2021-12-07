@@ -1,6 +1,6 @@
-unit package IRC::Client::Message:ver<4.0.0>:auth<zef:lizmat>;
+unit package IRC::Client::Message:ver<4.0.1>:auth<zef:lizmat>;
 
-role IRC::Client::Message {
+role Message {
     has       $.irc      is required;
     has Str:D $.nick     is required;
     has Str:D $.username is required;
@@ -13,7 +13,7 @@ role IRC::Client::Message {
     method Str { ":$!usermask $!command $!args[]" }
 }
 
-constant M = IRC::Client::Message;
+constant M = Message;
 
 role Join          does M    { has $.channel;              }
 role Mode          does M    { has $.mode;                 }

@@ -1,7 +1,7 @@
-#!perl6
-
-use lib 'lib';
 use Test;
 use Test::META;
+
+plan 1;
 meta-ok;
-done-testing;
+
+# vim: expandtab shiftwidth=4
