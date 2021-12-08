@@ -1,5 +1,31 @@
 use IO::Socket::Async::SSL:ver<0.7.9>;
-unit class IRC::Client:ver<4.0.1>:auth<zef:lizmat>;
+unit class IRC::Client:ver<4.0.2>:auth<zef:lizmat>;
+
+#--------------------------------------------------------------------------------
+# IRC::Client::Server
+
+subset Port of Int where 0 <= $_ <= 65535;
+
+class Server {
+    has      @.channels where .all ~~ Str|Pair;
+    has      @.nick     where .all ~~ Str;
+    has      @.alias    where .all ~~ Str|Regex;
+    has Port $.port;
+    has Bool $.ssl = False;
+    has Str  $.ca-file;
+    has Str  $.label;
+    has Str  $.host;
+    has Str  $.password;
+    has Str  $.username;
+    has Str  $.userhost;
+    has Str  $.userreal;
+    has Str  $.current-nick is rw;
+    has Bool $.is-connected is rw;
+    has Bool $.has-quit     is rw;
+    has      $.socket       is rw;
+
+    method Str { $!label }
+}
 
 #--------------------------------------------------------------------------------
 # IRC::Client::Message
@@ -84,14 +110,14 @@ role Message::Unknown does Message {
 }
 
 role Message {
-    has       $.irc      is required;
-    has Str:D $.nick     is required;
-    has Str:D $.username is required;
-    has Str:D $.host     is required;
-    has Str:D $.usermask is required;
-    has Str:D $.command  is required;
-    has       $.server   is required;
-    has       $.args     is required;
+    has        $.irc      is required;
+    has Str    $.nick     is required;
+    has Str    $.username is required;
+    has Str    $.host     is required;
+    has Str    $.usermask is required;
+    has Str    $.command  is required;
+    has Server $.server   is required;
+    has        $.args     is required;
 
     method Str { ":$!usermask $!command $!args[]" }
 }
@@ -148,118 +174,94 @@ class Actions {
     method message($match) {
         my %args;
 
-        my $pref := $match<prefix>;
-        %args<who>{$_} = ~$pref{$_}
-          for qw/nick user host/.grep: { $pref{$_}.defined }
-        %args<who><host> = ~$pref<servername> if $pref<servername>.defined;
+        my %who; %who := .hash with %args<who>;
+        with $match<prefix> {
+            my %pref := .hash;
+            %who{$_} = %pref{$_}.Str
+              for qw/nick user host/.grep: { %pref{$_}.defined }
+            %who<host> = .Str with %pref<servername>;
+        }
 
-        my $p := $match<params>;
-        loop {
-            %args<params>.append: ~$p<middle> if $p<middle>.defined;
+        with $match<params> {
+            my %params := .hash;
+            loop {
+                %args<params>.append: .Str with %params<middle>;
 
-            with $p<trailing> {
-                %args<params>.append: ~$_;
-                last;
+                with %params<trailing> {
+                    %args<params>.append: .Str;
+                    last;
+                }
+                last without %params<params>;
+                %params := %params<params>.hash;
             }
-            last unless $p<params>.defined;
-            $p := $p<params>;
         }
 
         my %msg-args =
             command  => $match<command>.uc,
             args     => %args<params>,
-            host     => %args<who><host>//'',
+            host     => %who<host> // '',
             irc      => $!irc,
-            nick     => %args<who><nick>//'',
+            nick     => %who<nick> // '',
             server   => $!server,
-            usermask => ~($match<prefix>//''),
-            username => %args<who><user>//'';
+            usermask => ($match<prefix> // '').Str,
+            username => %who<user> // '';
 
-        my $msg;
         my @params := %args<params>;
-        given %msg-args<command> {
+        $match.make: do given %msg-args<command> {
             when 'PRIVMSG' {
                 my $channel := @params[0];
-                $msg := $channel.starts-with('#') || $channel.starts-with('&')
+                $channel.starts-with('#') || $channel.starts-with('&')
                   ?? IRC::Client::Message::Privmsg::Channel.new(
                        :$channel, :text(@params[1]), |%msg-args)
                   !! IRC::Client::Message::Privmsg::Me.new(
-                       :text(@params[1]), |%msg-args);
+                       :text(@params[1]), |%msg-args)
             }
             when 'PING' {
-                $msg := IRC::Client::Message::Ping.new(|%msg-args);
+                IRC::Client::Message::Ping.new(|%msg-args)
             }
             when 'JOIN' {
-                $msg := IRC::Client::Message::Join.new(
-                  :channel(@params[0]), |%msg-args);
+                IRC::Client::Message::Join.new(
+                  :channel(@params[0]), |%msg-args)
             }
             when 'PART' {
-                $msg := IRC::Client::Message::Part.new(
-                  :channel(@params[0] ), |%msg-args);
+                IRC::Client::Message::Part.new(
+                  :channel(@params[0] ), |%msg-args)
             }
             when 'NICK' {
-                $msg := IRC::Client::Message::Nick.new(
-                  :new-nick(@params[0]), |%msg-args);
+                IRC::Client::Message::Nick.new(
+                  :new-nick(@params[0]), |%msg-args)
             }
             when 'NOTICE' {
                 my $channel := @params[0];
-                $msg := $channel.starts-with('#') || $channel.starts-with('&')
+                $channel.starts-with('#') || $channel.starts-with('&')
                   ?? IRC::Client::Message::Notice::Channel.new(
                        :$channel, :text(@params[1]), |%msg-args)
                   !! IRC::Client::Message::Notice::Me.new(
-                       :text(@params[1]), |%msg-args);
+                       :text(@params[1]), |%msg-args)
             }
             when 'MODE' { 
                 my $channel := @params[0];
                 my $mode    := @params[1];
-                $msg := $channel.starts-with('#') || $channel.starts-with('&')
+                $channel.starts-with('#') || $channel.starts-with('&')
                   ?? IRC::Client::Message::Mode::Channel.new(
                        :$channel, :$mode, :nicks(@params.skip(2)), |%msg-args)
                   !! IRC::Client::Message::Mode::Me.new(
-                       :$mode, :nicks(@params.skip(2)), |%msg-args);
+                       :$mode, :nicks(@params.skip(2)), |%msg-args)
             }
             when 'TOPIC' {
-                $msg := IRC::Client::Message::Topic.new(
-                  :channel(@params[0]), :text(@params[1]), |%msg-args);
+                IRC::Client::Message::Topic.new(
+                  :channel(@params[0]), :text(@params[1]), |%msg-args)
             }
             when 'QUIT' {
-                $msg := IRC::Client::Message::Quit.new(|%msg-args);
+                IRC::Client::Message::Quit.new(|%msg-args)
             }
             default {
-                $msg := .chars == 3 && try 0 <= .Int <= 999
+                .chars == 3 && try 0 <= .Int <= 999
                   ?? IRC::Client::Message::Numeric.new(|%msg-args)
-                  !! IRC::Client::Message::Unknown.new(|%msg-args);
+                  !! IRC::Client::Message::Unknown.new(|%msg-args)
             }
         }
-
-        $match.make($msg)
     }
-}
-
-#--------------------------------------------------------------------------------
-# IRC::Client::Server
-
-subset Port of Int where 0 <= $_ <= 65535;
-
-class Server {
-    has      @.channels where .all ~~ Str|Pair;
-    has      @.nick     where .all ~~ Str;
-    has      @.alias    where .all ~~ Str|Regex;
-    has Port $.port;
-    has Bool $.ssl = False;
-    has Str  $.ca-file;
-    has Str  $.label;
-    has Str  $.host;
-    has Str  $.password;
-    has Str  $.username;
-    has Str  $.userhost;
-    has Str  $.userreal;
-    has Str  $.current-nick is rw;
-    has Bool $.is-connected is rw;
-    has Bool $.has-quit     is rw;
-    has      $.socket       is rw;
-
-    method Str { $!label }
 }
 
 #--------------------------------------------------------------------------------
@@ -275,7 +277,7 @@ my role Plugin {
 
 has Callable @.filters;
 has          @.plugins;
-has Server   %.servers is built(False);
+has Server   %.servers     is built(False);
 has Int      $.debug       is built(:bind) = 0;
 has Lock     $!lock        is built(:bind) = Lock.new;
 has Channel  $!event-pipe  is built(:bind) = Channel.new;
@@ -516,8 +518,7 @@ method !handle-event($e) {
                     ('irc-to-me' if $s.is-connected);
             }
             elsif $e.text ~~ / << [ $nick | @aliases ] >> /
-                and $s.is-connected
-            {
+              and $s.is-connected {
                 add 'irc-mentioned';
             }
             add $event-name,
@@ -661,7 +662,8 @@ method !ssay(Str:D $msg, :$server is copy) {
     self
 }
 
-###############################################################################
+#--------------------------------------------------------------------------------
+# Debugging
 
 sub debug-print($str, :$in, :$out, :$sys, :$server --> Nil) {
     my $server-str = $server
