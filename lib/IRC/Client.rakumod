@@ -7,6 +7,7 @@ unit class IRC::Client:ver<4.0.2>:auth<zef:lizmat>;
 subset Port of Int where 0 <= $_ <= 65535;
 
 class Server {
+    has      $.irc;
     has      @.channels where .all ~~ Str|Pair;
     has      @.nick     where .all ~~ Str;
     has      @.alias    where .all ~~ Str|Regex;
@@ -23,6 +24,23 @@ class Server {
     has Bool $.is-connected is rw;
     has Bool $.has-quit     is rw;
     has      $.socket       is rw;
+    has Int  $!last-ping;
+    has Int  $!next-ping;
+
+    method TWEAK() { self.cue-next-ping-check(600) }
+
+    method label() {
+        $!label eq '_' ?? "$!host:$!port" !! $!label
+    }
+
+    method cue-next-ping-check($in = time - $!last-ping + 10) {
+        $!last-ping = time;
+        $!next-ping = $!last-ping + $in;
+        $*SCHEDULER.cue: {
+            say "Performing ping check for $.label()";
+            $!irc.restart-server(self) if time > $!next-ping;
+        }, :$in;
+    }
 
     method Str { $!label }
 }
@@ -40,7 +58,8 @@ role Message::Part    does Message { has $.channel  }
 role Message::Quit    does Message {                }
 
 role Message::Ping does Message {
-    method reply() { $.irc.send-cmd: 'PONG', $.args, :$.server; }
+    method TWEAK() { $.server.cue-next-ping-check              }
+    method reply() { $.irc.send-cmd: 'PONG', $.args, :$.server }
 }
 
 role Message::Mode::Channel does Message::Mode {
@@ -275,6 +294,15 @@ my role Plugin {
     has $.irc is rw;
 }
 
+my class Restarter does Plugin {
+    has $.magic-word is required;
+    method irc-to-me($_) {
+        .text eq $!magic-word
+          ?? .irc.restart-server(.server)
+          !! $.NEXT
+    }
+}
+
 has Callable @.filters;
 has          @.plugins;
 has Server   %.servers     is built(False);
@@ -308,10 +336,13 @@ submethod TWEAK(
       :$port,     :$password, :$host,     :$nick,     :@alias,
       :$username, :$userhost, :$userreal, :$channels, :$ssl,   :$ca-file;
 
+    @!plugins.unshift: Restarter.new: magic-word => 'restart, please';
+
     %servers = '_' => {} unless %servers;
     for %servers.kv -> $label, %conf {
         my @nick = |(%conf<nick> // %all-conf<nick>);
         my $s := Server.new(
+          :irc(self),
           :socket(Nil),
           :$label,
           :channels( @(%conf<channels> // %all-conf<channels>) ),
@@ -335,6 +366,12 @@ submethod TWEAK(
           ?? -> Str $s, $ { $s }
           !! ::('Terminal::ANSIColor::EXPORT::DEFAULT::&colored');
     }
+}
+
+method restart-server($server --> Nil) {
+    $!debug and debug-print "Restarting $server.label()", :$server, :sys;
+    $server.socket.close;
+    $server.cue-next-ping-check(600);
 }
 
 method join(*@channels, :$server --> IRC::Client:D) {
@@ -484,7 +521,7 @@ method !connect-socket($server --> Nil) {
         unless $server.has-quit {
             $server.is-connected = False;
             $!debug and debug-print "Connection closed", :in, :$server;
-            sleep 10;
+            sleep 1;
         }
 
         $!socket-pipe.send: $server;
