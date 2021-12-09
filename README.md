@@ -13,7 +13,7 @@ use IRC::Client;
 use Pastebin;
 
 .run with IRC::Client.new:
-    :host<irc.freenode.net>
+    :host<irc.libera.chat>
     :channels<#rakubot #zofbot>
     :debug
     :plugins(

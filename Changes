@@ -1,8 +1,11 @@
 Revision history for IRC::Client
 
 {{$NEXT}}
+
+4.0.2  2021-12-09T11:21:03+01:00
     - Some more internal code reorganization
-    - Added PING test checker + automatic restart capability
+    - Added PING test checker + automatic reconnect capability
+    - Added "magic-word" capability to tell bot to reconnect
 
 4.0.1  2021-12-07T19:58:39+01:00
     - Bump dependency on IO::Socket::Async::SSL

@@ -37,8 +37,7 @@ class Server {
         $!last-ping = time;
         $!next-ping = $!last-ping + $in;
         $*SCHEDULER.cue: {
-            say "Performing ping check for $.label()";
-            $!irc.restart-server(self) if time > $!next-ping;
+            $!irc.reconnect-server(self) if time > $!next-ping;
         }, :$in;
     }
 
@@ -294,11 +293,11 @@ my role Plugin {
     has $.irc is rw;
 }
 
-my class Restarter does Plugin {
+my class Reconnector does Plugin {
     has $.magic-word is required;
     method irc-to-me($_) {
         .text eq $!magic-word
-          ?? .irc.restart-server(.server)
+          ?? .irc.reconnect-server(.server)
           !! $.NEXT
     }
 }
@@ -331,12 +330,13 @@ submethod TWEAK(
   Str:D  :$userhost  = 'localhost',
   Str:D  :$userreal  = "Raku {self.^name} v{self.^ver}",
          :$channels  = ('#raku',),
+         :$magic-word,
 --> Nil) {
     my %all-conf =
       :$port,     :$password, :$host,     :$nick,     :@alias,
       :$username, :$userhost, :$userreal, :$channels, :$ssl,   :$ca-file;
 
-    @!plugins.unshift: Restarter.new: magic-word => 'restart, please';
+    @!plugins.unshift: Reconnector.new(magic-word => $_) with $magic-word;
 
     %servers = '_' => {} unless %servers;
     for %servers.kv -> $label, %conf {
@@ -368,8 +368,8 @@ submethod TWEAK(
     }
 }
 
-method restart-server($server --> Nil) {
-    $!debug and debug-print "Restarting $server.label()", :$server, :sys;
+method reconnect-server($server --> Nil) {
+    $!debug and debug-print "Reconnecting $server.label()", :$server, :sys;
     $server.socket.close;
     $server.cue-next-ping-check(600);
 }
@@ -758,7 +758,7 @@ use IRC::Client;
 use Pastebin;
 
 .run with IRC::Client.new:
-    :host<irc.freenode.net>
+    :host<irc.libera.chat>
     :channels<#rakubot #zofbot>
     :debug
     :plugins(
