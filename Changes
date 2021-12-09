@@ -2,6 +2,9 @@ Revision history for IRC::Client
 
 {{$NEXT}}
 
+4.0.3  2021-12-09T11:38:03+01:00
+    - Make sure IRC::Client::Plugin class is exported
+
 4.0.2  2021-12-09T11:21:03+01:00
     - Some more internal code reorganization
     - Added PING test checker + automatic reconnect capability

@@ -1,5 +1,5 @@
 use IO::Socket::Async::SSL:ver<0.7.9>;
-unit class IRC::Client:ver<4.0.2>:auth<zef:lizmat>;
+unit class IRC::Client:ver<4.0.3>:auth<zef:lizmat>;
 
 #--------------------------------------------------------------------------------
 # IRC::Client::Server
@@ -288,7 +288,7 @@ class Actions {
 my &colored;  # debug message coloring logic
 
 my class IRC_FLAG_NEXT {};
-my role Plugin {
+role Plugin {
     my IRC_FLAG_NEXT $.NEXT;
     has $.irc is rw;
 }
