@@ -2,6 +2,11 @@ Revision history for IRC::Client
 
 {{$NEXT}}
 
+4.0.4  2021-12-10T16:15:27+01:00
+    - Fixed debugging logic (just call "debug" now)
+    - Handle not being able to connect at all better
+    - Fix PING test logic: it didn't work
+
 4.0.3  2021-12-09T11:38:03+01:00
     - Make sure IRC::Client::Plugin class is exported
 

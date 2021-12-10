@@ -1,7 +1,10 @@
 use IO::Socket::Async::SSL:ver<0.7.9>;
-unit class IRC::Client:ver<4.0.3>:auth<zef:lizmat>;
+unit class IRC::Client:ver<4.0.4>:auth<zef:lizmat>;
 
-#--------------------------------------------------------------------------------
+my &colored;  # debug message coloring logic
+my &debug;    # actual live debugging logic
+
+#-------------------------------------------------------------------------------
 # IRC::Client::Server
 
 subset Port of Int where 0 <= $_ <= 65535;
@@ -25,26 +28,39 @@ class Server {
     has Bool $.has-quit     is rw;
     has      $.socket       is rw;
     has Int  $!last-ping;
-    has Int  $!next-ping;
-
-    method TWEAK() { self.cue-next-ping-check(600) }
 
     method label() {
         $!label eq '_' ?? "$!host:$!port" !! $!label
     }
 
     method cue-next-ping-check($in = time - $!last-ping + 10) {
-        $!last-ping = time;
-        $!next-ping = $!last-ping + $in;
+        my $seen-ping = $!last-ping = time;
+        debug
+          "Scheduling next PING test for { DateTime.new($seen-ping + $in) }",
+          :sys, :server(self.label);
         $*SCHEDULER.cue: {
-            $!irc.reconnect-server(self) if time > $!next-ping;
+            if $!last-ping == $seen-ping {
+                debug
+                  "NO PING received after { DateTime.new($seen-ping) }",
+                  :sys, :server(self.label);
+                $!irc.reconnect-server(self)
+            }
+            else {
+                debug
+                  "PING received on {
+                      DateTime.new($!last-ping)
+                  } (after {
+                    $!last-ping - $seen-ping
+                  } seconds)",
+                  :sys, :server(self.label);
+            }
         }, :$in;
     }
 
     method Str { $!label }
 }
 
-#--------------------------------------------------------------------------------
+#-------------------------------------------------------------------------------
 # IRC::Client::Message
 
 role Message { ... }
@@ -140,7 +156,7 @@ role Message {
     method Str { ":$!usermask $!command $!args[]" }
 }
 
-#--------------------------------------------------------------------------------
+#-------------------------------------------------------------------------------
 # IRC::Client::Grammar
 
 grammar Grammar {
@@ -175,7 +191,7 @@ grammar Grammar {
     token special { <[-_\[\]\\`^{}|]> }
 }
 
-#--------------------------------------------------------------------------------
+#-------------------------------------------------------------------------------
 # IRC::Client::Actions
 
 class Actions {
@@ -282,10 +298,8 @@ class Actions {
     }
 }
 
-#--------------------------------------------------------------------------------
+#-------------------------------------------------------------------------------
 # IRC::Client
-
-my &colored;  # debug message coloring logic
 
 my class IRC_FLAG_NEXT {};
 role Plugin {
@@ -305,11 +319,11 @@ my class Reconnector does Plugin {
 has Callable @.filters;
 has          @.plugins;
 has Server   %.servers     is built(False);
-has Int      $.debug       is built(:bind) = 0;
 has Lock     $!lock        is built(:bind) = Lock.new;
 has Channel  $!event-pipe  is built(:bind) = Channel.new;
 has Channel  $!socket-pipe is built(:bind) = Channel.new;
 has Bool     $.autoprefix  is built(:bind) = True;
+has Int      $.debug       is built(False);
 
 # Automatically add nick__ variants if given just one nick
 sub default-expansion-nicks(\nicks) {
@@ -330,11 +344,26 @@ submethod TWEAK(
   Str:D  :$userhost  = 'localhost',
   Str:D  :$userreal  = "Raku {self.^name} v{self.^ver}",
          :$channels  = ('#raku',),
+         :$debug     = 0,
          :$magic-word,
 --> Nil) {
     my %all-conf =
       :$port,     :$password, :$host,     :$nick,     :@alias,
       :$username, :$userhost, :$userreal, :$channels, :$ssl,   :$ca-file;
+
+    $!debug := $debug.Int;
+    without &debug {
+        if $!debug {
+            &colored = (try require Terminal::ANSIColor) === Nil
+              ?? -> Str $s, $ { $s }
+              !! ::('Terminal::ANSIColor::EXPORT::DEFAULT::&colored');
+            &debug = &debug-print;
+            debug "Activated debugging level $!debug", :sys;
+        }
+        else {
+            &debug = -> | --> Nil { }
+        }
+    }
 
     @!plugins.unshift: Reconnector.new(magic-word => $_) with $magic-word;
 
@@ -359,17 +388,10 @@ submethod TWEAK(
         $s.current-nick = @nick[0];
         %!servers{$label} := $s;
     }
-
-    # Coloring only needed when running in debug mode
-    if $!debug {
-        &colored = (try require Terminal::ANSIColor) === Nil
-          ?? -> Str $s, $ { $s }
-          !! ::('Terminal::ANSIColor::EXPORT::DEFAULT::&colored');
-    }
 }
 
 method reconnect-server($server --> Nil) {
-    $!debug and debug-print "Reconnecting $server.label()", :$server, :sys;
+    debug "Reconnecting $server.label()", :$server, :sys;
     $server.socket.close;
     $server.cue-next-ping-check(600);
 }
@@ -411,7 +433,7 @@ method run(--> Nil) {
         my $closed = $!event-pipe.closed;
         loop {
             if $!event-pipe.receive -> $e {
-                $!debug and debug-print $e, :in, :server($e.server);
+                debug $e, :in, :server($e.server);
                 $!lock.protect: {
                     self!handle-event: $e;
                     CATCH { default { warn $_; warn .backtrace } }
@@ -431,7 +453,7 @@ method run(--> Nil) {
         my $s := $!socket-pipe.receive;
         self!connect-socket: $s unless $s.has-quit;
         unless %!servers.grep(!*.value.has-quit) {
-            $!debug and debug-print 'All servers quit by user. Exiting', :sys;
+            debug 'All servers quit by user. Exiting', :sys;
             last;
         }
     }
@@ -444,16 +466,16 @@ method send(:$where!, :$text!, :$server, :$notice --> IRC::Client:D) {
                 :server($_);
         }
         else {
-            $!debug and debug-print( :out, :server($_),
-                '.send() called for an unconnected server. Skipping...'
-            );
+            debug
+              ".send() called for an unconnected server. Skipping...",
+              :out, :server($_);
         }
     }
 
     self
 }
 
-#--------------------------------------------------------------------------------
+#-------------------------------------------------------------------------------
 # Private Methods
 
 method !change-nick($server --> Nil) {
@@ -476,9 +498,9 @@ method !change-nick($server --> Nil) {
 }
 
 method !connect-socket($server --> Nil) {
-    $!debug and debug-print 'Attempting to connect to server', :out, :$server;
+    debug 'Attempting to connect to server', :out, :$server;
 
-    my $socket := $server.ssl
+    my $socket := try $server.ssl
       ?? IO::Socket::Async::SSL.connect(
            $server.host,
            $server.port,
@@ -486,46 +508,54 @@ method !connect-socket($server --> Nil) {
          )
       !! IO::Socket::Async.connect($server.host, $server.port);
 
-    $socket.then: sub ($prom) {
-        if $prom.status ~~ Broken {
-            $server.is-connected = False;
-            $!debug and debug-print "Could not connect: $prom.cause()", :out, :$server;
-            sleep 10;
-            $!socket-pipe.send: $server;
-            return;
-        }
-
-        $server.socket = $prom.result;
-
-        self!ssay: "PASS $server.password()", :$server
-            if $server.password.defined;
-        self!ssay: "NICK {$server.nick[0]}", :$server;
-
-        self!ssay: :$server, join ' ', 'USER', $server.username,
-            $server.username, $server.host, ':' ~ $server.userreal;
-
-        my $left-overs = '';
-        react {
-            whenever $server.socket.Supply :bin -> $buf is copy {
-                my $str = try $buf.decode: 'utf8';
-                $str or $str = $buf.decode: 'latin-1';
-                $str = ($left-overs//'') ~ $str;
-
-                (my $events, $left-overs) = self!parse: $str, :$server;
-                $!event-pipe.send: $_ for $events.grep: *.defined;
-
-                CATCH { default { warn $_; warn .backtrace } }
+    with $socket {
+        $socket.then: sub ($prom) {
+            if $prom.status ~~ Broken {
+                $server.is-connected = False;
+                debug "Could not connect: $prom.cause()", :out, :$server;
+                sleep 10;
+                $!socket-pipe.send: $server;
+                return;
             }
-        }
 
-        unless $server.has-quit {
-            $server.is-connected = False;
-            $!debug and debug-print "Connection closed", :in, :$server;
-            sleep 1;
-        }
+            $server.socket = $prom.result;
+            $server.cue-next-ping-check(600);
 
+            self!ssay: "PASS $server.password()", :$server
+                if $server.password.defined;
+            self!ssay: "NICK {$server.nick[0]}", :$server;
+
+            self!ssay: :$server, join ' ', 'USER', $server.username,
+                $server.username, $server.host, ':' ~ $server.userreal;
+
+            my $left-overs = '';
+            react {
+                whenever $server.socket.Supply :bin -> $buf is copy {
+                    my $str = try $buf.decode: 'utf8';
+                    $str or $str = $buf.decode: 'latin-1';
+                    $str = ($left-overs//'') ~ $str;
+
+                    (my $events, $left-overs) = self!parse: $str, :$server;
+                    $!event-pipe.send: $_ for $events.grep: *.defined;
+
+                    CATCH { default { warn $_; warn .backtrace } }
+                }
+            }
+
+            unless $server.has-quit {
+                $server.is-connected = False;
+                debug "Connection closed", :in, :$server;
+                sleep 1;
+            }
+
+            $!socket-pipe.send: $server;
+            CATCH { default { warn $_; warn .backtrace; } }
+        }
+    }
+    else {
+        debug "Connection to $server.alias() failed: $!", :sys, :$server;
+        sleep 10;
         $!socket-pipe.send: $server;
-        CATCH { default { warn $_; warn .backtrace; } }
     }
 }
 
@@ -594,8 +624,8 @@ method !handle-event($e) {
 
     EVENT:
     for @events -> $event {
-        debug-print "emitting `$event`", :sys
-            if $!debug >= 3 or ($!debug == 2 and not $event eq 'irc-all');
+        debug("emitting `$event`", :sys)
+          if $!debug >= 3 or ($!debug == 2 and not $event eq 'irc-all');
 
         for self!plugins-that-can($event, $e) {
             my $res is default(Nil) = ."$event"($e);
@@ -693,13 +723,13 @@ method !set-server-attr($server, $method, $what --> Nil) {
 
 method !ssay(Str:D $msg, :$server is copy) {
     $server //= '*';
-    $!debug and debug-print $msg, :out, :$server;
+    debug $msg, :out, :$server;
     %!servers{$_}.socket.print: "$msg\n"
         for |($server eq '*' ?? %!servers.keys.sort !! ~$server);
     self
 }
 
-#--------------------------------------------------------------------------------
+#-------------------------------------------------------------------------------
 # Debugging
 
 sub debug-print($str, :$in, :$out, :$sys, :$server --> Nil) {
