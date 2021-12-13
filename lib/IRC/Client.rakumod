@@ -1,5 +1,5 @@
 use IO::Socket::Async::SSL:ver<0.7.9>;
-unit class IRC::Client:ver<4.0.4>:auth<zef:lizmat>;
+unit class IRC::Client:ver<4.0.5>:auth<zef:lizmat>;
 
 my &colored;  # debug message coloring logic
 my &debug;    # actual live debugging logic

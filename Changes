@@ -2,6 +2,9 @@ Revision history for IRC::Client
 
 {{$NEXT}}
 
+4.0.5  2021-12-13T20:05:00+01:00
+    - Make sure we have a "use IRC::Client::Message" endpoint
+
 4.0.4  2021-12-10T16:15:27+01:00
     - Fixed debugging logic (just call "debug" now)
     - Handle not being able to connect at all better
