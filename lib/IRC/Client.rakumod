@@ -1,13 +1,14 @@
 use IO::Socket::Async::SSL:ver<0.7.9>;
-unit class IRC::Client:ver<4.0.5>:auth<zef:lizmat>;
+unit class IRC::Client:ver<4.0.6>:auth<zef:lizmat>;
 
 my &colored;  # debug message coloring logic
 my &debug;    # actual live debugging logic
 
+my constant default-ping-wait = 300;
+my subset Port of Int where 0 <= $_ <= 65535;
+
 #-------------------------------------------------------------------------------
 # IRC::Client::Server
-
-subset Port of Int where 0 <= $_ <= 65535;
 
 class Server {
     has      $.irc;
@@ -28,15 +29,31 @@ class Server {
     has Bool $.has-quit     is rw;
     has      $.socket       is rw;
     has Int  $!last-ping;
+    has Int  $!ping-wait;
 
     method label() {
         $!label eq '_' ?? "$!host:$!port" !! $!label
     }
 
-    method cue-next-ping-check($in = time - $!last-ping + 10) {
+    method set-ping-wait(--> Nil) {
+        $!ping-wait = time - $!last-ping without $!ping-wait;
+    }
+
+    method cue-next-ping-check($in? is copy --> Nil) {
+        with $in {
+            $!ping-wait = Nil;
+        }
+        else {
+            $in = $!ping-wait
+              ?? $!ping-wait + 10
+              !! default-ping-wait;
+        }
+
         my $seen-ping = $!last-ping = time;
         debug
-          "Scheduling next PING test for { DateTime.new($seen-ping + $in) }",
+          "Scheduling next PING test for {
+              DateTime.new($seen-ping + $in)
+          } (in $in seconds)",
           :sys, :server(self.label);
         $*SCHEDULER.cue: {
             if $!last-ping == $seen-ping {
@@ -73,8 +90,10 @@ role Message::Part    does Message { has $.channel  }
 role Message::Quit    does Message {                }
 
 role Message::Ping does Message {
-    method TWEAK() { $.server.cue-next-ping-check              }
-    method reply() { $.irc.send-cmd: 'PONG', $.args, :$.server }
+    method reply() {
+        $.server.set-ping-wait;
+        $.irc.send-cmd: 'PONG', $.args, :$.server
+    }
 }
 
 role Message::Mode::Channel does Message::Mode {
@@ -393,11 +412,10 @@ submethod TWEAK(
 method reconnect-server($server --> Nil) {
     debug "Reconnecting $server.label()", :$server, :sys;
     $server.socket.close;
-    $server.cue-next-ping-check(600);
 }
 
 method join(*@channels, :$server --> IRC::Client:D) {
-    self.send-cmd: 'JOIN', ($_ ~~ Pair ?? .kv !! .Str), :$server
+    self.send-cmd: 'JOIN', ($_ ~~ Pair ?? .kv !! .Str), :$server, :dont-cue
       for @channels;
     self
 }
@@ -406,7 +424,7 @@ method nick(*@nicks, :$server = '*' --> IRC::Client:D) {
     default-expansion-nicks(@nicks) if @nicks == 1;
     self!set-server-attr($server, 'nick', @nicks);
     self!set-server-attr($server, 'current-nick', @nicks[0]);
-    self.send-cmd: 'NICK', @nicks[0], :$server;
+    self.send-cmd: 'NICK', @nicks[0], :$server, :dont-cue;
     self
 }
 
@@ -422,7 +440,7 @@ method quit(:$server = '*' --> IRC::Client:D) {
     else {
         self!get-server($server).has-quit = True;
     }
-    self.send-cmd: 'QUIT', :$server;
+    self.send-cmd: 'QUIT', :$server, :dont-cue;
     self
 }
 
@@ -519,13 +537,13 @@ method !connect-socket($server --> Nil) {
             }
 
             $server.socket = $prom.result;
-            $server.cue-next-ping-check(600);
+            $server.cue-next-ping-check(default-ping-wait);
 
-            self!ssay: "PASS $server.password()", :$server
+            self!ssay: "PASS $server.password()", :$server, :dont-cue
                 if $server.password.defined;
-            self!ssay: "NICK {$server.nick[0]}", :$server;
+            self!ssay: "NICK {$server.nick[0]}", :$server, :dont-cue;
 
-            self!ssay: :$server, join ' ', 'USER', $server.username,
+            self!ssay: :$server, :dont-cue, join ' ', 'USER', $server.username,
                 $server.username, $server.host, ':' ~ $server.userreal;
 
             my $left-overs = '';
@@ -676,7 +694,9 @@ method !get-server($server --> IRC::Client::Server:D) {
     }
 }
 
-method send-cmd($cmd, *@args is copy, :$prefix = '', :$server --> Nil) {
+method send-cmd(
+  $cmd, *@args is copy, :$prefix = '', :$server, :$dont-cue
+--> Nil) {
     if $cmd eq 'NOTICE'|'PRIVMSG' {
         my ($where, $text) = @args;
         if @!filters
@@ -693,11 +713,13 @@ method send-cmd($cmd, *@args is copy, :$prefix = '', :$server --> Nil) {
                         when 2 { ($text, $where) = $f($text, :$where); }
                     }
                 }
-                self!ssay: :$server, join ' ', $cmd, $where, ":$prefix$text";
+                self!ssay: :$server, :$dont-cue,
+                  join ' ', $cmd, $where, ":$prefix$text";
             }
         }
         else {
-            self!ssay: :$server, join ' ', $cmd, $where, ":$prefix$text";
+            self!ssay: :$server, :$dont-cue,
+              join ' ', $cmd, $where, ":$prefix$text";
         }
     }
     else {
@@ -706,7 +728,8 @@ method send-cmd($cmd, *@args is copy, :$prefix = '', :$server --> Nil) {
             $last = ':' ~ $last
                 if not $last or $last.starts-with: ':' or $last.match: /\s/;
         }
-        self!ssay: :$server, join ' ', $cmd, @args;
+        self!ssay: :$server, :$dont-cue,
+          join ' ', $cmd, @args;
     }
 }
 
@@ -721,11 +744,15 @@ method !set-server-attr($server, $method, $what --> Nil) {
     }
 }
 
-method !ssay(Str:D $msg, :$server is copy) {
+method !ssay(Str:D $msg, :$server is copy, :$dont-cue) {
     $server //= '*';
     debug $msg, :out, :$server;
-    %!servers{$_}.socket.print: "$msg\n"
-        for |($server eq '*' ?? %!servers.keys.sort !! ~$server);
+    for |($server eq '*' ?? %!servers.keys.sort !! ~$server) {
+        with %!servers{$_} {
+            .socket.print: "$msg\n";
+            .cue-next-ping-check unless $dont-cue;
+        }
+    }
     self
 }
 

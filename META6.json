@@ -14,8 +14,7 @@
   "name": "IRC::Client",
   "perl": "6.d",
   "provides": {
-    "IRC::Client": "lib/IRC/Client.rakumod",
-    "IRC::Client::Message": "lib/IRC/Client/Message.rakumod"
+    "IRC::Client": "lib/IRC/Client.rakumod"
   },
   "resources": [
   ],
@@ -32,5 +31,5 @@
     "Test::When",
     "Test::Notice"
   ],
-  "version": "4.0.5"
+  "version": "4.0.6"
 }
