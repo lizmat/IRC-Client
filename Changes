@@ -2,6 +2,9 @@ Revision history for IRC::Client
 
 {{$NEXT}}
 
+4.0.7  2022-01-07T00:01:03+01:00
+    - Make sure that an exception in react/whenever quits
+
 4.0.6  2021-12-15T15:24:11+01:00
     - Make PING check more reliable by scheduling one every time
       the client says something on the server (apparently IRC servers

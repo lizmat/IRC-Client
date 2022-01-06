@@ -1,5 +1,5 @@
 use IO::Socket::Async::SSL:ver<0.7.9>;
-unit class IRC::Client:ver<4.0.6>:auth<zef:lizmat>;
+unit class IRC::Client:ver<4.0.7>:auth<zef:lizmat>;
 
 my &colored;  # debug message coloring logic
 my &debug;    # actual live debugging logic
@@ -551,12 +551,12 @@ method !connect-socket($server --> Nil) {
                 whenever $server.socket.Supply :bin -> $buf is copy {
                     my $str = try $buf.decode: 'utf8';
                     $str or $str = $buf.decode: 'latin-1';
-                    $str = ($left-overs//'') ~ $str;
+                    $str = $left-overs ~ $str if $left-overs;
 
                     (my $events, $left-overs) = self!parse: $str, :$server;
                     $!event-pipe.send: $_ for $events.grep: *.defined;
 
-                    CATCH { default { warn $_; warn .backtrace } }
+                    CATCH { default { warn $_; warn .backtrace; done } }
                 }
             }
 
