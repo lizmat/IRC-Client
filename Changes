@@ -2,6 +2,9 @@ Revision history for IRC::Client
 
 {{$NEXT}}
 
+4.0.8  2022-02-12T10:45:27+01:00
+    - Upped dependency on IO::Socket::Async::SSL
+
 4.0.7  2022-01-07T00:01:03+01:00
     - Make sure that an exception in react/whenever quits
 
