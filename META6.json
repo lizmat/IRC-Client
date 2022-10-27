@@ -7,7 +7,7 @@
   "build-depends": [
   ],
   "depends": [
-    "IO::Socket::Async::SSL:ver<0.7.10>"
+    "IO::Socket::Async::SSL:ver<0.7.14>"
   ],
   "description": "Extendable Internet Relay Chat client",
   "license": "Artistic-2.0",
