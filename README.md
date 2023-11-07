@@ -56,7 +56,11 @@ CONTRIBUTORS
 COPYRIGHT AND LICENSE
 =====================
 
-Copyright 2015-2021 Zoffix Znet Copyright 2021 Elizabeth Mattijsen
+Copyright 2015-2021 Zoffix Znet
+
+Copyright 2021-2023 Elizabeth Mattijsen
+
+If you like this module, or what I’m doing more generally, committing to a [small sponsorship](https://github.com/sponsors/lizmat/) would mean a great deal to me!
 
 This library is free software; you can redistribute it and/or modify it under the Artistic License 2.0.
 

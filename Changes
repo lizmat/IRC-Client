@@ -2,6 +2,12 @@ Revision history for IRC::Client
 
 {{$NEXT}}
 
+4.0.11  2023-11-07T14:12:36+01:00
+    - Don't cue ping tests for the same second.  This could happen when
+      bursting a message to a channel.  Only one ping test will suffice
+    - Update copyright year
+    - Add sponsor link
+
 4.0.10  2023-11-07T13:42:50+01:00
     - Set default ping-wait independent of last ping received.  This looks
       like it will fix bouncing behaviour of bots because they missed a PING

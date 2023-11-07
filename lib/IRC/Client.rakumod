@@ -49,7 +49,11 @@ class Server {
               !! default-ping-wait;
         }
 
-        my $seen-ping = $!last-ping = time;
+        # don't cue ping checks for the same second
+        my $seen-ping = time;
+        return if $!last-ping && $seen-ping == $!last-ping;
+
+        $!last-ping = $seen-ping;
         debug
           "Scheduling next PING test for {
               DateTime.new($seen-ping + $in)
@@ -861,7 +865,12 @@ Pull Requests are welcome.
 =head1 COPYRIGHT AND LICENSE
 
 Copyright 2015-2021 Zoffix Znet
-Copyright 2021 Elizabeth Mattijsen
+
+Copyright 2021-2023 Elizabeth Mattijsen
+
+If you like this module, or what I’m doing more generally, committing to a
+L<small sponsorship|https://github.com/sponsors/lizmat/>  would mean a great
+deal to me!
 
 This library is free software; you can redistribute it and/or modify it under the Artistic License 2.0.
 
