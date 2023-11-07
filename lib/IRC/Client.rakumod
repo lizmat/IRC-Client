@@ -36,7 +36,7 @@ class Server {
     }
 
     method set-ping-wait(--> Nil) {
-        $!ping-wait = time - $!last-ping without $!ping-wait;
+        $!ping-wait = default-ping-wait without $!ping-wait;
     }
 
     method cue-next-ping-check($in? is copy --> Nil) {

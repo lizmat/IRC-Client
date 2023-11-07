@@ -2,6 +2,10 @@ Revision history for IRC::Client
 
 {{$NEXT}}
 
+4.0.10  2023-11-07T13:42:50+01:00
+    - Set default ping-wait independent of last ping received.  This looks
+      like it will fix bouncing behaviour of bots because they missed a PING
+
 4.0.9  2022-10-27T11:46:56+02:00
     - Upped dependency on IO::Socket::Async::SSL, japhb++
 
