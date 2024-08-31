@@ -1,6 +1,10 @@
 Revision history for IRC::Client
 
 {{$NEXT}}
+    - Bump version of IO::Socket::Async::SSL, and make it accept any
+      future versions as well, to prevent clashes with e.g. Whateverable
+    - Add separate badges for each OS
+    - Update copyright year
 
 4.0.11  2023-11-07T14:12:36+01:00
     - Don't cue ping tests for the same second.  This could happen when

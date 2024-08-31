@@ -1,4 +1,4 @@
-use IO::Socket::Async::SSL:ver<0.7.14>;
+use IO::Socket::Async::SSL:ver<0.8.0+>;
 unit class IRC::Client;
 
 my &colored;  # debug message coloring logic
@@ -866,7 +866,7 @@ Pull Requests are welcome.
 
 Copyright 2015-2021 Zoffix Znet
 
-Copyright 2021-2023 Elizabeth Mattijsen
+Copyright 2021-2024 Elizabeth Mattijsen
 
 If you like this module, or what I’m doing more generally, committing to a
 L<small sponsorship|https://github.com/sponsors/lizmat/>  would mean a great

@@ -1,4 +1,4 @@
-[![Actions Status](https://github.com/lizmat/IRC-Client/workflows/test/badge.svg)](https://github.com/lizmat/IRC-Client/actions)
+[![Actions Status](https://github.com/lizmat/IRC-Client/actions/workflows/linux.yml/badge.svg)](https://github.com/lizmat/IRC-Client/actions) [![Actions Status](https://github.com/lizmat/IRC-Client/actions/workflows/macos.yml/badge.svg)](https://github.com/lizmat/IRC-Client/actions) [![Actions Status](https://github.com/lizmat/IRC-Client/actions/workflows/windows.yml/badge.svg)](https://github.com/lizmat/IRC-Client/actions)
 
 NAME
 ====
@@ -58,7 +58,7 @@ COPYRIGHT AND LICENSE
 
 Copyright 2015-2021 Zoffix Znet
 
-Copyright 2021-2023 Elizabeth Mattijsen
+Copyright 2021-2024 Elizabeth Mattijsen
 
 If you like this module, or what I’m doing more generally, committing to a [small sponsorship](https://github.com/sponsors/lizmat/) would mean a great deal to me!
 
