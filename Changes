@@ -4,6 +4,7 @@ Revision history for IRC::Client
     - Bump version of IO::Socket::Async::SSL, and make it accept any
       future versions as well, to prevent clashes with e.g. Whateverable
     - Add separate badges for each OS
+    - Add sponsor button
     - Update copyright year
 
 4.0.11  2023-11-07T14:12:36+01:00
