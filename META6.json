@@ -27,7 +27,6 @@
     "IRC"
   ],
   "test-depends": [
-    "Test",
     "Test::When",
     "Test::Notice"
   ],
