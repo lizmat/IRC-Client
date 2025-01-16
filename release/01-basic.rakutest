@@ -1,8 +1,8 @@
-use lib <lib t/release>;
 use Test;
-use Test::When <release>;
 use Test::Notice;
 use IRC::Client;
+
+use lib $*PROGRAM.parent;
 use Test::IRC::Server;
 
 my $Wait = (%*ENV<IRC_CLIENT_TEST_WAIT>//1) * 5;
@@ -10,7 +10,9 @@ my $Wait = (%*ENV<IRC_CLIENT_TEST_WAIT>//1) * 5;
 notice 'Testing connection to one server and joining two channels';
 
 diag 'Starting IRC Server';
-my $s = Test::IRC::Server.new;
+my $s = Test::IRC::Server.new(
+  server => $*PROGRAM.sibling("servers").add("01-basic.pl").absolute
+);
 END { $s.kill };
 
 loop {

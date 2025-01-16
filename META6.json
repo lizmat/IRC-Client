@@ -19,16 +19,12 @@
   "resources": [
   ],
   "source-url": "https://github.com/lizmat/IRC-Client.git",
-  "support": {
-    "source": "https://github.com/lizmat/IRC-Client.git"
-  },
   "tags": [
-    "Net",
-    "IRC"
+    "NET",
+    "IRC",
+    "CLIENT"
   ],
   "test-depends": [
-    "Test::When",
-    "Test::Notice"
   ],
   "version": "4.0.12"
 }

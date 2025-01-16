@@ -1,3 +1,4 @@
 .precomp/
 /IRC-Client-*
 /releases/
+*.rakucov

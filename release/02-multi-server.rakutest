@@ -1,19 +1,21 @@
-use lib <lib t/release>;
 use Test;
-use Test::When <release>;
 use Test::Notice;
 use IRC::Client;
+
+use lib $*PROGRAM.parent;
 use Test::IRC::Server;
 
 my $Wait = (%*ENV<IRC_CLIENT_TEST_WAIT>//1) * 5;
 
 notice 'Testing connection to four servers and joining two channels in each';
 
+my $server := $*PROGRAM.sibling("servers").add("01-basic.pl").absolute;
+
 diag 'Starting IRC Servers';
-my $s1 = Test::IRC::Server.new: :port<5020>;
-my $s2 = Test::IRC::Server.new: :port<5021>;
-my $s3 = Test::IRC::Server.new: :port<5022>;
-my $s4 = Test::IRC::Server.new: :port<5023>;
+my $s1 = Test::IRC::Server.new: :$server, :port<5020>;
+my $s2 = Test::IRC::Server.new: :$server, :port<5021>;
+my $s3 = Test::IRC::Server.new: :$server, :port<5022>;
+my $s4 = Test::IRC::Server.new: :$server, :port<5023>;
 END { $s1.kill; $s2.kill; $s3.kill; $s4.kill; };
 
 loop {

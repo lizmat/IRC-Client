@@ -40,11 +40,13 @@ DOCUMENTATION MAP
 AUTHORS
 =======
 
-  * Zoffix Znet (2015-2018)
+  * Zoffix Znet
 
-  * Elizabeth Mattijsen (2021-) <liz@raku.rocks>
+  * Elizabeth Mattijsen
 
 Source can be located at: https://github.com/lizmat/IRC-Client . Comments and Pull Requests are welcome.
+
+If you like this module, or what I’m doing more generally, committing to a [small sponsorship](https://github.com/sponsors/lizmat/) would mean a great deal to me!
 
 CONTRIBUTORS
 ============
@@ -58,9 +60,7 @@ COPYRIGHT AND LICENSE
 
 Copyright 2015-2021 Zoffix Znet
 
-Copyright 2021-2024 Elizabeth Mattijsen
-
-If you like this module, or what I’m doing more generally, committing to a [small sponsorship](https://github.com/sponsors/lizmat/) would mean a great deal to me!
+Copyright 2021-2025 Elizabeth Mattijsen
 
 This library is free software; you can redistribute it and/or modify it under the Artistic License 2.0.
 

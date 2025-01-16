@@ -1,10 +1,18 @@
 Revision history for IRC::Client
 
 {{$NEXT}}
+    - Use modern test file extensions, and move release tests
+      to "xt" directory, so they'd be run on upload
+    - Remove test dependencies, as these are only needed for
+      author testing
+    - Moved the release tests out of immediate testing, as they
+      (or the perl backend) have severely bitrotted
+    - Update copyright year
 
 4.0.12  2024-08-31T20:30:02+02:00
-    - Bump version of IO::Socket::Async::SSL, and make it accept any
-      future versions as well, to prevent clashes with e.g. Whateverable
+    - Bump version of IO::Socket::Async::SSL, and make it accept
+      any future versions as well, to prevent clashes with
+      e.g. Whateverable
     - Add separate badges for each OS
     - Add sponsor button
     - Update copyright year
