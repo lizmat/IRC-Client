@@ -1,6 +1,8 @@
 Revision history for IRC::Client
 
 {{$NEXT}}
+
+4.0.13  2025-01-16T15:03:13+01:00
     - Use modern test file extensions, and move release tests
       to "xt" directory, so they'd be run on upload
     - Remove test dependencies, as these are only needed for
