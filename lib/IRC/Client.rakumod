@@ -1,5 +1,5 @@
 use IO::Socket::Async::SSL:ver<0.8.0+>;
-unit class IRC::Client;
+unit class IRC::Client:ver<4.0.14>:auth<zef:lizmat>;
 
 my &colored;  # debug message coloring logic
 my &debug;    # actual live debugging logic
@@ -10,7 +10,7 @@ my subset Port of Int where 0 <= $_ <= 65535;
 #-------------------------------------------------------------------------------
 # IRC::Client::Server
 
-class Server {
+class Server:ver<4.0.14>:auth<zef:lizmat> {
     has      $.irc;
     has      @.channels where .all ~~ Str|Pair;
     has      @.nick     where .all ~~ Str;
@@ -217,7 +217,7 @@ grammar Grammar {
 #-------------------------------------------------------------------------------
 # IRC::Client::Actions
 
-class Actions {
+class Actions:ver<4.0.14>:auth<zef:lizmat> {
     has $.irc;
     has $.server;
 
