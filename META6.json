@@ -4,6 +4,8 @@
     "Elizabeth Mattijsen",
     "Zoffix Znet"
   ],
+  "build-depends": [
+  ],
   "depends": {
     "runtime": {
       "requires": [
@@ -18,6 +20,9 @@
     "IRC::Client": "lib/IRC/Client.rakumod"
   },
   "raku": "6.d",
+  "resources": [
+  ],
+  "source-url": "https://github.com/lizmat/IRC-Client.git",
   "support": {
     "bugtracker": "https://github.com/lizmat/IRC-Client/issues",
     "email": "liz@raku.rocks",
@@ -28,5 +33,7 @@
     "IRC",
     "CLIENT"
   ],
-  "version": "4.0.14"
+  "test-depends": [
+  ],
+  "version": "4.0.15"
 }
