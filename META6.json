@@ -4,27 +4,29 @@
     "Elizabeth Mattijsen",
     "Zoffix Znet"
   ],
-  "build-depends": [
-  ],
-  "depends": [
-    "IO::Socket::Async::SSL:ver<0.8.0+>"
-  ],
+  "depends": {
+    "runtime": {
+      "requires": [
+        "IO::Socket::Async::SSL:ver<0.8.0+>"
+      ]
+    }
+  },
   "description": "Extendable Internet Relay Chat client",
   "license": "Artistic-2.0",
   "name": "IRC::Client",
-  "perl": "6.d",
   "provides": {
     "IRC::Client": "lib/IRC/Client.rakumod"
   },
-  "resources": [
-  ],
-  "source-url": "https://github.com/lizmat/IRC-Client.git",
+  "raku": "6.d",
+  "support": {
+    "bugtracker": "https://github.com/lizmat/IRC-Client/issues",
+    "email": "liz@raku.rocks",
+    "source": "https://github.com/lizmat/IRC-Client.git"
+  },
   "tags": [
     "NET",
     "IRC",
     "CLIENT"
-  ],
-  "test-depends": [
   ],
   "version": "4.0.14"
 }

@@ -35,7 +35,7 @@ The module provides the means to create clients to communicate with IRC (Interne
 DOCUMENTATION MAP
 =================
 
-* [Blog Post](https://github.com/Raku/CCR/blob/main/Remaster/Zoffix%20Znet/IRC-Client-Raku-Multi-Server-IRC-or-Awesome-Async-Interfaces-with-Raku.md) * [Basics Tutorial](https://github.com/lizmat/IRC-Client/blob/main/docs/01-basics.md) * [Event Reference](https://github.com/lizmat/IRC-Client/blob/main/docs/02-event-reference.md) * [Method Reference](https://github.com/lizmat/IRC-Client/blob/main/docs/03-method-reference.md) * [Big-Picture Behaviour](https://github.com/lizmat/IRC-Client/blob/main/docs/04-big-picture-behaviour.md) * [Examples](https://github.com/lizmat/IRC-Client/blob/main/examples/)
+* [Blog Post](https://raku.github.io/CCR/Remaster/Zoffix%20Znet/IRC-Client-Raku-Multi-Server-IRC-or-Awesome-Async-Interfaces-with-Raku.html) * [Basics Tutorial](https://github.com/lizmat/IRC-Client/blob/main/docs/01-basics.md) * [Event Reference](https://github.com/lizmat/IRC-Client/blob/main/docs/02-event-reference.md) * [Method Reference](https://github.com/lizmat/IRC-Client/blob/main/docs/03-method-reference.md) * [Big-Picture Behaviour](https://github.com/lizmat/IRC-Client/blob/main/docs/04-big-picture-behaviour.md) * [Examples](https://github.com/lizmat/IRC-Client/blob/main/examples/)
 
 AUTHORS
 =======
@@ -60,7 +60,7 @@ COPYRIGHT AND LICENSE
 
 Copyright 2015-2021 Zoffix Znet
 
-Copyright 2021-2025 Elizabeth Mattijsen
+Copyright 2021-2026 Elizabeth Mattijsen
 
 This library is free software; you can redistribute it and/or modify it under the Artistic License 2.0.
 

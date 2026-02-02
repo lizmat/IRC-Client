@@ -62,7 +62,7 @@ say ""
   || $enable-spesh-log;
 
 say "Testing {
-    "dist.ini".IO.lines.head.substr(7)
+    (try "dist.ini".IO.lines.head.substr(7)) // "..."
 }{
     " including author tests" if $author
 }";
@@ -71,11 +71,9 @@ my @failed;
 my $done   = 0;
 
 sub process($proc, $filename) {
-    if $proc {
-        $proc.out.slurp;
-        $spesh-log.unlink if $spesh-log;
-    }
-    else {
+
+    # Something wrong apparently
+    if $proc.exitcode -> $exit {
         @failed.push($filename);
         if $proc.out.slurp -> $stdout {
             my @lines = $stdout.lines;
@@ -97,27 +95,40 @@ sub process($proc, $filename) {
             say $spesh-log.lines(:!chomp).tail(20000).join;
             $spesh-log.unlink;
         }
+        exit $exit;
+    }
+
+    # All ok
+    else {
+        $proc.out.slurp;
+        $spesh-log.unlink if $spesh-log;
     }
 }
 
 sub install() {
-    my $zef  := $*DISTRO.is-win ?? 'zef.bat' !! 'zef';
-    my $proc := run $zef, "install", ".", "--verbose", "--/test", :out,:err,:merge;
+    my $proc := run 'zef', "install", ".", "--verbose", "--/test", :out,:err,:merge;
     process($proc, "*installation*");
 }
 
 sub test-dir($dir) {
-    for $dir.IO.dir(:test(*.ends-with: '.t' | '.rakutest')).map(*.Str).sort {
-        say "=== $_";
-        my $proc := run "raku", "--ll-exception", "-I.", $_, :out,:err,:merge;
-        process($proc, $_);
-        $done++;
+    my $io := $dir.IO;
+    if $io.e && $io.d {
+        for $io.dir(:test(*.ends-with: '.t' | '.rakutest')).map(*.Str).sort {
+            say "=== $_";
+            my $proc := run "raku", "--ll-exception", "-I.", $_, :out,:err,:merge;
+            process($proc, $_);
+            $done++;
+        }
     }
 }
 
 test-dir("t");
-test-dir($_) for dir("t", :test({ !.starts-with(".") && "t/$_".IO.d})).map(*.Str).sort;
-test-dir("xt") if $author && "xt".IO.e;
+if "t".IO.e {
+    test-dir($_) for dir(
+      "t", :test({ !.starts-with(".") && "t/$_".IO.d})
+    ).map(*.Str).sort;
+}
+test-dir("xt") if $author;
 if $install {
     install;
     ++$done;

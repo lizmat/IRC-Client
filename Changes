@@ -1,6 +1,10 @@
 Revision history for IRC::Client
 
 {{$NEXT}}
+    - Be more lenient with regards to accepting valid nicknames
+    - Update link to Zoffix' blog post
+    - Modernize META6.json
+    - Update copyright year
 
 4.0.14  2025-02-12T19:01:13+01:00
     - Fix pesky warning on startup, because the .^ver wasn't set

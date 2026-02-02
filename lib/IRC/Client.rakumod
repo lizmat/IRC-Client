@@ -198,7 +198,7 @@ grammar Grammar {
             # the RFC grammar states nicks have to start with a letter,
             # however, modern server support and nick use disagrees with that
             # and nicks can start with special chars too
-            [<letter> | <special>] [ <letter> | <number> | <special> ]*
+            [ <letter> | <number> | <special> ]+
         }
         token user { <-[\ \x[0]\r\n]>+?  <before [<SPACE> | '@']>}
         token host { <-[\s!@]>+ }
@@ -419,8 +419,10 @@ method reconnect-server($server --> Nil) {
 }
 
 method join(*@channels, :$server --> IRC::Client:D) {
-    self.send-cmd: 'JOIN', ($_ ~~ Pair ?? .kv !! .Str), :$server, :dont-cue
-      for @channels;
+    for @channels {
+        self.send-cmd: 'JOIN', ($_ ~~ Pair ?? .kv !! .Str), :$server, :dont-cue;
+        sleep .3;
+    }
     self
 }
 
